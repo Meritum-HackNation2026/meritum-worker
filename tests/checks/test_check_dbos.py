@@ -17,6 +17,7 @@ from meritum_core.checks import AnalysisStatus, CheckRecordRepository
 from meritum_core.jobs.constants import PROGRESS_KEY
 from meritum_core.jobs.contracts import CHECK, CheckInput, CheckOutput
 from meritum_core.shared.database.adapters import apply_migrations
+from psycopg import sql
 
 from meritum_worker import main
 
@@ -30,9 +31,7 @@ def records(monkeypatch: pytest.MonkeyPatch) -> Iterator[CheckRecordRepository]:
     monkeypatch.setenv("MERITUM_LLM_PROVIDER", "stub")
     monkeypatch.setenv("MERITUM_LLM_STUB_FIXTURES", str(FIXTURE))
     monkeypatch.setenv("MERITUM_DBOS_SCHEMA", "worker_integration")
-    main.check_deps.cache_clear()
-    DBOS(config=main.config())
-    DBOS.launch()
+    _launch()
     yield main.check_deps().records
     DBOS.destroy()
     main.check_deps.cache_clear()
@@ -65,23 +64,29 @@ def test_check_workflow_runs_on_dbos_and_streams_progress(
 def app_database(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
     """Point MERITUM_DATABASE_* at a fresh, migrated app schema; yield its URL."""
     base = os.environ["MERITUM_TEST_DATABASE_URL"]
+    schema = sql.Identifier(APP_SCHEMA)
     with psycopg.connect(base, autocommit=True) as conn:
-        conn.execute(f"DROP SCHEMA IF EXISTS {APP_SCHEMA} CASCADE")
-        conn.execute(f"CREATE SCHEMA {APP_SCHEMA}")
-    url = f"{base}?options=-csearch_path%3D{APP_SCHEMA}"
+        conn.execute(sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(schema))
+        conn.execute(sql.SQL("CREATE SCHEMA {}").format(schema))
+    joiner = "&" if "?" in base else "?"
+    url = f"{base}{joiner}options=-csearch_path%3D{APP_SCHEMA}"
     apply_migrations(url)
     monkeypatch.setenv("MERITUM_DATABASE_PROVIDER", "postgres")
     monkeypatch.setenv("MERITUM_DATABASE_URL", url)
     yield url
     with psycopg.connect(base, autocommit=True) as conn:
-        conn.execute(f"DROP SCHEMA {APP_SCHEMA} CASCADE")
+        conn.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(schema))
+
+
+def _launch() -> None:
+    main.check_deps.cache_clear()
+    DBOS(config=main.config())
+    DBOS.launch()
 
 
 def _restart() -> None:
     DBOS.destroy()
-    main.check_deps.cache_clear()
-    DBOS(config=main.config())
-    DBOS.launch()
+    _launch()
 
 
 @pytest.mark.integration
