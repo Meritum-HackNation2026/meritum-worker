@@ -56,7 +56,11 @@ def case_outcome(case: GoldenCase, result: CheckResult) -> tuple[str, Outcome]:
 
 
 def macro_f1(pairs: Sequence[tuple[str, str]]) -> float:
-    """Macro-F1 over (expected, predicted) labels; non-verdicts share one class.
+    """Macro-F1 over (expected, predicted) labels.
+
+    A predicted state that is not a verdict and not the expected label falls
+    into one separate error class (US-OBS-04); a met expected state counts as
+    its own class.
 
     Args:
         pairs: Expected and predicted label of each case.
@@ -67,7 +71,7 @@ def macro_f1(pairs: Sequence[tuple[str, str]]) -> float:
     Features:
         US-OBS-04, F-27
     """
-    classed = [(_f1_class(e), _f1_class(p)) for e, p in pairs]
+    classed = [(e, p if _keeps_label(e, p) else NON_VERDICT_CLASS) for e, p in pairs]
     classes = {label for pair in classed for label in pair}
     scores = [_f1(label, classed) for label in classes]
     return sum(scores) / len(scores) if scores else 0.0
@@ -80,9 +84,9 @@ def _f1(label: str, classed: list[tuple[str, str]]) -> float:
     return 2 * hits / (expected + predicted)
 
 
-def _f1_class(label: str) -> str:
-    is_verdict = label in DECISIVE_VERDICTS or label in ABSTAINING_VERDICTS
-    return label if is_verdict else NON_VERDICT_CLASS
+def _keeps_label(expected: str, predicted: str) -> bool:
+    is_verdict = predicted in DECISIVE_VERDICTS or predicted in ABSTAINING_VERDICTS
+    return is_verdict or predicted == expected
 
 
 def _predicted_labels(case: GoldenCase, result: CheckResult) -> list[str]:

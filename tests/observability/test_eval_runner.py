@@ -69,7 +69,7 @@ def test_a_check_that_raises_ends_as_technical_failure() -> None:
     )
     runs = asyncio.run(run_eval(GOLDEN, lambda _case: broken, max_concurrency=2))
     assert {r.result.status for r in runs} == {"technical_failure"}
-    assert all(r.seconds >= 0 for r in runs)
+    assert all(0 <= r.seconds < 1 and r.models == () for r in runs)
 
 
 def test_forced_model_fault_fails_only_its_case(

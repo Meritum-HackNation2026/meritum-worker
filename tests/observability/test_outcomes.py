@@ -1,12 +1,15 @@
 """Case outcome by the main claim and macro-F1, counted by hand (US-OBS-04)."""
 
 from collections.abc import Callable
+from typing import get_args
 
 import pytest
 from meritum_core.checks import CheckResult
 from meritum_core.checks.contracts import ClaimResult
 
 from meritum_worker.observability import GoldenCase, case_outcome, macro_f1
+from meritum_worker.observability.constants import OUTCOME_ORDER
+from meritum_worker.observability.report import Outcome
 
 type Make[T] = Callable[..., T]
 type Case = Make[GoldenCase]
@@ -81,13 +84,24 @@ def test_macro_f1_counted_by_hand() -> None:
     assert macro_f1(pairs) == pytest.approx((1 / 2 + 2 / 3 + 0) / 3)
 
 
-def test_every_non_verdict_state_is_one_class() -> None:
+def test_wrong_states_fall_into_one_error_class() -> None:
     pairs = [
         ("out_of_scope", "technical_failure"),
         ("needs_clarification", "out_of_scope"),
     ]
-    assert macro_f1(pairs) == pytest.approx(1)
+    # out_of_scope, needs_clarification and non_verdict all score 0.
+    assert macro_f1(pairs) == pytest.approx(0)
+
+
+def test_met_expected_state_is_its_own_class() -> None:
+    pairs = [("out_of_scope", "out_of_scope"), ("false", "technical_failure")]
+    # Class F1 scores are 1 for out_of_scope, 0 for false and for non_verdict.
+    assert macro_f1(pairs) == pytest.approx(1 / 3)
 
 
 def test_macro_f1_without_cases_is_zero() -> None:
     assert macro_f1([]) == pytest.approx(0)
+
+
+def test_outcome_order_names_every_outcome() -> None:
+    assert set(OUTCOME_ORDER) == set(get_args(Outcome.__value__))

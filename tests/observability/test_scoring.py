@@ -64,7 +64,7 @@ def test_citation_coverage_counts_decisive_claims(
 def test_citation_correctness_compares_hosts_with_case_sources(
     case: Case, claim: Claim, result: Result, run: Run
 ) -> None:
-    cites = ("https://www.gov.pl/inna", "https://example.com/x", "https://www.gov.pl/")
+    cites = ("https://gov.pl/inna", "https://example.com/x", "https://www.gov.pl/")
     golden = case(sources=[SOURCE], expected_verdict="false")
     unlisted = case(id="D-own-bez")
     runs = [

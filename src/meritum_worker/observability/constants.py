@@ -39,8 +39,9 @@ COST_SAMPLE_CHECKS: Final = 100
 LATENCY_PERCENTILE: Final = 95
 """Upper latency percentile next to the median, for comparing models."""
 
-DEFAULT_MAX_CONCURRENCY: Final = 4
-"""Cases checked at once by default; 1 keeps repeats after the cases they repeat."""
+DEFAULT_MAX_CONCURRENCY: Final = 1
+"""Cases checked at once by default; 1 keeps repeats after the cases they repeat
+and keeps latency free of contention, so runs on different models compare."""
 
 DEFAULT_CASES_FILE: Final = "evals/golden/cases.json"
 """Case file meritum-eval reads without --cases, relative to the repo root."""
@@ -50,3 +51,6 @@ EVAL_NAME: Final = "meritum-eval"
 
 REPORT_DECIMALS: Final = 4
 """Decimal places of every number in the report."""
+
+UNANSWERED_VERDICT: Final = "insufficient_evidence"
+"""Verdict that must reach the moderator queue to close the information loop."""

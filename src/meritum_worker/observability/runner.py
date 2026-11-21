@@ -63,6 +63,7 @@ async def _check(case: GoldenCase, deps: CheckDeps) -> CaseRun:
         result = output.result
     except Exception:  # ruff: ignore[blind-except]  # the task returns a state, so the case stays in the median
         result = CheckState(check_id=check_id, job=job).technical_failure()
+    # A check that raised saved no record; the clock then stands in for it.
     record = await deps.records.get(check_id)
     answered_at = record.answered_at if record else datetime.now(UTC)
     models = record.models if record else []

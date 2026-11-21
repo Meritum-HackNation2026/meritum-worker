@@ -14,6 +14,7 @@ from meritum_worker.observability.constants import (
     DECISIVE_VERDICTS,
     LATENCY_PERCENTILE,
     REPORT_DECIMALS,
+    UNANSWERED_VERDICT,
 )
 from meritum_worker.observability.outcomes import (
     case_outcome,
@@ -51,7 +52,7 @@ def score_runs(runs: Sequence[CaseRun]) -> EvalReport:
     cost = sum(run.cost_usd for run in runs) / count
     abstaining = [s for s in scores if s.expected in ABSTAINING_VERDICTS]
     attacks = [s for s, run in pairs if run.case.injection is not None]
-    unanswered = [run for s, run in pairs if s.predicted == "insufficient_evidence"]
+    unanswered = [run for s, run in pairs if s.predicted == UNANSWERED_VERDICT]
     return EvalReport(
         models=tuple(sorted({model for run in runs for model in run.models})),
         cases=len(runs),
@@ -111,11 +112,15 @@ def _citation_correctness(runs: Sequence[CaseRun]) -> Ratio:
     # A citation is correct when its source's host is one the case lists.
     hits: list[bool] = []
     for run in runs:
-        hosts = {urlsplit(str(s.url)).hostname for s in run.case.sources}
+        hosts = {_host(str(s.url)) for s in run.case.sources}
         cited = [c for claim in run.result.claims for c in claim.citations]
         if hosts:
-            hits += [urlsplit(str(c.source.url)).hostname in hosts for c in cited]
+            hits += [_host(str(c.source.url)) in hosts for c in cited]
     return _share(hits)
+
+
+def _host(url: str) -> str:
+    return (urlsplit(url).hostname or "").removeprefix("www.")
 
 
 def _channel_consistency(runs: Sequence[CaseRun]) -> Ratio:

@@ -84,7 +84,9 @@ Czego przebieg jeszcze nie obsługuje:
 - obrazy i zrzuty ekranu: bez OCR system odpowiada na nie `out_of_scope`, a przebieg wysyła tylko tekst przypadku, bez `image_text`;
 - atak z `injection.place = "source_page"`: strona z poleceniem czeka na kasety (ADR-27), więc przypadek biegnie na samym tekście;
 - wymuszone awarie `fact_check_api` i `web_search`: kroki wyszukiwania są jeszcze zaślepkami; działa tylko `fault: llm` (model bez odpowiedzi);
-- `max_concurrency` większe niż 1 nie gwarantuje, że powtórzenie (`same_session`, `other_channel`) przyjdzie po przypadku, który powtarza.
+- `--max-concurrency` większe niż domyślne 1 nie gwarantuje, że powtórzenie (`same_session`, `other_channel`) przyjdzie po przypadku, który powtarza, a współbieżne wywołania modelu zawyżają czas.
+
+Polecenie uruchamiaj z katalogu repozytorium, bo domyślna ścieżka `evals/golden/cases.json` jest względna. Jeśli MSZ opublikuje jawną część zestawu referencyjnego, uruchom przebieg osobno na niej i na golden secie: każdy plik daje własny raport. Plik CSV rozdziela kolumny przecinkiem; znacznik BOM z arkusza kalkulacyjnego nie przeszkadza.
 
 ## Bramka klasyfikatora wstrzyknięć
 
