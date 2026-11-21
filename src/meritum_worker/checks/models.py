@@ -6,7 +6,7 @@ Features:
 
 from dataclasses import dataclass
 
-from meritum_core.checks import CheckRecordRepository, CheckResult
+from meritum_core.checks import CheckRecordRepository, CheckResult, InjectionEvent
 from meritum_core.checks.contracts import ClaimResult, ModelUsage
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.shared.llm import LlmPort
@@ -44,6 +44,9 @@ class CheckState(BaseModel):
         job: the workflow input, personal data already masked.
         corpus_version: the corpus snapshot searched.
         models: every model call so far.
+        web_search_calls: how many web searches ran.
+        retrieval_errors: retrieval failures met on the way.
+        injection_events: instructions found and neutralised.
         result: the answer, once write_answer ran.
 
     Features:
@@ -56,6 +59,9 @@ class CheckState(BaseModel):
     job: CheckInput
     corpus_version: str = NO_CORPUS_VERSION
     models: list[ModelUsage] = []
+    web_search_calls: int = 0
+    retrieval_errors: list[str] = []
+    injection_events: list[InjectionEvent] = []
     result: CheckResult | None = None
 
     @property

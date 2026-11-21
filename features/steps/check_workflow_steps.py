@@ -11,7 +11,7 @@ from pathlib import Path
 from behave import given, then, when
 from behave.runner import Context
 from meritum_core.checks import CheckRequest
-from meritum_core.checks.contracts import CheckRecord, CheckResult
+from meritum_core.checks.contracts import CheckRecord
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
@@ -64,7 +64,7 @@ def check_builds_result(context: Context) -> None:
 
 @then("workflow kończy się stanem done z CheckResult zgodnym z kontraktem")
 def check_is_done(context: Context) -> None:
-    result = CheckResult.model_validate(context.result["result"])
+    result = context.result.result
     assert result.status == "done"
     assert result.check_id == CHECK_ID
     final = context.runtime.published[-1]
@@ -92,7 +92,7 @@ def record_is_complete(context: Context) -> None:
 
 @then("wynik ma stan technical_failure bez twierdzeń")
 def result_is_technical_failure(context: Context) -> None:
-    result = CheckResult.model_validate(context.result["result"])
+    result = context.result.result
     assert result.status == "technical_failure"
     assert result.claims == []
 

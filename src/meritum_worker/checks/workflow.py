@@ -4,10 +4,10 @@ Features:
     US-SPR-01, US-SPR-02, US-OBS-01, F-22, ADR-03
 """
 
-from typing import Any, Protocol
+from typing import Protocol
 
 from meritum_core.checks import AnalysisStatus, AnalysisStep
-from meritum_core.jobs.contracts import CHECK, CONTRACT_VERSION
+from meritum_core.jobs.contracts import CHECK, CONTRACT_VERSION, CheckOutput
 
 from meritum_worker.checks import steps
 from meritum_worker.checks.models import CheckDeps, CheckState
@@ -65,8 +65,8 @@ def pipeline() -> tuple[tuple[str, tuple[Step, ...]], ...]:
 
 
 async def run_check(
-    payload: dict[str, Any], check_id: str, deps: CheckDeps, runtime: CheckRuntime
-) -> dict[str, Any]:
+    payload: dict[str, object], check_id: str, deps: CheckDeps, runtime: CheckRuntime
+) -> CheckOutput:
     """Run every step, publishing an AnalysisStatus before and after each code.
 
     The code whose steps produced a technical failure ends as "failed".
@@ -78,7 +78,7 @@ async def run_check(
         runtime: runs steps durably and publishes progress.
 
     Returns:
-        The `CheckOutput` JSON object.
+        The workflow output.
 
     Raises:
         ValueError: the payload has an unsupported contract version.
@@ -104,7 +104,7 @@ async def run_check(
     await runtime.publish(
         AnalysisStatus(check_id=check_id, steps=progress, result=result)
     )
-    return CHECK.output(result=result).model_dump(mode="json")
+    return CheckOutput(result=result)
 
 
 def _step(code: str, status: str) -> AnalysisStep:

@@ -3,8 +3,8 @@ from collections.abc import Callable
 from typing import Any, get_args
 
 import pytest
-from meritum_core.checks import AnalysisStep, CheckResult
-from meritum_core.jobs.contracts import CONTRACT_VERSION, CheckInput
+from meritum_core.checks import AnalysisStep
+from meritum_core.jobs.contracts import CONTRACT_VERSION, CheckInput, CheckOutput
 
 from meritum_worker.checks import CheckDeps, InlineCheckRuntime, pipeline, run_check
 
@@ -18,7 +18,7 @@ def payload(make_job: Callable[..., CheckInput]) -> Payload:
     return make_job().model_dump(mode="json")
 
 
-def _run(payload: Payload, deps: CheckDeps) -> tuple[Payload, InlineCheckRuntime]:
+def _run(payload: Payload, deps: CheckDeps) -> tuple[CheckOutput, InlineCheckRuntime]:
     runtime = InlineCheckRuntime()
     return asyncio.run(run_check(payload, "check-1", deps, runtime)), runtime
 
@@ -40,7 +40,7 @@ def test_check_publishes_each_step_active_then_done_and_ends_with_result(
         assert status.result is None
     final = statuses[-1]
     assert {step.status for step in final.steps} == {"done"}
-    assert final.result == CheckResult.model_validate(output["result"])
+    assert final.result == output.result
 
 
 def test_check_runs_placeholder_steps_outside_the_analysis_codes(

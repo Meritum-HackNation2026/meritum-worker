@@ -68,9 +68,10 @@ async def check_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     Features:
         US-SPR-01, US-OBS-01, F-22, ADR-03
     """
-    return await checks.run_check(
+    output = await checks.run_check(
         payload, DBOS.workflow_id or "", check_deps(), build_check_runtime()
     )
+    return output.model_dump(mode="json")
 
 
 def config() -> DBOSConfig:

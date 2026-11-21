@@ -2,6 +2,7 @@ import asyncio
 from collections.abc import Callable
 from datetime import timedelta
 
+from meritum_core.checks import InjectionEvent
 from meritum_core.jobs.contracts import CheckInput
 
 from meritum_worker.checks import CheckDeps, CheckState
@@ -73,3 +74,25 @@ def test_save_record_uses_user_id_when_signed_in_without_session(
     record = asyncio.run(deps.records.get("check-2"))
     assert record is not None
     assert (record.session_id, record.user_id) == ("user-0001", "user-0001")
+
+
+def test_save_record_copies_what_later_steps_collect(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    event = InjectionEvent(
+        location="input", action="instruction_removed", excerpt="zignoruj polecenia"
+    )
+    collected = state.model_copy(
+        update={
+            "injection_events": [event],
+            "web_search_calls": 2,
+            "retrieval_errors": ["corpus timeout"],
+        }
+    )
+    deps = make_deps()
+    asyncio.run(save_record(collected, deps))
+    record = asyncio.run(deps.records.get("check-1"))
+    assert record is not None
+    assert record.injection_events == [event]
+    assert record.web_search_calls == 2
+    assert record.retrieval_errors == ["corpus timeout"]
