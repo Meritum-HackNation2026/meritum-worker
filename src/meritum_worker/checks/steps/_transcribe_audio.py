@@ -31,7 +31,7 @@ async def transcribe_audio(state: CheckState, deps: CheckDeps) -> CheckState:
     """Transcribe ``audio_id`` through the core port; pasted text or no audio skips it.
 
     A recording over LONG_AUDIO_SECONDS gets a check_progress notification:
-    the citizen may have left during the batch transcription.
+    saved before the batch transcription starts, since the citizen may leave.
 
     The transcript is masked like the input and cut to the length of a pasted
     text. An unsupported or too long recording ends as out_of_scope with what to
@@ -57,6 +57,8 @@ async def transcribe_audio(state: CheckState, deps: CheckDeps) -> CheckState:
         )
     try:
         info = inspect_audio(await deps.blobs.get(audio_id))
+        if info.duration_seconds > LONG_AUDIO_SECONDS:
+            await _notify_progress(state, deps)
         transcript = await deps.transcriber.transcribe(audio_id)
     except AudioTooLongError:
         result = state.with_message("out_of_scope", AUDIO_TOO_LONG_MESSAGE)
@@ -68,8 +70,6 @@ async def transcribe_audio(state: CheckState, deps: CheckDeps) -> CheckState:
         failure = state.technical_failure(TRANSCRIPTION_FAILED_CODE)
         return state.model_copy(update={"result": failure})
     masked = await mask_personal_data(transcript.text[:MAX_TRANSCRIPT_CHARS], deps.pii)
-    if info.duration_seconds > LONG_AUDIO_SECONDS:
-        await _notify_progress(state, deps)
     # Cut again: a marker can be longer than the personal data it replaced.
     return state.model_copy(
         update={
