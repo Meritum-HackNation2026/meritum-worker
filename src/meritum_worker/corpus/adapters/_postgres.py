@@ -66,6 +66,8 @@ class PostgresEuvsCopy:
     """
 
     def __init__(self, conninfo: str) -> None:
+        # shortcut: one connection per call, each call one transaction (psycopg
+        # commits on a clean exit); take a pool once checks read the copy.
         self._conninfo = conninfo
 
     async def entries(self) -> list[StoredEntry]:

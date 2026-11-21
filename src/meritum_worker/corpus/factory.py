@@ -69,12 +69,16 @@ def build_euvsdisinfo_copy(settings: CorpusSettings | None = None) -> EuvsCopyPo
     Features:
         US-KOR-08, F-11, ADR-26
     """
-    if settings is None or settings.provider is CorpusProvider.MEMORY:
+    if settings is None:
         return MemoryEuvsCopy()
-    if settings.database_url is None:
-        msg = "MERITUM_CORPUS_DATABASE_URL is required for postgres"
-        raise ValueError(msg)
-    return PostgresEuvsCopy(settings.database_url.get_secret_value())
+    match settings.provider:
+        case CorpusProvider.POSTGRES:
+            if settings.database_url is None:
+                msg = "MERITUM_CORPUS_DATABASE_URL is required for postgres"
+                raise ValueError(msg)
+            return PostgresEuvsCopy(settings.database_url.get_secret_value())
+        case CorpusProvider.MEMORY:
+            return MemoryEuvsCopy()
 
 
 async def run_euvsdisinfo_sync(
