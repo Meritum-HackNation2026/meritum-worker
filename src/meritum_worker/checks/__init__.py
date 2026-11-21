@@ -4,6 +4,7 @@ Features:
     US-SPR-01, US-OBS-01, F-22
 """
 
+from meritum_worker.checks._notifications import save_notification
 from meritum_worker.checks.fakes import (
     AudioPorts,
     FailingCheckRuntime,
@@ -38,5 +39,6 @@ __all__ = [
     "ogg_opus",
     "pipeline",
     "run_check",
+    "save_notification",
     "web_ports",
 ]

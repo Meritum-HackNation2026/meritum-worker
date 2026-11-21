@@ -4,6 +4,7 @@ Features:
     US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, US-BEZ-03, F-07, F-18, F-22
 """
 
+import re
 from datetime import timedelta
 from typing import Final
 from zoneinfo import ZoneInfo
@@ -158,3 +159,9 @@ CHECK_LINK: Final = "/sprawdzenie/{check_id}"
 
 SEARCH_WEB_STEP: Final = "search_web"
 """AnalysisStep code of live web search; skipped when the check has no fact."""
+
+NOTIFICATION_RETENTION: Final = timedelta(days=30)
+"""How long a Notification is kept: retention_until = created_at + 30 days."""
+
+USER_ID_PATTERN: Final = re.compile(r"^[a-z0-9_-]+:\S+$")
+"""A signed-in user id as the backend reads it: ``{provider}:{subject}``."""
