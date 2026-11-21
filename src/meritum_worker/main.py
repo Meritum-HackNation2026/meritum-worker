@@ -12,8 +12,10 @@ from typing import Any
 
 import httpx2
 import psycopg
-from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
+from dbos import DBOS, DBOSConfig, StepOptions, WorkflowSerializationFormat
+from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus import CorpusSettings
+from meritum_core.corpus.catalog import load_catalog
 from meritum_core.jobs.constants import READINESS_KEY
 from meritum_core.jobs.contracts import (
     APPLICATION_NAME,
@@ -235,6 +237,68 @@ async def retention_workflow(scheduled_at: datetime, _context: object) -> None:
     DBOS.logger.info("retention deleted %s", report.model_dump())
 
 
+@cache
+def _ingest_deps() -> corpus.IngestDeps:
+    return corpus.build_ingest_deps(
+        CorpusSettings(), build_embeddings(EmbeddingsSettings())
+    )
+
+
+async def _plan(now: datetime) -> list[str]:
+    if not corpus.ingestion_enabled(os.environ):
+        return []
+    due = await corpus.due_entries(load_catalog(), _ingest_deps().store, now=now)
+    return [entry.model_dump_json() for entry in due]
+
+
+async def _ingest(entry: CatalogEntry, now: datetime) -> str:
+    report = await corpus.ingest_pages(entry, _ingest_deps(), now=now)
+    return report.model_dump_json()  # failed pages with reasons: the run's record
+
+
+@DBOS.workflow(name=corpus.INGEST_WORKFLOW)
+async def corpus_ingest_workflow(scheduled: datetime, _context: object) -> None:
+    """Ingest the due catalogue entries, one retried step per entry.
+
+    The plan is a step too, so a recovered run fetches the same entries, and a
+    retried entry fetches all of its pages again (unchanged ones cost nothing).
+
+    Args:
+        scheduled: When the schedule fired; every document's ``fetched_at``.
+        _context: The schedule's context (unused).
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+    """
+    for data in await DBOS.run_step_async({"name": corpus.PLAN_STEP}, _plan, scheduled):
+        entry = CatalogEntry.model_validate_json(data)
+        name = f"{corpus.INGEST_STEP_PREFIX}{entry.domain}"
+        await DBOS.run_step_async(
+            {"name": name, "retries_allowed": True}, _ingest, entry, scheduled
+        )
+
+
+async def _snapshot(scheduled: datetime) -> str:
+    snapshot = await corpus.take_snapshot(_ingest_deps().store, scheduled=scheduled)
+    return f"{snapshot.version} ({len(snapshot.manifest)} documents)"
+
+
+@DBOS.workflow(name=corpus.SNAPSHOT_WORKFLOW)
+async def corpus_snapshot_workflow(scheduled: datetime, _context: object) -> None:
+    """Take the hourly ``corpus_version`` named after ``scheduled`` (ADR-19).
+
+    Args:
+        scheduled: When the schedule fired: 10:00 UTC gives ``2026-11-20T10:00Z``.
+        _context: The schedule's context (unused).
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-19, ADR-21
+    """
+    if corpus.ingestion_enabled(os.environ):
+        options: StepOptions = {"name": corpus.SNAPSHOT_STEP, "retries_allowed": True}
+        await DBOS.run_step_async(options, _snapshot, scheduled)
+
+
 def config() -> DBOSConfig:
     """DBOS settings from the environment (written by the deploy on the host).
 
@@ -275,6 +339,21 @@ def main() -> None:
     )
     report = asyncio.run(readiness_report())
     observability.log_readiness(READINESS.output.model_validate(report), DBOS.logger)
+    if corpus.ingestion_enabled(os.environ):
+        DBOS.apply_schedules(
+            [
+                {
+                    "schedule_name": corpus.INGEST_WORKFLOW,
+                    "workflow_fn": corpus_ingest_workflow,
+                    "schedule": corpus.INGEST_SCHEDULE,
+                },
+                {
+                    "schedule_name": corpus.SNAPSHOT_WORKFLOW,
+                    "workflow_fn": corpus_snapshot_workflow,
+                    "schedule": corpus.SNAPSHOT_SCHEDULE,
+                },
+            ]
+        )
     stop = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
     signal.signal(signal.SIGINT, lambda *_: stop.set())
