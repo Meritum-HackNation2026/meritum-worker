@@ -17,10 +17,12 @@ from meritum_worker.corpus.chunking import chunk_text
 from meritum_worker.corpus.constants import (
     EMBED_BATCH,
     EMPTY_TEXT,
+    ENTRY_NOT_INGESTIBLE,
     PASSAGE_CHECKSUM_CHARS,
     SOURCE_ID_HASH_CHARS,
     SOURCE_ID_PREFIX,
     TDM_RESERVED,
+    TDM_RESERVED_ENTRY,
 )
 from meritum_worker.corpus.documents import (
     Document,
@@ -52,13 +54,16 @@ async def store_page(
         url: The URL it was fetched from; ``page.url`` when None.
 
     Returns:
-        One added, updated or unchanged document, or one failure.
+        One added, updated or unchanged document, or one failure; a page of an
+        excluded or TDM-reserved entry is always a failure.
 
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-21
     """
     url = url or page.url
     text = page.untrusted_text.strip()
+    if entry.excluded or entry.tdm_reservation == TDM_RESERVED_ENTRY:
+        return failed_page(entry, url, ENTRY_NOT_INGESTIBLE)
     if page.tdm_reserved:
         return failed_page(entry, url, TDM_RESERVED)
     if not text:

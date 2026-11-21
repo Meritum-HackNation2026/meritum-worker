@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus import CorpusProvider, CorpusSettings
-from meritum_core.corpus.fetching import FetchFailureReason, FetchPurpose
+from meritum_core.corpus.fetching import FetchedPage, FetchFailureReason, FetchPurpose
 from meritum_core.shared.embeddings import (
     EmbeddingsSettings,
     EmbeddingsUnavailableError,
@@ -177,3 +177,28 @@ def test_writer_follows_the_corpus_settings() -> None:
     broken = CorpusSettings.model_construct(provider=CorpusProvider.POSTGRES)
     with pytest.raises(ValueError, match="MERITUM_CORPUS_DATABASE_URL"):
         corpus.build_corpus_writer(broken)
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"excluded": True, "exclusion_reason": "robots.txt"},
+        {"tdm_reservation": "reserved"},
+    ],
+)
+def test_page_of_excluded_or_reserved_entry_is_never_stored(
+    fields: dict[str, object],
+) -> None:
+    site, store = FakeCatalogSite(pages_per_domain=1), MemoryCorpusWriter()
+    page = FetchedPage(
+        url="https://urzad.gov.pl/live",
+        content_type="text/html",
+        untrusted_text="Tekst.",
+    )
+    report = asyncio.run(
+        corpus.store_page(
+            page, entry("urzad.gov.pl", **fields), deps(site, store), now=NOW
+        )
+    )
+    assert [f.reason for f in report.failures] == ["entry_not_ingestible"]
+    assert asyncio.run(store.documents()) == []

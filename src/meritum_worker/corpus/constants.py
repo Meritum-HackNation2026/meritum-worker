@@ -243,6 +243,10 @@ TDM_RESERVED: Final = "tdm_reserved"
 EMPTY_TEXT: Final = "empty_text"
 """Failure reason of a page with no main text."""
 
+ENTRY_NOT_INGESTIBLE: Final = "entry_not_ingestible"
+"""Failure reason of a page whose catalogue entry is excluded or reserved for
+text and data mining; such a page is never stored, live search included."""
+
 EMBEDDINGS_UNAVAILABLE: Final = "embeddings_unavailable"
 """Failure reason of a page whose passages could not be embedded."""
 

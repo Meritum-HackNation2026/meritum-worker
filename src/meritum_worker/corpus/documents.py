@@ -13,7 +13,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict
 class DocumentMeta(BaseModel):
     """What the corpus keeps about a fetched page besides its text.
 
-    Retention (worker#24) clears the full text 90 days after ``fetched_at`` and
+    Retention (worker#77) clears the full text 90 days after ``fetched_at`` and
     keeps this metadata.
 
     Attributes:
