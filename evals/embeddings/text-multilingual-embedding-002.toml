@@ -1,0 +1,9 @@
+# Tańszy kandydat: cennik Vertex AI 0,000025 USD za 1000 znaków.
+name = "text-multilingual-embedding-002"
+usd_per_million_chars = 0.025
+
+[embeddings]
+provider = "vertex"
+model = "text-multilingual-embedding-002"
+region = "europe-central2"
+dimensions = 768

@@ -25,3 +25,13 @@ Funkcja: Golden set A–J i ewaluacja
     Zakładając plik z 12 przypadkami
     Gdy skrypt waliduje wejście
     Wtedy kończy się błędem z liczbą wymaganych przypadków
+
+  Scenariusz: porównanie dwóch modeli
+    Zakładając golden set i dwie konfiguracje modelu głównego
+    Gdy zespół uruchamia "uv run meritum-eval --compare-models config-a.toml config-b.toml"
+    Wtedy raport podaje dla każdej konfiguracji macro-F1, poprawność cytowań, medianę czasu, tokeny na sekundę i koszt 100 testów
+
+  Scenariusz: porównanie embeddingów
+    Zakładając dwie konfiguracje modelu embeddingów
+    Gdy zespół uruchamia porównanie
+    Wtedy raport podaje trafność wyszukiwania w korpusie na przypadkach z golden setu i koszt

@@ -96,3 +96,9 @@ LLM_REQUIRED_ENV: Final = {
 
 EUVSDISINFO_PROBE: Final = "euvsdisinfo"
 """Provider name of the EUvsDisinfo MCP server in the readiness report."""
+
+RETRIEVAL_TOP_K: Final = 5
+"""Passages a corpus search hands on; a hit is the case's own source among them."""
+
+CHARS_PER_MILLION: Final = 1_000_000
+"""Embedding prices in config files are per million characters."""

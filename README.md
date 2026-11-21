@@ -94,6 +94,7 @@ Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 | `robustness` | przypadki z `injection` z poprawnym wynikiem |
 | `median_seconds`, `p95_seconds`, `max_seconds` | czas z CheckRecord (`received_at` → `answered_at`), z nieudanymi przypadkami |
 | `input_tokens_per_check`, `output_tokens_per_check`, `cost_per_check_usd`, `cost_100_checks_usd` | tokeny i koszt modeli z CheckRecord; koszt jest zerowy, dopóki krok kosztu nie wycenia wywołań (worker#26) |
+| `output_tokens_per_second` | tokeny odpowiedzi podzielone przez czas sprawdzeń, które dostały jakąkolwiek odpowiedź modelu |
 | `channel_consistency` | powtórzenia `other_channel`, których JSON z CheckResult ma ten sam stan, werdykty i cytowane źródła co pierwszy przypadek; sformułowania mogą się różnić |
 | `information_loop` | odpowiedzi `insufficient_evidence` przekazane moderatorowi (`escalation`) |
 | `scenarios`, `outcomes` | trafność per scenariusz A–J i wynik każdego przypadku |
@@ -108,6 +109,21 @@ Czego przebieg jeszcze nie obsługuje:
 - `--max-concurrency` większe niż domyślne 1 nie gwarantuje, że powtórzenie (`same_session`, `other_channel`) przyjdzie po przypadku, który powtarza, a współbieżne wywołania modelu zawyżają czas.
 
 Polecenie uruchamiaj z katalogu repozytorium, bo domyślna ścieżka `evals/golden/cases.json` jest względna. Jeśli MSZ opublikuje jawną część zestawu referencyjnego, uruchom przebieg osobno na niej i na golden secie: każdy plik daje własny raport. Plik CSV rozdziela kolumny przecinkiem; znacznik BOM z arkusza kalkulacyjnego nie przeszkadza.
+
+### Porównanie modeli
+
+Model główny i model embeddingów wybieramy konfiguracją, więc kandydaci żyją w plikach TOML, nie w kodzie: modele językowe w `evals/models/`, embeddingi w `evals/embeddings/`. Porównanie odpala każdy plik na tym samym pliku przypadków, po kolei, i zapisuje jeden raport JSON z datą (`generated_at`), plikiem przypadków oraz dostawcą, modelem i regionem każdego kandydata.
+
+```bash
+set -a; source ../.env; set +a                       # OPENROUTER_API_KEY, nigdy w repozytorium
+uv run meritum-eval --compare-models evals/models/*.toml --output evals/reports/$(date +%F)-modele.json
+uv run meritum-eval --compare-embeddings evals/embeddings/*.toml --output evals/reports/$(date +%F)-embeddingi.json
+```
+
+- `--compare-models`: przy każdym kandydacie pełny raport z tabeli wyżej (`macro_f1`, `citation_correctness`, `median_seconds`, `output_tokens_per_second`, `cost_100_checks_usd` i reszta). Koszt OpenRoutera pochodzi z odpowiedzi API, a koszt Vertex AI z cennika w meritum-core.
+- `--compare-embeddings`: korpusem są źródła z golden setu (tytuł i cytat, każdy adres raz). Zapytaniem jest główne twierdzenie każdego przypadku ze źródłami. `hit_rate` to odsetek zapytań, w których własne źródło przypadku trafiło do pierwszych 5 wyników, a `mean_reciprocal_rank` to średnia z 1/pozycja tego źródła. Koszt liczymy z `usd_per_million_chars` w pliku kandydata.
+
+Jak dodać kandydata: skopiuj plik z katalogu, zmień `name` (nazwa pliku bez `.toml`, sprawdza to test) i tabelę `[llm]` albo `[embeddings]`. Pola tabeli to pola `LlmSettings` albo `EmbeddingsSettings` z meritum-core. Nieznane pole kończy się błędem, a klucze API przychodzą wyłącznie ze środowiska. Model bez endpointu ZDR na OpenRouterze dostaje `openrouter_zdr = false` i wolno go uruchamiać tylko na golden secie, nigdy na danych użytkowników. Raporty z przebiegów z prawdziwymi modelami trafiają do `evals/reports/`. Te przebiegi robimy ręcznie, poza CI (ADR-28).
 
 ## Bramka klasyfikatora wstrzyknięć
 
