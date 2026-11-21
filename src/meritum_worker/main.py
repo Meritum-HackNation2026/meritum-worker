@@ -8,6 +8,7 @@ from typing import Any
 
 from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
 from meritum_core.jobs.contracts import APPLICATION_NAME, CHECK, DEFAULT_QUEUE, PING
+from meritum_core.shared.database import DatabaseSettings
 from meritum_core.shared.llm import LlmSettings
 
 from meritum_worker import checks, jobs
@@ -47,12 +48,13 @@ def check_deps() -> checks.CheckDeps:
     """The ports of the `check` workflow, built once per process.
 
     Returns:
-        The model from ``MERITUM_LLM_*`` and the record repository.
+        The model from ``MERITUM_LLM_*`` and the record repository from
+        ``MERITUM_DATABASE_*``.
 
     Features:
         US-SPR-01, F-22
     """
-    return build_check_deps(LlmSettings())
+    return build_check_deps(LlmSettings(), DatabaseSettings())
 
 
 @DBOS.workflow(name=CHECK.name, serialization_type=WorkflowSerializationFormat.PORTABLE)

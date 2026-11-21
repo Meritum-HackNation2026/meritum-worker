@@ -71,3 +71,11 @@ def test_check_marks_the_step_that_failed_technically_as_failed(
     assert failed == ["write_answer"]
     assert final.result is not None
     assert final.result.status == "technical_failure"
+
+
+def test_check_closes_progress_stream_after_the_status_with_the_result(
+    payload: Payload, make_deps: Callable[..., CheckDeps]
+) -> None:
+    output, runtime = _run(payload, make_deps())
+    assert runtime.closed_after == len(runtime.published)
+    assert runtime.published[-1].result == output.result

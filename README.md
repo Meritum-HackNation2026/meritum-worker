@@ -29,7 +29,21 @@ uv run pytest -m integration  # tylko lokalnie: prawdziwy PostgreSQL albo dostaw
 uv run behave            # scenariusze z features/
 ```
 
-Workflow `check` woła model przez `LlmPort` z meritum-core (`MERITUM_LLM_*`). Stub (`MERITUM_LLM_PROVIDER=stub`, domyślny) odpowiada tylko z pliku `MERITUM_LLM_STUB_FIXTURES`, np. `features/fixtures/llm_stub_answer.json`; bez niego każde sprawdzenie kończy się stanem `technical_failure`. Do czasu adaptera PostgreSQL z meritum-core#38 CheckRecord leży w pamięci procesu i znika przy restarcie.
+Workflow `check` bierze model i repozytorium zapisów z fabryk meritum-core, a konfigurację ze zmiennych środowiska:
+
+| Zmienna | Domyślnie | Znaczenie |
+| --- | --- | --- |
+| `MERITUM_LLM_PROVIDER` | `stub` | `stub` (bez kluczy i sieci) albo `vertex` |
+| `MERITUM_LLM_STUB_FIXTURES` | brak | plik z odpowiedziami stuba; w obrazie `/app/features/fixtures/llm_stub_answer.json`. Bez niego stub nie ma odpowiedzi i każde sprawdzenie kończy się stanem `technical_failure`, więc dev na stubie musi go mieć |
+| `MERITUM_DATABASE_PROVIDER` | `memory` | `memory` (fake'i w procesie: testy, CI, praca bez bazy; zapisy giną przy restarcie) albo `postgres` (dev i prd) |
+| `MERITUM_DATABASE_URL` | brak | adres libpq z `search_path` schematu aplikacji (`app_dev`, `app_prd`); wymagany dla `postgres` |
+
+Tabele schematu aplikacji tworzy `meritum-migrate-app` z meritum-core, uruchamiany przez deploy (worker#32). Lokalny test z prawdziwym DBOS i PostgreSQL, także z restartem workera, potrzebuje dwóch adresów; `MERITUM_TEST_DATABASE_URL` wskazuje bazę, w której test tworzy i usuwa schemat `app_integration`:
+
+```bash
+MERITUM_DBOS_URL=postgresql://... MERITUM_TEST_DATABASE_URL=postgresql://... \
+  uv run pytest -m integration tests/checks
+```
 
 Scenariusze Gherkin ze zgłoszeń trafiają do `features/<domena>.feature`, kroki do `features/steps/`; kroki wołają tylko publiczne API wycinka. Test na prawdziwej bazie albo u prawdziwego dostawcy dostaje `@pytest.mark.integration`: `uv run pytest` (także w CI) go pomija, `uv run pytest -m integration` uruchamia.
 
