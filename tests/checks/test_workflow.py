@@ -6,7 +6,14 @@ import pytest
 from meritum_core.checks import AnalysisStep
 from meritum_core.jobs.contracts import CONTRACT_VERSION, CheckInput, CheckOutput
 
-from meritum_worker.checks import CheckDeps, InlineCheckRuntime, pipeline, run_check
+from meritum_worker.checks import (
+    CheckDeps,
+    FailingCheckRuntime,
+    InlineCheckRuntime,
+    pipeline,
+    run_check,
+)
+from meritum_worker.checks.constants import TECHNICAL_FAILURE_CODE
 
 STEP_CODES = list(get_args(AnalysisStep.model_fields["code"].annotation))
 
@@ -81,3 +88,20 @@ def test_check_closes_progress_stream_after_the_status_with_the_result(
     output, runtime = _run(payload, make_deps())
     assert runtime.closed_after == len(runtime.published)
     assert runtime.published[-1].result == output.result
+
+
+def test_check_publishes_technical_failure_before_closing_after_step_exception(
+    payload: Payload, make_deps: Callable[..., CheckDeps]
+) -> None:
+    runtime = FailingCheckRuntime("search_web")
+
+    with pytest.raises(RuntimeError, match="step failed"):
+        asyncio.run(run_check(payload, "check-1", make_deps(), runtime))
+
+    final = runtime.published[-1]
+    failed = [step.code for step in final.steps if step.status == "failed"]
+    assert failed == ["search_web"]
+    assert final.result is not None
+    assert final.result.status == "technical_failure"
+    assert final.result.failure_code == TECHNICAL_FAILURE_CODE
+    assert runtime.closed_after == len(runtime.published)

@@ -4,7 +4,11 @@ Features:
     US-SPR-01, US-OBS-01, F-22
 """
 
-from meritum_worker.checks.fakes import FakePageFetcher, InlineCheckRuntime
+from meritum_worker.checks.fakes import (
+    FailingCheckRuntime,
+    FakePageFetcher,
+    InlineCheckRuntime,
+)
 from meritum_worker.checks.models import (
     AnswerDraft,
     CheckDeps,
@@ -22,6 +26,7 @@ __all__ = [
     "CheckState",
     "ClaimExtraction",
     "ExtractedClaim",
+    "FailingCheckRuntime",
     "FakePageFetcher",
     "InlineCheckRuntime",
     "pipeline",

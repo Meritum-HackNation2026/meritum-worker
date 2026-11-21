@@ -6,7 +6,7 @@ Features:
 
 from typing import Protocol
 
-from meritum_core.checks import AnalysisStatus, AnalysisStep
+from meritum_core.checks import AnalysisStatus, AnalysisStep, CheckResult
 from meritum_core.jobs.contracts import CHECK, CONTRACT_VERSION, CheckOutput
 
 from meritum_worker.checks import steps
@@ -70,7 +70,9 @@ async def run_check(
     """Run every step, publishing an AnalysisStatus before and after each code.
 
     The code whose steps produced a technical failure ends as "failed". The
-    last status carries the result; the stream closes right after it.
+    last status carries the result; the stream closes right after it. A step
+    that raises marks its code "failed", publishes a technical_failure result,
+    closes the stream and re-raises.
 
     Args:
         payload: the `CheckInput` JSON object.
@@ -98,15 +100,30 @@ async def run_check(
         progress[index] = _step(code, "active")
         await runtime.publish(AnalysisStatus(check_id=check_id, steps=progress))
         before = state
-        for function in functions:
-            state = await runtime.step(function.__name__, _bind(function, deps), state)
+        try:
+            for function in functions:
+                state = await runtime.step(
+                    function.__name__, _bind(function, deps), state
+                )
+        except Exception:
+            progress[index] = _step(code, "failed")
+            await _finish(runtime, check_id, progress, state.technical_failure())
+            raise
         progress[index] = _step(code, _outcome(code, before, state))
     result = state.final_result()
-    await runtime.publish(
-        AnalysisStatus(check_id=check_id, steps=progress, result=result)
-    )
-    await runtime.close()
+    await _finish(runtime, check_id, progress, result)
     return CheckOutput(result=result)
+
+
+async def _finish(
+    runtime: CheckRuntime,
+    check_id: str,
+    progress: list[AnalysisStep],
+    result: CheckResult,
+) -> None:
+    status = AnalysisStatus(check_id=check_id, steps=progress, result=result)
+    await runtime.publish(status)
+    await runtime.close()
 
 
 def _step(code: str, status: str) -> AnalysisStep:

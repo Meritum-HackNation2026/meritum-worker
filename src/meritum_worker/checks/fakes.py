@@ -4,6 +4,8 @@ Features:
     US-SPR-01, US-SPR-07, F-06, F-22
 """
 
+from typing import override
+
 from meritum_core.checks import AnalysisStatus
 from meritum_core.corpus.fetching import (
     FetchedPage,
@@ -65,6 +67,41 @@ class InlineCheckRuntime:
     async def close(self) -> None:
         """Close the progress stream and note how many statuses came before."""
         self.closed_after = len(self.published)
+
+
+class FailingCheckRuntime(InlineCheckRuntime):
+    """InlineCheckRuntime whose one named step raises RuntimeError("step failed").
+
+    Args:
+        failed_step: the name of the step that raises.
+
+    Features:
+        F-22
+    """
+
+    def __init__(self, failed_step: str) -> None:
+        super().__init__()
+        self._failed_step = failed_step
+
+    @override
+    async def step(self, name: str, run: StepRun, state: CheckState) -> CheckState:
+        """Raise for the failing step, run any other one inline.
+
+        Args:
+            name: the step's name.
+            run: the step.
+            state: its input.
+
+        Returns:
+            A JSON copy of the step's output.
+
+        Raises:
+            RuntimeError: ``name`` is the failing step.
+        """
+        if name == self._failed_step:
+            message = "step failed"
+            raise RuntimeError(message)
+        return await super().step(name, run, state)
 
 
 class FakePageFetcher:
