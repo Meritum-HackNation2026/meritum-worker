@@ -119,11 +119,11 @@ OPENROUTER_RERANK_URL: Final = "https://openrouter.ai/api/v1/rerank"
 
 OPENROUTER_RERANK_MODEL: Final = "cohere/rerank-v3.5"
 """Default OpenRouter reranker: multilingual Cohere (100+ languages, Polish among
-them), served with zero data retention by Amazon Bedrock (eu-central-1)."""
+them), served with zero data retention by Amazon Bedrock; OpenRouter picks the region."""
 
 OPENROUTER_PRIVACY: Final = {"zdr": True, "data_collection": "deny"}
 """Provider preferences of every OpenRouter rerank call, as core's LLM adapter
-sends them: only ZDR endpoints; with none for the model OpenRouter refuses to
+sends them (meritum-core#97): only ZDR endpoints; with none for the model OpenRouter refuses to
 route, so no text leaves for a provider that keeps it."""
 
 URL_SEGMENT: Final = r"^[A-Za-z0-9][A-Za-z0-9_-]*$"
