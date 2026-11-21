@@ -67,7 +67,7 @@ Funkcja: Smoke test workera
     Oraz CheckRecord ma status technical_failure
 
   Scenariusz: techniczna porażka niesie kod, a nie klucz kopii
-    Zakładając worker na kontrakcie v4 z meritum-core
+    Zakładając worker działa z MERITUM_LLM_PROVIDER=stub
     Gdy model nie odpowiada w kroku write_answer
     Wtedy wynik ma stan technical_failure bez twierdzeń
     Oraz failure_code wynosi "provider_unavailable"
