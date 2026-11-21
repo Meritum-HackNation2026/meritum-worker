@@ -1,0 +1,87 @@
+[project]
+name = "meritum-worker"
+version = "0.1.0"
+description = "Meritum: workery DBOS do długich operacji w tle"
+readme = "README.md"
+authors = [{ name = "Cyprian Gburek" }]
+requires-python = ">=3.14"
+dependencies = [
+    "dbos>=3.6.0",
+    "meritum-core",
+    "pydantic>=2.14.4",
+]
+
+[project.scripts]
+meritum-worker = "meritum_worker.main:main"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.6",
+    "ty>=0.0.107",
+]
+
+# --------------------------------------------------------------------------- #
+# Ruff: lint + format (the same config in core, backend and worker)
+# --------------------------------------------------------------------------- #
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+preview = true
+select = ["ALL"]
+ignore = [
+    "CPY",                                  # no per-file license headers
+    "missing-trailing-comma",               # managed by `ruff format`
+    "undocumented-magic-method",
+    "undocumented-public-init",             # documented in the class docstring
+    "docstring-missing-exception",
+    "docstring-extraneous-exception",
+    # Pydantic and FastAPI read annotations at runtime: keep real imports.
+    "typing-only-first-party-import",
+    "typing-only-third-party-import",
+    "typing-only-standard-library-import",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["assert", "magic-value-comparison", "D", "DOC"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+# --------------------------------------------------------------------------- #
+# ty: strict
+# --------------------------------------------------------------------------- #
+[tool.ty.environment]
+python-version = "3.14"
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.ty.rules]
+all = "error"
+
+[tool.ty.terminal]
+error-on-warning = true
+
+# --------------------------------------------------------------------------- #
+# pytest
+# --------------------------------------------------------------------------- #
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+strict = true
+addopts = ["-ra", "--import-mode=importlib"]
+filterwarnings = ["error"]
+
+[tool.uv.sources]
+meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", branch = "main" }

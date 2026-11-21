@@ -1,0 +1,72 @@
+name: CI/CD
+
+# One run per commit (push only; a PR shows the run of its head commit).
+#   lint, tests  in parallel on the GCP runners (self-hosted, meritum); a newer
+#                push to the same branch cancels them, never on main/develop.
+#   deploy       develop -> meritum-worker-dev, main -> meritum-worker-prd, on dellpromaxgb10,
+#                after lint and tests pass; never cancelled mid-way, one at a time.
+# meritum-core is a private git dependency: every job reads it with the
+# read-only deploy key in the org secret MERITUM_CORE_SSH_KEY.
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CORE_KEY: ${{ secrets.MERITUM_CORE_SSH_KEY }}
+
+jobs:
+  lint:
+    runs-on: [self-hosted, meritum]
+    timeout-minutes: 10
+    concurrency:
+      group: ci-lint-${{ github.ref }}
+      cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - &core-key
+        name: Access to meritum-core
+        run: |
+          key="$RUNNER_TEMP/core_key" # RUNNER_TEMP is emptied after every job
+          install -m 600 /dev/null "$key" && printf '%s\n' "$CORE_KEY" >"$key"
+          echo "GIT_SSH_COMMAND=ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$GITHUB_WORKSPACE/deploy/github_known_hosts" >>"$GITHUB_ENV"
+      - &setup-uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: false # ~/.cache/uv stays on the self-hosted runner
+      - run: uv sync --locked
+      - run: uv run ruff check --output-format=github .
+      - run: uv run ruff format --check .
+      - run: uv run ty check
+
+  tests:
+    runs-on: [self-hosted, meritum]
+    timeout-minutes: 15
+    concurrency:
+      group: ci-tests-${{ github.ref }}
+      cancel-in-progress: ${{ github.ref != 'refs/heads/develop' && github.ref != 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - *core-key
+      - *setup-uv
+      - run: uv sync --locked
+      - run: uv run pytest
+
+  deploy:
+    needs: [lint, tests]
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, dellpromaxgb10]
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-${{ github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Deploy
+        run: |
+          export CORE_KEY_FILE="$RUNNER_TEMP/core_key"
+          install -m 600 /dev/null "$CORE_KEY_FILE" && printf '%s\n' "$CORE_KEY" >"$CORE_KEY_FILE"
+          deploy/deploy.sh "$GITHUB_REF_NAME" "$GITHUB_SHA"
