@@ -193,7 +193,7 @@ def article_with_date(context: Context, day: str) -> None:
     context.link = page.url
     context.published_at = page.published_at
     # The check comes in after the page was published, else its date is dropped.
-    context.received_at = RECEIVED_AT.replace(year=int(day[:4]) + 1)
+    context.received_at = RECEIVED_AT.replace(year=date.fromisoformat(day).year + 1)
 
 
 @when("workflow sprawdza link")

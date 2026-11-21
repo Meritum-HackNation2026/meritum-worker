@@ -6,6 +6,7 @@ Features:
 
 from datetime import timedelta
 from typing import Final
+from zoneinfo import ZoneInfo
 
 from meritum_core.checks.contracts import FailureCode
 from meritum_core.checks.transcription import MAX_AUDIO_BYTES, MAX_AUDIO_SECONDS
@@ -60,6 +61,9 @@ PUBLISHED_ON_INSTRUCTIONS: Final = (
     " yesterday or last week from that day (claim_date_source text)."
 )
 """Appended to EXTRACTION_INSTRUCTIONS when the linked page's metadata dates it."""
+
+PAGE_DATE_ZONE: Final = ZoneInfo("Europe/Warsaw")
+"""Zone a page's metadata date is read in: Polish pages date their articles locally."""
 
 NEEDS_CLARIFICATION_MESSAGE: Final = "Claim extraction found no claims."
 """Diagnostic for an input with no claims."""

@@ -10,6 +10,7 @@ from meritum_core.security.pii import mask_personal_data
 from meritum_worker.checks.constants import (
     FETCH_URL_STEP,
     MAX_PAGE_TEXT_CHARS,
+    PAGE_DATE_ZONE,
     URL_UNAVAILABLE_CODE,
     URL_UNAVAILABLE_MESSAGE,
 )
@@ -58,7 +59,8 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     text = masked.text[:MAX_PAGE_TEXT_CHARS]
     # shortcut: the check's receipt day stands in for the fetch moment (no fetch
     # clock in FetchedPage); a page dated after it has wrong metadata.
+    received_on = state.job.received_at.astimezone(PAGE_DATE_ZONE).date()
     published = page.published_at
-    if published is not None and published > state.job.received_at.date():
+    if published is not None and published > received_on:
         published = None
     return state.model_copy(update={"page_text": text, "published_at": published})
