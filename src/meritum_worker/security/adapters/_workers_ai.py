@@ -8,6 +8,7 @@ from httpx2 import AsyncClient
 from meritum_core.security.injection import TextRange
 from pydantic import BaseModel
 
+from meritum_worker.security.adapters._chunks import screen_chunks
 from meritum_worker.security.adapters._http import post_reply
 from meritum_worker.security.constants import (
     HTTP_TIMEOUT_SECONDS,
@@ -36,7 +37,7 @@ class _Reply(BaseModel):
 class WorkersAiGate:
     """InjectionGatePort on a Llama Guard model in Cloudflare Workers AI (ADR-35).
 
-    Llama Guard gives no offsets, so a flagged text is flagged whole. Only the
+    Llama Guard gives no offsets, so a flagged chunk is flagged whole. Only the
     categories in ``WORKERS_AI_INJECTION_CATEGORIES`` count as an injection.
 
     Args:
@@ -66,11 +67,12 @@ class WorkersAiGate:
             text: User or page text.
 
         Returns:
-            The whole text when the model flags an injection category; nothing
-            otherwise, or when the gate was skipped (logged).
+            Each chunk flagged with an injection category (``screen_chunks``);
+            nothing otherwise, or when the gate was skipped (logged).
         """
-        if not text.strip():
-            return ()
+        return await screen_chunks(text, self._flags)
+
+    async def _flags(self, text: str) -> bool:
         reply = await post_reply(
             self._client,
             url=self._url,
@@ -85,9 +87,8 @@ class WorkersAiGate:
             provider=InjectionGateProvider.WORKERS_AI,
         )
         if reply is None:
-            return ()
+            return False
         verdict = reply.result.response
-        flagged = not verdict.safe and bool(
+        return not verdict.safe and bool(
             WORKERS_AI_INJECTION_CATEGORIES.intersection(verdict.categories)
         )
-        return (TextRange(0, len(text)),) if flagged else ()

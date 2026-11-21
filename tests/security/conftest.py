@@ -1,4 +1,8 @@
-"""Recorded provider replies for the gate adapters: no network."""
+"""Recorded provider replies for the gate adapters: no network.
+
+The fixtures follow the shape in each provider's API reference; they are not
+captures of real calls. Replace them after the first ``-m integration`` run.
+"""
 
 from collections.abc import Callable
 from pathlib import Path

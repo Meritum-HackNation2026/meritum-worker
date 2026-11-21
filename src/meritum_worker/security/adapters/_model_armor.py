@@ -14,6 +14,7 @@ from httpx2 import AsyncClient
 from meritum_core.security.injection import TextRange
 from pydantic import BaseModel, ConfigDict, Field
 
+from meritum_worker.security.adapters._chunks import screen_chunks
 from meritum_worker.security.adapters._http import post_reply, skipped
 from meritum_worker.security.constants import (
     HTTP_TIMEOUT_SECONDS,
@@ -55,9 +56,8 @@ class _Reply(BaseModel):
 class ModelArmorGate:
     """InjectionGatePort on Model Armor's ``sanitizeUserPrompt`` (ADR-35).
 
-    Model Armor gives no offsets for injections, so a match flags the whole text;
-    the detector widens nothing further. Multi-language detection is on for every
-    request, since most texts are Polish.
+    Model Armor gives no offsets for injections, so a match flags the whole chunk.
+    Multi-language detection is on for every request: most texts are Polish.
 
     Args:
         settings: Validated ``model_armor`` settings (project and template set).
@@ -91,14 +91,15 @@ class ModelArmorGate:
             text: User or page text, sent to Model Armor as the user prompt.
 
         Returns:
-            The whole text when the filter matched; nothing when it did not,
-            or when the gate was skipped (logged).
+            Each chunk the filter matched (``screen_chunks``); nothing when it
+            matched none, or when the gate was skipped (logged).
         """
-        if not text.strip():
-            return ()
+        return await screen_chunks(text, self._flags)
+
+    async def _flags(self, text: str) -> bool:
         token = await self._token()
         if token is None:
-            return ()
+            return False
         reply = await post_reply(
             self._client,
             url=self._url,
@@ -113,8 +114,7 @@ class ModelArmorGate:
             reply=_Reply,
             provider=InjectionGateProvider.MODEL_ARMOR,
         )
-        flagged = reply is not None and _matched(reply)
-        return (TextRange(0, len(text)),) if flagged else ()
+        return reply is not None and _matched(reply)
 
     async def _token(self) -> str | None:
         try:

@@ -18,6 +18,14 @@ HTTP_TIMEOUT_SECONDS: Final = 10.0
 RETRY_BACKOFF_SECONDS: Final = 0.5
 """Pause before the second attempt, doubled before each further one."""
 
+CHUNK_CHARS: Final = 4000
+"""Longest text sent in one gate request; longer pages are screened in chunks, so
+they never hit a provider's size limit and skip the gate."""
+
+CHUNK_OVERLAP_CHARS: Final = 200
+"""Characters each chunk shares with the next, so a short instruction cut by a
+chunk boundary is still whole in one of them."""
+
 MODEL_ARMOR_LOCATION: Final = "eu"
 """Model Armor multi-region: texts are screened in the EU only (ADR-14)."""
 
