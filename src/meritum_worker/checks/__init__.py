@@ -5,7 +5,13 @@ Features:
 """
 
 from meritum_worker.checks.fakes import InlineCheckRuntime
-from meritum_worker.checks.models import AnswerDraft, CheckDeps, CheckState
+from meritum_worker.checks.models import (
+    AnswerDraft,
+    CheckDeps,
+    CheckState,
+    ClaimExtraction,
+    ExtractedClaim,
+)
 from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.workflow import pipeline, run_check
 
@@ -14,6 +20,8 @@ __all__ = [
     "CheckDeps",
     "CheckRuntime",
     "CheckState",
+    "ClaimExtraction",
+    "ExtractedClaim",
     "InlineCheckRuntime",
     "pipeline",
     "run_check",

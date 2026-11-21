@@ -17,3 +17,24 @@ Funkcja: Smoke test workera
     Gdy workflow buduje CheckResult
     Wtedy wynik ma stan technical_failure bez twierdzeń
     Oraz CheckRecord ma status technical_failure
+
+  Scenariusz: twierdzenie i opinia w jednej wiadomości
+    Zakładając tekst "Inflacja w październiku wyniosła 2,8%. Rząd kompletnie sobie nie radzi." z nagranymi odpowiedziami modelu "claims_fact_and_opinion.json"
+    Gdy system wyodrębnia twierdzenia
+    Wtedy wynik ma stan done i 2 wyniki
+    Oraz opinia dostaje werdykt "nie podlega weryfikacji"
+
+  Scenariusz: więcej niż 5 twierdzeń
+    Zakładając tekst z 8 twierdzeniami o faktach z nagranymi odpowiedziami modelu "claims_eight_facts.json"
+    Gdy system wyodrębnia twierdzenia
+    Wtedy sprawdza 5 twierdzeń, a pozostałe 3 są wymienione w limitations
+
+  Scenariusz: wejście bez twierdzenia
+    Zakładając tekst "czy to prawda?" z nagranymi odpowiedziami modelu "claims_none.json"
+    Gdy system wyodrębnia twierdzenia
+    Wtedy wynik ma stan needs_clarification bez twierdzeń, tylko z komunikatem
+
+  Scenariusz: data twierdzenia z tekstu
+    Zakładając tekst "W marcu 2025 r. bezrobocie wynosiło 5,3%" z nagranymi odpowiedziami modelu "claims_dated.json"
+    Gdy system wyodrębnia twierdzenia
+    Wtedy twierdzenie ma claim_date 2025-03-01 i claim_date_source "text"
