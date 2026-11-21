@@ -1,0 +1,6 @@
+{
+  "result": {"response": {"safe": true}, "usage": {"prompt_tokens": 205, "completion_tokens": 2, "total_tokens": 207}},
+  "success": true,
+  "errors": [],
+  "messages": []
+}
