@@ -62,8 +62,8 @@ def test_check_workflow_runs_on_dbos_and_streams_progress(
 
 
 @pytest.fixture
-def app_database(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    """Point MERITUM_DATABASE_* at a fresh, migrated app schema; drop it after."""
+def app_database(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
+    """Point MERITUM_DATABASE_* at a fresh, migrated app schema; yield its URL."""
     base = os.environ["MERITUM_TEST_DATABASE_URL"]
     with psycopg.connect(base, autocommit=True) as conn:
         conn.execute(f"DROP SCHEMA IF EXISTS {APP_SCHEMA} CASCADE")
@@ -72,7 +72,7 @@ def app_database(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     apply_migrations(url)
     monkeypatch.setenv("MERITUM_DATABASE_PROVIDER", "postgres")
     monkeypatch.setenv("MERITUM_DATABASE_URL", url)
-    yield
+    yield url
     with psycopg.connect(base, autocommit=True) as conn:
         conn.execute(f"DROP SCHEMA {APP_SCHEMA} CASCADE")
 
@@ -85,9 +85,10 @@ def _restart() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.usefixtures("app_database")
 def test_check_record_survives_worker_restart(
-    records: CheckRecordRepository, make_job: Callable[..., CheckInput]
+    app_database: str,
+    records: CheckRecordRepository,
+    make_job: Callable[..., CheckInput],
 ) -> None:
     payload = make_job().model_dump(mode="json")
     output, _ = asyncio.run(_check(payload, records))
@@ -96,5 +97,10 @@ def test_check_record_survives_worker_restart(
     saved = asyncio.run(main.check_deps().records.get(check_id))
     assert saved is not None
     assert saved.status == "done"
+    with psycopg.connect(app_database) as conn:
+        row = conn.execute(
+            "SELECT count(*) FROM check_records WHERE check_id = %s", (check_id,)
+        ).fetchone()
+    assert row == (1,)
     handle = DBOS.retrieve_workflow(check_id)
     assert CHECK.output.model_validate(handle.get_result()) == output
