@@ -1,5 +1,4 @@
-"""Settings of the EUvsDisinfo sync that are not secrets, and of the corpus
-schema migrations.
+"""Settings of the EUvsDisinfo sync (not secrets) and of corpus migrations.
 
 Features:
     US-KOR-08, US-KOR-02, F-11, F-12

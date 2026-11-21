@@ -1,5 +1,4 @@
-"""Adapters of the corpus slice: the EUvsDisinfo MCP client, the memory copy and
-the migrations of the shared corpus schema.
+"""Adapters of the corpus slice: EUvsDisinfo client, memory copy, migrations.
 
 Features:
     US-KOR-08, US-KOR-02, F-11, F-12, ADR-32
