@@ -1,4 +1,4 @@
-"""Steps for features/rerank.feature: the Vertex AI reranker on a fake ranking API."""
+"""Steps for features/rerank.feature: Vertex AI and OpenRouter on a fake ranking API."""
 
 import asyncio
 import json
@@ -17,7 +17,14 @@ CLAIM = "Woda z wodociągów w Krakowie nie nadaje się do picia"
 
 def _ranking_api(request: httpx2.Request) -> httpx2.Response:
     # Ranks the search order upside down: the last passage is the most relevant.
-    records = json.loads(request.content)["records"]
+    sent = json.loads(request.content)
+    if "documents" in sent:  # OpenRouter: index into the documents sent
+        results = [
+            {"index": i, "relevance_score": i / 100, "document": {"text": d}}
+            for i, d in enumerate(sent["documents"])
+        ]
+        return httpx2.Response(200, json={"model": sent["model"], "results": results})
+    records = sent["records"]
     scored = [{"id": r["id"], "score": int(r["id"]) / 100} for r in records]
     return httpx2.Response(200, json={"records": scored})
 
@@ -26,10 +33,15 @@ def _ranking_api_down(_request: httpx2.Request) -> httpx2.Response:
     return httpx2.Response(503, json={"error": {"code": 503}})
 
 
-@given("MERITUM_RERANKER=vertex i twierdzenie z {count:d} fragmentami")
-def vertex_and_passages(context: Context, count: int) -> None:
+@given("MERITUM_RERANKER={provider} i twierdzenie z {count:d} fragmentami")
+def provider_and_passages(context: Context, provider: str, count: int) -> None:
     context.reranker_settings = corpus.RerankerSettings.model_validate(
-        {"MERITUM_RERANKER": "vertex", "project": "meritum-test", "retries": 1}
+        {
+            "MERITUM_RERANKER": provider,
+            "project": "meritum-test",
+            "api_token": "fake",
+            "retries": 1,
+        }
     )
     context.ranking_api = _ranking_api
     context.passages = [

@@ -19,6 +19,7 @@ from meritum_worker.corpus import RerankerProvider, RerankerSettings, build_rera
 PROVIDERS = [
     ("vertex", "vertex-ranking.json", "vertex-ranking-unknown-id.json"),
     ("workers_ai", "workers-ai-rerank.json", "workers-ai-rerank-unknown-id.json"),
+    ("openrouter", "openrouter-rerank.json", "openrouter-rerank-unknown-id.json"),
 ]
 type RerankerFactory = Callable[
     [list[tuple[int, str] | Exception]], tuple[RerankerPort, list[httpx2.Request]]
@@ -85,12 +86,13 @@ def test_transient_error_is_retried(provider: Provider) -> None:
     ("reply", "calls"),
     [
         (httpx2.ConnectError("no reply"), 2),
+        (httpx2.ReadTimeout("too slow"), 2),
         (httpx2.DecodingError("broken gzip"), 1),
         ((503, "malformed.json"), 2),
         ((403, "malformed.json"), 1),
         ((200, "malformed.json"), 1),
     ],
-    ids=["no-reply", "undecodable", "unavailable", "refused", "malformed"],
+    ids=["no-reply", "timeout", "undecodable", "unavailable", "refused", "malformed"],
 )
 def test_failure_raises_provider_unavailable(
     provider: Provider, reply: tuple[int, str] | Exception, calls: int
@@ -150,6 +152,31 @@ def test_workers_ai_request_names_account_model_and_top_k(
     assert body["query"] == CLAIM
     assert body["top_k"] == 3
     assert body["contexts"][1] == {"text": "Fragment 1 o wodzie w Krakowie."}
+
+
+def test_openrouter_request_asks_for_zdr_and_no_data_collection(
+    openrouter: RerankerFactory,
+) -> None:
+    reranker, sent = openrouter([(200, "openrouter-rerank.json")])
+    asyncio.run(reranker.rerank(CLAIM, _passages(), limit=3))
+    [request] = sent
+    assert str(request.url) == "https://openrouter.ai/api/v1/rerank"
+    assert request.headers["Authorization"] == "Bearer or-recorded"
+    body = json.loads(request.content)
+    assert body["model"] == "cohere/rerank-v3.5"
+    assert body["query"] == CLAIM
+    assert body["top_n"] == 3
+    assert body["documents"][1] == "Fragment 1 o wodzie w Krakowie."
+    assert body["provider"] == {"zdr": True, "data_collection": "deny"}
+
+
+def test_openrouter_refusing_a_model_without_zdr_is_a_provider_failure(
+    openrouter: RerankerFactory,
+) -> None:
+    reranker, sent = openrouter([(404, "openrouter-no-zdr.json")])
+    with pytest.raises(ProviderUnavailableError):
+        asyncio.run(reranker.rerank(CLAIM, _passages(), limit=3))
+    assert len(sent) == 1
 
 
 def test_vertex_location_other_than_global_uses_its_regional_host() -> None:

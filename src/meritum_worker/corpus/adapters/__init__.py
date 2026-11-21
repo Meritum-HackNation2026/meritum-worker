@@ -7,6 +7,7 @@ Features:
 from ._mcp import McpEuvsDisinfo
 from ._memory import MemoryEuvsCopy
 from ._migrations import apply_corpus_migrations
+from ._openrouter_ranking import OpenRouterReranker
 from ._postgres import PostgresEuvsCopy
 from ._vertex_ranking import VertexReranker
 from ._workers_ai_ranking import WorkersAiReranker
@@ -14,6 +15,7 @@ from ._workers_ai_ranking import WorkersAiReranker
 __all__ = [
     "McpEuvsDisinfo",
     "MemoryEuvsCopy",
+    "OpenRouterReranker",
     "PostgresEuvsCopy",
     "VertexReranker",
     "WorkersAiReranker",

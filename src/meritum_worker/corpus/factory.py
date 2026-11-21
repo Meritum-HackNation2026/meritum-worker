@@ -16,6 +16,7 @@ from meritum_core.shared.embeddings import EmbeddingsPort
 from meritum_worker.corpus.adapters import (
     McpEuvsDisinfo,
     MemoryEuvsCopy,
+    OpenRouterReranker,
     PostgresEuvsCopy,
     VertexReranker,
     WorkersAiReranker,
@@ -135,7 +136,7 @@ def build_reranker(
             new one when None. Ignored by the null gate.
 
     Returns:
-        The Vertex AI or Workers AI reranker, or core's null gate when no
+        The Vertex AI, Workers AI or OpenRouter reranker, or core's null gate when no
         provider is set.
 
     Features:
@@ -149,5 +150,7 @@ def build_reranker(
             )
         case RerankerProvider.WORKERS_AI:
             return WorkersAiReranker(settings, http_client=http_client)
+        case RerankerProvider.OPENROUTER:
+            return OpenRouterReranker(settings, http_client=http_client)
         case RerankerProvider.NONE:
             return NullReranker()

@@ -30,6 +30,11 @@ WORKERS_AI = RerankerSettings(
     api_token=SecretStr("cf-recorded"),
     retries=2,
 )
+OPENROUTER = RerankerSettings(
+    provider=RerankerProvider.OPENROUTER,
+    api_token=SecretStr("or-recorded"),
+    retries=2,
+)
 
 
 def recorded(settings: RerankerSettings) -> RerankerFactory:
@@ -65,3 +70,8 @@ def vertex() -> RerankerFactory:
 @pytest.fixture
 def workers_ai() -> RerankerFactory:
     return recorded(WORKERS_AI)
+
+
+@pytest.fixture
+def openrouter() -> RerankerFactory:
+    return recorded(OPENROUTER)

@@ -76,7 +76,8 @@ MIGRATIONS_LOCK: Final = 32_0001
 two deploys migrating corpus at once run one after another."""
 
 RERANKER_ENV: Final = "MERITUM_RERANKER"
-"""Environment variable naming the reranker: ``none``, ``vertex`` or ``workers_ai``."""
+"""Environment variable naming the reranker: ``none``, ``vertex``, ``workers_ai``
+or ``openrouter``."""
 
 RERANKER_ENV_PREFIX: Final = "MERITUM_RERANKER_"
 """Prefix of the reranker's other variables (``MERITUM_RERANKER_PROJECT``)."""
@@ -113,6 +114,18 @@ WORKERS_AI_RERANK_ENDPOINT: Final = "https://api.cloudflare.com/client/v4/accoun
 WORKERS_AI_RERANK_MODEL: Final = "@cf/baai/bge-reranker-base"
 """Default Workers AI reranker: a bge cross-encoder, 512 tokens per context."""
 
+OPENROUTER_RERANK_URL: Final = "https://openrouter.ai/api/v1/rerank"
+"""OpenRouter rerank endpoint; the model goes in the body, not the URL."""
+
+OPENROUTER_RERANK_MODEL: Final = "cohere/rerank-v3.5"
+"""Default OpenRouter reranker: multilingual Cohere (100+ languages, Polish among
+them), served with zero data retention by Amazon Bedrock (eu-central-1)."""
+
+OPENROUTER_PRIVACY: Final = {"zdr": True, "data_collection": "deny"}
+"""Provider preferences of every OpenRouter rerank call, as core's LLM adapter
+sends them: only ZDR endpoints; with none for the model OpenRouter refuses to
+route, so no text leaves for a provider that keeps it."""
+
 URL_SEGMENT: Final = r"^[A-Za-z0-9][A-Za-z0-9_-]*$"
 """Pattern of a project, location or account id: one URL path segment, so a
 setting cannot redirect the request that carries the token."""
@@ -120,3 +133,7 @@ setting cannot redirect the request that carries the token."""
 MODEL_ID: Final = r"^@?[A-Za-z0-9][A-Za-z0-9_@/-]*$"
 """Pattern of a model id (``semantic-ranker-default-005``,
 ``@cf/baai/bge-reranker-base``); no ``.``, ``?`` or ``#`` reach the URL."""
+
+OPENROUTER_MODEL_ID: Final = r"^[a-z0-9-]+/[A-Za-z0-9._:-]+$"
+"""Pattern of an OpenRouter model id (``cohere/rerank-v3.5``); it only goes in
+the JSON body, so a ``.`` is allowed."""
