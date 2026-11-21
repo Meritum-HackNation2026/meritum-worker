@@ -11,6 +11,8 @@ from zoneinfo import ZoneInfo
 from meritum_core.checks.contracts import FailureCode
 from meritum_core.checks.transcription import MAX_AUDIO_BYTES, MAX_AUDIO_SECONDS
 
+from meritum_worker.corpus import WEB_SEARCH_MARGIN, WEB_SEARCH_TIMEOUT
+
 RECORD_RETENTION: Final = timedelta(days=30)
 """How long a CheckRecord is kept: retention_until = received_at + 30 days (ADR-13)."""
 
@@ -95,14 +97,17 @@ STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
     "screen_injection": timedelta(seconds=30),
     "extract_claims": timedelta(seconds=90),
     "search_corpus": timedelta(seconds=30),
-    "search_web": timedelta(seconds=10),
+    "search_web": WEB_SEARCH_TIMEOUT + WEB_SEARCH_MARGIN,
     "search_fact_checks": timedelta(seconds=30),
     "assess_evidence": timedelta(seconds=90),
     "verify_citations": timedelta(seconds=30),
     "write_answer": timedelta(seconds=90),
     "save_record": timedelta(seconds=30),
 }
-"""Longest wait per AnalysisStep code; web search at most 10 s (US-SPR-06, F-18).
+"""Longest wait per AnalysisStep code (US-SPR-06, F-18).
+
+search_web keeps its own 10 s deadline (WEB_SEARCH_TIMEOUT) for the searches
+and pages; this backstop adds WEB_SEARCH_MARGIN so pages drop out first.
 
 Transcription allows for the core batch mode (up to 15 min for 10 min of
 audio); model codes allow for the core adapter's retries; a timeout ends the check as
@@ -150,3 +155,6 @@ SYNC_MAX_SECONDS); their end is announced with a check_done notification."""
 
 CHECK_LINK: Final = "/sprawdzenie/{check_id}"
 """In-app path of a check's result (meritum-frontend route)."""
+
+SEARCH_WEB_STEP: Final = "search_web"
+"""AnalysisStep code of live web search; skipped when the check has no fact."""

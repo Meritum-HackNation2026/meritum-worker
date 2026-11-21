@@ -20,7 +20,7 @@ from meritum_worker.security.factory import (
     build_injection_gate,
     build_retention_deps,
 )
-from meritum_worker.security.fakes import InMemoryWorkflowStore
+from meritum_worker.security.fakes import CleanInjectionDetector, InMemoryWorkflowStore
 from meritum_worker.security.models import (
     RetentionDeps,
     RetentionReport,
@@ -41,6 +41,7 @@ __all__ = [
     "RETENTION_SCHEDULE_NAME",
     "RETENTION_WORKFLOW",
     "BlobCleaner",
+    "CleanInjectionDetector",
     "InMemoryWorkflowStore",
     "InjectionGateProvider",
     "InjectionGateSettings",

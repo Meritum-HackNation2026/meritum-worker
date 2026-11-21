@@ -16,6 +16,7 @@ from meritum_worker.checks import (
     ExtractedClaim,
     FakePageFetcher,
     audio_ports,
+    web_ports,
 )
 
 FIXTURES = Path(__file__).resolve().parents[2] / "features" / "fixtures"
@@ -34,6 +35,7 @@ def _deps(
         pages=pages or FakePageFetcher(),
         pii=NullPiiGate(),
         **audio_ports(),
+        **web_ports(),
     )
 
 

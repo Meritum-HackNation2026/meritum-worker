@@ -8,10 +8,12 @@ from meritum_core.jobs.contracts import CONTRACT_VERSION, CheckInput, CheckOutpu
 
 from meritum_worker.checks import (
     CheckDeps,
+    CheckState,
     FailingCheckRuntime,
     InlineCheckRuntime,
     pipeline,
     run_check,
+    steps,
 )
 from meritum_worker.checks.constants import TECHNICAL_FAILURE_CODE
 
@@ -31,7 +33,13 @@ def _run(payload: Payload, deps: CheckDeps) -> tuple[CheckOutput, InlineCheckRun
 
 
 def test_pipeline_covers_every_analysis_step_in_contract_order() -> None:
-    assert [code for code, _ in pipeline()] == STEP_CODES
+    assert [code for stage in pipeline() for code, _ in stage] == STEP_CODES
+
+
+def test_web_search_shares_a_stage_with_corpus_search_one_step_each() -> None:
+    (stage,) = [s for s in pipeline() if len(s) > 1]
+    assert [code for code, _ in stage] == ["search_corpus", "search_web"]
+    assert all(len(functions) == 1 for _, functions in stage)
 
 
 def test_check_publishes_each_step_active_then_done_and_ends_with_result(
@@ -39,10 +47,15 @@ def test_check_publishes_each_step_active_then_done_and_ends_with_result(
 ) -> None:
     output, runtime = _run(payload, make_deps())
     statuses = runtime.published
-    assert len(statuses) == len(STEP_CODES) + 1
+    stages = [[code for code, _ in stage] for stage in pipeline()]
+    assert len(statuses) == len(stages) + 1
     for index, status in enumerate(statuses[:-1]):
-        pending = len(STEP_CODES) - index - 1
-        expected = ["done"] * index + ["active"] + ["pending"] * pending
+        before = [code for stage in stages[:index] for code in stage]
+        active = stages[index]
+        expected = [
+            "done" if code in before else "active" if code in active else "pending"
+            for code in STEP_CODES
+        ]
         # A text has no link and no audio: the second and third codes are skipped.
         for skipped in (1, 2)[: max(index - 1, 0)]:
             expected[skipped] = "skipped"
@@ -106,3 +119,47 @@ def test_check_publishes_technical_failure_before_closing_after_step_exception(
     assert final.result.status == "technical_failure"
     assert final.result.failure_code == TECHNICAL_FAILURE_CODE
     assert runtime.closed_after == len(runtime.published)
+
+
+def test_corpus_and_web_search_run_at_the_same_time(
+    monkeypatch: pytest.MonkeyPatch,
+    payload: Payload,
+    make_deps: Callable[..., CheckDeps],
+) -> None:
+    web_started = asyncio.Event()
+
+    async def search_corpus(state: CheckState, _deps: CheckDeps) -> CheckState:
+        # Run one after the other, corpus search would wait for web search forever.
+        await asyncio.wait_for(web_started.wait(), timeout=1)
+        return state
+
+    async def search_web(state: CheckState, _deps: CheckDeps) -> CheckState:
+        web_started.set()
+        await asyncio.sleep(0)
+        return state
+
+    monkeypatch.setattr(steps, "search_web", search_web)
+    monkeypatch.setattr(steps, "search_corpus", search_corpus)
+    output, _ = _run(payload, make_deps())
+    assert output.result.status == "done"
+
+
+def test_parallel_steps_that_change_the_same_field_fail_loudly(
+    monkeypatch: pytest.MonkeyPatch,
+    payload: Payload,
+    make_deps: Callable[..., CheckDeps],
+) -> None:
+    async def corpus_snapshot(state: CheckState, _deps: CheckDeps) -> CheckState:
+        await asyncio.sleep(0)
+        return state.model_copy(update={"corpus_version": "corpus-a"})
+
+    async def other_snapshot(state: CheckState, _deps: CheckDeps) -> CheckState:
+        await asyncio.sleep(0)
+        return state.model_copy(update={"corpus_version": "corpus-b"})
+
+    corpus_snapshot.__name__ = "search_corpus"
+    other_snapshot.__name__ = "search_web"
+    monkeypatch.setattr(steps, "search_corpus", corpus_snapshot)
+    monkeypatch.setattr(steps, "search_web", other_snapshot)
+    with pytest.raises(ValueError, match="corpus_version"):
+        _run(payload, make_deps())

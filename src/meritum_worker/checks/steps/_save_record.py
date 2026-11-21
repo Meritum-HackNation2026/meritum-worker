@@ -34,6 +34,8 @@ def _build_record(state: CheckState, *, answered_at: datetime) -> CheckRecord:
     job = state.job
     result = state.final_result()
     cited = {c.source.id for claim in result.claims for c in claim.citations}
+    # Evidence past quarantine was used even when no claim quotes it (US-KOR-04).
+    used = {document.source.id for document in state.evidence}
     return CheckRecord(
         check_id=state.check_id,
         # CheckInput guarantees a session id or a user id.
@@ -46,7 +48,7 @@ def _build_record(state: CheckState, *, answered_at: datetime) -> CheckRecord:
         question_masked=state.question,
         status=result.status,
         verdicts=[claim.verdict for claim in result.claims],
-        source_ids=sorted(cited),
+        source_ids=sorted(cited | used),
         corpus_version=result.corpus_version,
         models=state.models,
         web_search_calls=state.web_search_calls,

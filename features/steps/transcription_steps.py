@@ -28,6 +28,7 @@ from meritum_worker.checks import (
     audio_ports,
     ogg_opus,
     run_check,
+    web_ports,
 )
 from meritum_worker.checks.constants import UNSUPPORTED_AUDIO_FORMAT_MESSAGE
 
@@ -52,6 +53,7 @@ def _given_audio(context: Context, data: bytes, transcript: str | None) -> None:
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
         **ports,
+        **web_ports(),
     )
     blobs = ports["blobs"]
     ref = asyncio.run(

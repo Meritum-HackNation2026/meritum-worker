@@ -5,7 +5,9 @@ Features:
 """
 
 from meritum_core.checks.transcription import TranscriptionSettings, build_transcriber
+from meritum_core.corpus.catalog import load_catalog
 from meritum_core.corpus.fetching import build_page_fetcher
+from meritum_core.corpus.web_search import WebSearchSettings, build_web_search
 from meritum_core.observability import build_app_repositories
 from meritum_core.security.pii import PiiGateSettings, build_pii_gate
 from meritum_core.shared.blobs import BlobProvider, BlobSettings, build_blob_store
@@ -15,6 +17,7 @@ from meritum_core.shared.llm import LlmSettings, build_llm
 from meritum_worker.checks.adapters import DbosCheckRuntime
 from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.ports import CheckRuntime
+from meritum_worker.security import InjectionGateSettings, build_detector
 
 
 def build_check_deps(
@@ -22,7 +25,10 @@ def build_check_deps(
     database: DatabaseSettings,
     blobs: BlobSettings | None = None,
 ) -> CheckDeps:
-    """Build the model, the repositories, the fetcher, masking and transcription.
+    """Build the model, repositories, fetcher, masking, transcription and web search.
+
+    Web search reads ``MERITUM_WEB_SEARCH_*`` (stub by default); the injection
+    detector reads ``MERITUM_INJECTION_GATE_*``.
 
     Args:
         settings: LLM settings, usually ``LlmSettings()`` from ``MERITUM_LLM_*``.
@@ -37,18 +43,23 @@ def build_check_deps(
         The ports.
 
     Features:
-        US-SPR-01, US-SPR-07, US-SPR-11, US-OBS-01, F-06, F-08, F-22
+        US-SPR-01, US-SPR-07, US-SPR-11, US-OBS-01, US-KOR-04, F-06, F-08, F-13, F-22
     """
     app = build_app_repositories(database)
     store = build_blob_store(blobs or BlobSettings(provider=BlobProvider.MEMORY))
+    llm = build_llm(settings)
+    catalog = load_catalog()
     return CheckDeps(
-        llm=build_llm(settings),
+        llm=llm,
         records=app.records,
         pages=build_page_fetcher(),
         pii=build_pii_gate(PiiGateSettings()),
         blobs=store,
         transcriber=build_transcriber(TranscriptionSettings(), store),
         notifications=app.notifications,
+        web_search=build_web_search(WebSearchSettings(), catalog),
+        injection=build_detector(llm, InjectionGateSettings()),
+        catalog=catalog,
     )
 
 

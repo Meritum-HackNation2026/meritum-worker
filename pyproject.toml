@@ -123,7 +123,7 @@ max-lines = 250
 paths = ["src", "scripts", "tests", "features"]
 # DBOS and behave register functions through their decorators.
 ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator"]
-ignore_names = ["before_scenario", "model_config", "__call__"]  # behave hook; Pydantic settings; Protocol call signatures
+ignore_names = ["before_scenario", "model_config", "__call__", "mask"]  # behave hook; Pydantic settings; Protocol call signatures; PiiGatePort.mask, called by core
 min_confidence = 60
 
 # bandit is a security linter, not a dead-code tool. Ruff's S rules already run
