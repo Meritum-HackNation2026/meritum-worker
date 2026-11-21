@@ -7,14 +7,18 @@ Features:
 from collections.abc import Mapping
 from datetime import datetime
 
+from google.auth.credentials import Credentials
 from httpx2 import AsyncClient
 from meritum_core.corpus import CorpusProvider, CorpusSettings
+from meritum_core.corpus.rerank import NullReranker, RerankerPort
 from meritum_core.shared.embeddings import EmbeddingsPort
 
 from meritum_worker.corpus.adapters import (
     McpEuvsDisinfo,
     MemoryEuvsCopy,
     PostgresEuvsCopy,
+    VertexReranker,
+    WorkersAiReranker,
 )
 from meritum_worker.corpus.constants import (
     EUVSDISINFO_MCP_URL,
@@ -24,6 +28,7 @@ from meritum_worker.corpus.constants import (
 from meritum_worker.corpus.errors import MissingTokenError
 from meritum_worker.corpus.models import SyncReport
 from meritum_worker.corpus.ports import EuvsCopyPort, EuvsDisinfoPort
+from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
 from meritum_worker.corpus.sync import missing_env, sync_euvsdisinfo
 
 
@@ -112,3 +117,37 @@ async def run_euvsdisinfo_sync(
     async with http_client or AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as http:
         client = build_euvsdisinfo_client(env, http)
         return await sync_euvsdisinfo(client, store, embeddings, now=now)
+
+
+def build_reranker(
+    settings: RerankerSettings | None = None,
+    *,
+    credentials: Credentials | None = None,
+    http_client: AsyncClient | None = None,
+) -> RerankerPort:
+    """Build the reranker ``MERITUM_RERANKER`` names.
+
+    Args:
+        settings: Reranker settings; read from the environment when None.
+        credentials: Google credentials for Vertex AI; Application Default
+            Credentials when None. Ignored by the other rerankers.
+        http_client: HTTP client (shared pool, or recorded replies in tests); a
+            new one when None. Ignored by the null gate.
+
+    Returns:
+        The Vertex AI or Workers AI reranker, or core's null gate when no
+        provider is set.
+
+    Features:
+        US-KOR-02, US-SPR-04, F-12, ADR-35
+    """
+    settings = RerankerSettings() if settings is None else settings
+    match settings.provider:
+        case RerankerProvider.VERTEX:
+            return VertexReranker(
+                settings, credentials=credentials, http_client=http_client
+            )
+        case RerankerProvider.WORKERS_AI:
+            return WorkersAiReranker(settings, http_client=http_client)
+        case RerankerProvider.NONE:
+            return NullReranker()

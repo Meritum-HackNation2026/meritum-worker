@@ -1,0 +1,14 @@
+{
+  "result": {
+    "response": [
+      {"id": 2, "score": 3.9},
+      {"id": 0, "score": 3.1},
+      {"id": 4, "score": -1.2},
+      {"id": 1, "score": -6.5},
+      {"id": 3, "score": -8.0}
+    ]
+  },
+  "success": true,
+  "errors": [],
+  "messages": []
+}
