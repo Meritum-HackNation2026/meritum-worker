@@ -174,6 +174,8 @@ def retention_runs(context: Context) -> None:
 def erasure_finishes(context: Context) -> None:
     payload = {"kind": "session_id", "value": context.session}
     context.output = asyncio.run(erase_subject(payload, context.deps))
+    # DBOS keeps the finished erasure run with its input, as it does every workflow.
+    context.workflows.add("del_1", "delete_subject", payload, created_at=NOW)
 
 
 @then(
@@ -201,7 +203,8 @@ def orphan_audio_is_gone(context: Context) -> None:
 
 @then(
     "w bazie nie ma żadnego zapisu, powiadomienia, powiązania ze sprawą ani danych"
-    " DBOS z tym session_id"
+    " DBOS z tym session_id, poza wejściem samego przebiegu delete_subject, które"
+    " znika najpóźniej 2 h później"
 )
 def subject_is_gone(context: Context) -> None:
     app, session = context.deps.app, context.session
@@ -210,6 +213,8 @@ def subject_is_gone(context: Context) -> None:
     case = asyncio.run(app.cases.get("#S-1"))
     assert case is not None
     assert case.check_ids == [NEW]
+    assert context.workflows.ids() == {NEW, "del_1"}
+    asyncio.run(run_retention(context.deps, NOW + timedelta(hours=2)))
     assert session not in json.dumps(context.workflows.payloads())
     assert context.workflows.ids() == {NEW}
     assert not context.audio.exists()

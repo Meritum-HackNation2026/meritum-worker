@@ -24,4 +24,4 @@ Funkcja: Bramka klasyfikatora wstrzyknięć przed LLM
   Scenariusz: usunięcie sesji na żądanie
     Zakładając backend zleca usunięcie dla session_id "s_12345678"
     Gdy workflow usuwania kończy się
-    Wtedy w bazie nie ma żadnego zapisu, powiadomienia, powiązania ze sprawą ani danych DBOS z tym session_id
+    Wtedy w bazie nie ma żadnego zapisu, powiadomienia, powiązania ze sprawą ani danych DBOS z tym session_id, poza wejściem samego przebiegu delete_subject, które znika najpóźniej 2 h później
