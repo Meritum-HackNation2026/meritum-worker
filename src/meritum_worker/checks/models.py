@@ -9,6 +9,7 @@ from datetime import date
 from typing import Annotated, Literal
 
 from meritum_core.checks import CheckRecordRepository, CheckResult, InjectionEvent
+from meritum_core.checks.constants import MIN_TEXT_CHARS
 from meritum_core.checks.contracts import (
     ClaimDateSource,
     ClaimResult,
@@ -134,11 +135,18 @@ class CheckState(BaseModel):
     result: CheckResult | None = None
 
     @property
+    def has_text(self) -> bool:
+        """Whether the citizen pasted text, by the contract's MIN_TEXT_CHARS rule."""
+        return len((self.job.request.text or "").strip()) >= MIN_TEXT_CHARS
+
+    @property
     def question(self) -> str:
         """The masked question: the text, else the page, the link or the audio id."""
         request = self.job.request
+        if self.has_text:
+            return request.text or ""
         link = str(request.url or "")
-        return request.text or self.page_text or link or request.audio_id or ""
+        return self.page_text or link or request.audio_id or ""
 
     def with_message(self, status: NotAVerdict, message: str) -> CheckResult:
         """Build a result that is not a verdict: no claims, a message instead.

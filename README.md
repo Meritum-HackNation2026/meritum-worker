@@ -29,7 +29,7 @@ uv run pytest -m integration  # tylko lokalnie: prawdziwy PostgreSQL albo dostaw
 uv run behave            # scenariusze z features/
 ```
 
-Workflow `check` bierze model i repozytorium zapisów z fabryk meritum-core, a konfigurację ze zmiennych środowiska:
+Workflow `check` bierze model, repozytorium zapisów, fetcher stron (ochrona SSRF) i bramkę maskowania z fabryk meritum-core, a konfigurację ze zmiennych środowiska:
 
 | Zmienna | Domyślnie | Znaczenie |
 | --- | --- | --- |
@@ -37,6 +37,9 @@ Workflow `check` bierze model i repozytorium zapisów z fabryk meritum-core, a k
 | `MERITUM_LLM_STUB_FIXTURES` | brak | plik z odpowiedziami stuba; w obrazie `/app/features/fixtures/llm_stub_answer.json`. Bez niego stub nie ma odpowiedzi i każde sprawdzenie kończy się stanem `technical_failure`, więc dev na stubie musi go mieć |
 | `MERITUM_DATABASE_PROVIDER` | `memory` | `memory` (fake'i w procesie: testy, CI, praca bez bazy; zapisy giną przy restarcie) albo `postgres` (dev i prd) |
 | `MERITUM_DATABASE_URL` | brak | adres libpq z `search_path` schematu aplikacji (`app_dev`, `app_prd`); wymagany dla `postgres` |
+| `MERITUM_PII_GATE` | `none` | bramka maskowania danych osobowych w tekście strony z linku: `none` (tylko wzorce telefonów, e-maili i PESEL; pominięcie bramki trafia do logu) albo `sdp` (Google Sensitive Data Protection) |
+| `MERITUM_PII_PROJECT` | brak | projekt Google Cloud rozliczany za Sensitive Data Protection; wymagany dla `sdp` |
+| `MERITUM_PII_LOCATION` | `europe-central2` | region UE punktu końcowego Sensitive Data Protection; sprawdzany tylko dla `sdp` |
 
 Tabele schematu aplikacji tworzy `meritum-migrate-app` z meritum-core, uruchamiany przez deploy (worker#32). Lokalny test z prawdziwym DBOS i PostgreSQL, także z restartem workera, potrzebuje dwóch adresów; `MERITUM_TEST_DATABASE_URL` wskazuje bazę, w której test tworzy i usuwa schemat `app_integration`:
 

@@ -141,3 +141,15 @@ def test_fetch_url_keeps_pasted_text_and_skips_the_link_next_to_it(
     assert out.result is None
     assert out.skipped_steps == ["fetch_url"]
     assert out.question == "Płaca minimalna wynosi 4806 zł"
+
+
+def test_fetch_url_reads_the_link_when_the_text_next_to_it_is_only_spaces(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    pages = FakePageFetcher(_page())
+    request = CheckRequest(channel="web", text="   ", url=LINK)
+    job = make_job().model_copy(update={"request": request})
+    state = CheckState(check_id="c-1", job=job)
+    out = asyncio.run(fetch_url(state, make_deps(pages=pages)))
+    assert pages.calls == [(LINK, FetchPurpose.USER_LINK)]
+    assert out.question.startswith("Inflacja w październiku wyniosła 2,8%.")

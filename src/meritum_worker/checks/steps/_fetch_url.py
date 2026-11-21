@@ -35,11 +35,9 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     Features:
         US-SPR-07, US-ZRD-05, F-06, ADR-12
     """
-    request = state.job.request
-    url = request.url
+    url = state.job.request.url
     # Pasted text is what the citizen wants checked; a link next to it is context.
-    has_text = bool((request.text or "").strip())
-    if url is None or has_text:
+    if url is None or state.has_text:
         return state.model_copy(
             update={"skipped_steps": [*state.skipped_steps, FETCH_URL_STEP]}
         )
