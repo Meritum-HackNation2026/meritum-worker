@@ -134,6 +134,31 @@ def test_page_metadata_date_wins_over_a_publication_date_the_model_read(
     assert out.claims[0].claim_date == date(2026, 11, 18)
 
 
+def test_publication_date_of_the_page_goes_into_the_instructions(
+    state: CheckState,
+) -> None:
+    page_state = state.model_copy(update={"published_at": date(2026, 11, 20)})
+    _, llm = _extract(page_state, _claim("Wczoraj rząd przyjął ustawę"))
+    (prompt,) = llm.prompts
+    assert "2026-11-20" in prompt.instructions
+
+
+def test_relative_date_the_model_resolved_from_the_page_date_stays(
+    state: CheckState,
+) -> None:
+    page_state = state.model_copy(update={"published_at": date(2026, 11, 20)})
+    yesterday = _claim(
+        "Wczoraj rząd przyjął ustawę",
+        claim_date="2026-11-19",
+        claim_date_source="text",
+    )
+    out, _ = _extract(page_state, yesterday)
+    assert (out.claims[0].claim_date, out.claims[0].claim_date_source) == (
+        date(2026, 11, 19),
+        "text",
+    )
+
+
 def test_claim_keeps_date_and_source_from_model(state: CheckState) -> None:
     published = _claim(
         "Bezrobocie wynosi 5,3%",

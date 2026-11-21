@@ -44,6 +44,16 @@ Funkcja: Smoke test workera
     Gdy workflow sprawdza link
     Wtedy krok fetch_url kończy się stanem done, a twierdzenia z tekstu artykułu mają claim_date_source "input_published_at", gdy tekst nie podaje innej daty
 
+  Scenariusz: względna data liczy się od dnia publikacji
+    Zakładając artykuł opublikowany 2026-11-20 mówi „wczoraj rząd przyjął ustawę”
+    Gdy workflow sprawdza link
+    Wtedy prompt ekstrakcji podaje datę 2026-11-20, a twierdzenie ma claim_date 2026-11-19
+
+  Scenariusz: data publikacji z przyszłości jest pomijana
+    Zakładając metadane strony podają datę publikacji 2026-01-06, późniejszą niż chwila pobrania
+    Gdy workflow sprawdza link
+    Wtedy twierdzenie bez daty w tekście nie dostaje daty 2026-01-06
+
   Scenariusz: post za logowaniem
     Zakładając link do posta na Facebooku wymagającego logowania
     Gdy workflow sprawdza link

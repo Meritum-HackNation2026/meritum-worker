@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import Callable
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from meritum_core.checks import CheckRequest
@@ -54,11 +54,35 @@ def test_fetch_url_reads_the_link_as_a_user_link_and_masks_the_page_text(
 def test_fetch_url_keeps_the_publication_date_of_the_page(
     make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
 ) -> None:
-    page = _page().model_copy(update={"published_at": date(2026, 11, 18)})
-    out = asyncio.run(
-        fetch_url(_url_state(make_job), make_deps(pages=FakePageFetcher(page)))
+    state = _url_state(make_job)
+    published = state.job.received_at.date() - timedelta(days=1)
+    page = _page().model_copy(update={"published_at": published})
+    out = asyncio.run(fetch_url(state, make_deps(pages=FakePageFetcher(page))))
+    assert out.published_at == published
+
+
+def test_fetch_url_drops_a_publication_date_after_the_fetch(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    state = _url_state(make_job)
+    tomorrow = state.job.received_at.date() + timedelta(days=1)
+    page = _page().model_copy(update={"published_at": tomorrow})
+    out = asyncio.run(fetch_url(state, make_deps(pages=FakePageFetcher(page))))
+    assert out.published_at is None
+
+
+def test_fetch_url_reads_the_receipt_day_in_polish_time(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    state = _url_state(make_job)
+    # 23:30 UTC on 5 January is already 6 January in Warsaw.
+    late = datetime(2026, 1, 5, 23, 30, tzinfo=UTC)
+    state = state.model_copy(
+        update={"job": state.job.model_copy(update={"received_at": late})}
     )
-    assert out.published_at == date(2026, 11, 18)
+    page = _page().model_copy(update={"published_at": date(2026, 1, 6)})
+    out = asyncio.run(fetch_url(state, make_deps(pages=FakePageFetcher(page))))
+    assert out.published_at == date(2026, 1, 6)
 
 
 def test_fetch_url_cuts_a_long_page_to_the_length_of_a_pasted_text(
