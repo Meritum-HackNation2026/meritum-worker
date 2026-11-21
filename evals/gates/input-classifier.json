@@ -1,0 +1,12 @@
+{
+  "name": "klasyfikator-wejscia",
+  "gate": "input_classifier",
+  "runs_on": {
+    "provider": "do wyboru",
+    "model": "tani klasyfikator wejścia",
+    "version": "do uzupełnienia przy przebiegu",
+    "region": "do uzupełnienia przy przebiegu",
+    "price_per_call_usd": 0
+  },
+  "calls": "../reports/input-classifier-calls.json"
+}
