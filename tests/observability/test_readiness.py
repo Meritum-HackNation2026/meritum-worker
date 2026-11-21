@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from meritum_core.jobs.contracts import ReadinessReport
 
+from meritum_worker.corpus import EuvsDisinfoUnavailableError
 from meritum_worker.corpus.fakes import FakeEuvsDisinfoServer
 from meritum_worker.observability import (
     build_readiness_probes,
@@ -97,3 +98,22 @@ def test_empty_meritum_env_is_local() -> None:
 def test_unknown_model_provider_is_reported() -> None:
     report = _check({"MERITUM_LLM_PROVIDER": "nope"})
     assert report.missing_env == ["MERITUM_LLM_PROVIDER"]
+
+
+async def _times_out() -> bool:  # ruff: ignore[unused-async]  # a Probe is awaited
+    raise EuvsDisinfoUnavailableError(TOKEN) from TimeoutError
+
+
+def test_failed_probe_logs_its_cause_without_the_message(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    _check({"MERITUM_LLM_PROVIDER": "stub"}, {"euvsdisinfo": _times_out})
+    assert "EuvsDisinfoUnavailableError from TimeoutError" in caplog.text
+    assert TOKEN not in caplog.text
+
+
+def test_unreachable_provider_only_degrades(caplog: pytest.LogCaptureFixture) -> None:
+    report = _check({"MERITUM_LLM_PROVIDER": "stub"}, {"euvsdisinfo": _down})
+    log_readiness(report, logging.getLogger("t"))
+    assert "worker degraded" in caplog.text
+    assert "not ready" not in caplog.text
