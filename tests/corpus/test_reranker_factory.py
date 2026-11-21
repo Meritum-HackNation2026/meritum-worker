@@ -39,6 +39,7 @@ def test_workers_ai_token_is_not_shown(monkeypatch: pytest.MonkeyPatch) -> None:
     [
         (RerankerProvider.VERTEX, "MERITUM_RERANKER_PROJECT"),
         (RerankerProvider.WORKERS_AI, "MERITUM_RERANKER_API_TOKEN"),
+        (RerankerProvider.OPENROUTER, "MERITUM_RERANKER_API_TOKEN"),
     ],
 )
 def test_provider_without_its_settings_is_rejected(
@@ -48,6 +49,17 @@ def test_provider_without_its_settings_is_rejected(
         monkeypatch.delenv(f"MERITUM_RERANKER_{name}", raising=False)
     with pytest.raises(ValidationError, match=missing):
         RerankerSettings(provider=provider, account_id="a")
+
+
+def test_openrouter_model_id_may_hold_a_dot() -> None:
+    settings = RerankerSettings.model_validate(
+        {"provider": "openrouter", "api_token": "k", "model": "cohere/rerank-v3.5"}
+    )
+    assert settings.model == "cohere/rerank-v3.5"
+    with pytest.raises(ValidationError, match="model"):
+        RerankerSettings.model_validate(
+            {"provider": "openrouter", "api_token": "k", "model": "a b"}
+        )
 
 
 def test_unknown_provider_is_rejected() -> None:
@@ -62,6 +74,7 @@ def test_unknown_provider_is_rejected() -> None:
         ("account_id", "acc?x=1"),
         ("location", "eu.evil.example"),
         ("model", "@cf/../x"),
+        ("model", "@cf/baai/bge-reranker-base\n"),
     ],
 )
 def test_setting_that_would_change_the_url_is_rejected(field: str, value: str) -> None:
