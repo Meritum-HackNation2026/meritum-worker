@@ -57,7 +57,8 @@ jobs:
       - *core-key
       - *setup-uv
       - run: uv sync --locked
-      - run: uv run pytest # includes tests/architecture (pytestarch)
+      - run: uv run pytest # includes tests/architecture (pytestarch); skips -m integration
+      - run: uv run behave # scenarios from features/
 
   deploy:
     needs: [lint, tests]

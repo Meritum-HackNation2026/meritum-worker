@@ -24,8 +24,12 @@ uv sync
 uv run meritum-worker        # MERITUM_ENV=local, schemat worker_local
 uv run ruff check . && uv run ruff format --check . && uv run ty check
 uv run python scripts/check_conventions.py && uv run vulture && uv run bandit -c pyproject.toml -r src scripts
-uv run pytest            # z testami architektury (tests/architecture/)
+uv run pytest            # z testami architektury (tests/architecture/), bez integracyjnych
+uv run pytest -m integration  # tylko lokalnie: prawdziwy PostgreSQL albo dostawca
+uv run behave            # scenariusze z features/
 ```
+
+Scenariusze Gherkin ze zgłoszeń trafiają do `features/<domena>.feature`, kroki do `features/steps/`; kroki wołają tylko publiczne API wycinka. Test na prawdziwej bazie albo u prawdziwego dostawcy dostaje `@pytest.mark.integration`: `uv run pytest` (także w CI) go pomija, `uv run pytest -m integration` uruchamia.
 
 Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architecture.md).
 

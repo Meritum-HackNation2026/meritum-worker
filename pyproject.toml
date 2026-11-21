@@ -21,6 +21,7 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "bandit>=1.9.4",
+    "behave>=1.3.3",
     "pytest>=9.2.0",
     "pytestarch>=5.1.1",
     "ruff>=0.17.6",
@@ -34,7 +35,7 @@ dev = [
 [tool.ruff]
 target-version = "py314"
 line-length = 88
-src = ["src", "tests"]
+src = ["src", "tests", "features"]
 
 [tool.ruff.lint]
 preview = true
@@ -53,6 +54,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # Tests: plain asserts and literals; tests/ is not a package (pytest importlib mode).
 "tests/**/*.py" = ["assert", "magic-value-comparison", "D", "DOC", "implicit-namespace-package"]
+"features/**/*.py" = ["assert", "D", "DOC", "implicit-namespace-package"]  # behave steps, not a package
 "scripts/**/*.py" = ["implicit-namespace-package"]  # standalone scripts, not a package
 
 [tool.ruff.lint.pydocstyle]
@@ -84,10 +86,15 @@ docstring-code-format = true
 python-version = "3.14"
 
 [tool.ty.src]
-include = ["src", "tests", "scripts"]
+include = ["src", "tests", "scripts", "features"]
 
 [tool.ty.rules]
 all = "error"
+
+# behave's step decorators are untyped.
+[[tool.ty.overrides]]
+include = ["features/steps"]
+rules = { not-callable = "ignore", dynamic-function-decorator-return = "ignore" }
 
 [tool.ty.terminal]
 error-on-warning = true
@@ -103,9 +110,10 @@ max-lines = 250
 # Dead code (vulture) and security (bandit)
 # --------------------------------------------------------------------------- #
 [tool.vulture]
-paths = ["src", "scripts", "tests"]
-# DBOS registers workflows through its decorators.
-ignore_decorators = ["@DBOS.*"]
+paths = ["src", "scripts", "tests", "features"]
+# DBOS and behave register functions through their decorators.
+ignore_decorators = ["@DBOS.*", "@given", "@when", "@then"]
+ignore_names = ["before_scenario"]  # behave hook
 min_confidence = 60
 
 # bandit is a security linter, not a dead-code tool. Ruff's S rules already run
@@ -120,7 +128,10 @@ exclude_dirs = ["tests", ".venv"]
 minversion = "9.0"
 testpaths = ["tests"]
 strict = true
-addopts = ["-ra", "--import-mode=importlib"]
+# Integration tests (real PostgreSQL or provider) run only locally:
+# `uv run pytest -m integration` (the last -m wins).
+markers = ["integration: needs real PostgreSQL or a real provider; local only"]
+addopts = ["-ra", "--import-mode=importlib", "-m", "not integration"]
 filterwarnings = ["error"]
 
 [tool.uv.sources]
