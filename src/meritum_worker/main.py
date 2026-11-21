@@ -13,13 +13,20 @@ from typing import Any
 import psycopg
 from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
 from meritum_core.corpus import CorpusSettings
-from meritum_core.jobs.contracts import APPLICATION_NAME, CHECK, DEFAULT_QUEUE, PING
+from meritum_core.jobs.contracts import (
+    APPLICATION_NAME,
+    CHECK,
+    DEFAULT_QUEUE,
+    DELETE_SUBJECT,
+    PING,
+)
+from meritum_core.shared.blobs import BlobSettings
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.database.adapters import apply_migrations
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings
 
-from meritum_worker import checks, corpus, jobs
+from meritum_worker import checks, corpus, jobs, security
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
 from meritum_worker.corpus.adapters import apply_corpus_migrations
 
@@ -128,6 +135,54 @@ def euvsdisinfo_sync_step() -> dict[str, Any]:
     return report.model_dump(mode="json")
 
 
+def _retention_deps() -> security.RetentionDeps:
+    # A worker without MERITUM_BLOB_PROVIDER has no files to delete.
+    blobs = BlobSettings() if "MERITUM_BLOB_PROVIDER" in os.environ else None
+    return security.build_retention_deps(DatabaseSettings(), blobs)
+
+
+async def _erase(payload: dict[str, Any]) -> dict[str, Any]:
+    return (await security.erase_subject(payload, _retention_deps())).model_dump()
+
+
+@DBOS.workflow(
+    name=DELETE_SUBJECT.name, serialization_type=WorkflowSerializationFormat.PORTABLE
+)
+async def delete_subject_workflow(payload: dict[str, Any]) -> dict[str, Any]:
+    """Erase one person (DELETE_SUBJECT); one step keeps what it reads out of history.
+
+    Args:
+        payload: the `DeleteSubjectInput` JSON object.
+
+    Returns:
+        The `DeleteSubjectOutput` JSON object.
+
+    Features:
+        US-BEZ-05, F-20, ADR-03
+    """
+    return await DBOS.run_step_async({"retries_allowed": True}, _erase, payload)
+
+
+@DBOS.workflow(name=security.RETENTION_WORKFLOW)
+async def retention_workflow(scheduled_at: datetime, _context: object) -> None:
+    """Delete data past retention; started daily by the RETENTION_CRON schedule.
+
+    Args:
+        scheduled_at: the schedule's time; the cutoffs count back from it.
+        _context: the schedule's context, unused.
+
+    Features:
+        US-BEZ-05, US-POW-04, F-20, ADR-13
+    """
+    report = await DBOS.run_step_async(
+        {"retries_allowed": True},
+        security.run_retention,
+        _retention_deps(),
+        scheduled_at,
+    )
+    DBOS.logger.info("retention deleted %s", report.model_dump())
+
+
 def config() -> DBOSConfig:
     """DBOS settings from the environment (written by the deploy on the host).
 
@@ -157,6 +212,15 @@ def main() -> None:
     DBOS(config=config())
     DBOS.launch()
     DBOS.register_queue(DEFAULT_QUEUE)
+    DBOS.apply_schedules(
+        [
+            {
+                "schedule_name": security.RETENTION_SCHEDULE_NAME,
+                "workflow_fn": retention_workflow,
+                "schedule": security.RETENTION_CRON,
+            }
+        ]
+    )
     stop = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
     signal.signal(signal.SIGINT, lambda *_: stop.set())
