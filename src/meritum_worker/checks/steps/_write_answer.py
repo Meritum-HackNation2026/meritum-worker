@@ -86,10 +86,13 @@ def _answered(fact: ExtractedClaim, claim: ClaimResult) -> ClaimResult:
 
 
 def _not_verifiable(claim: ExtractedClaim) -> ClaimResult:
-    return ClaimResult(
-        claim=claim.claim,
-        claim_date=claim.claim_date,
-        claim_date_source=claim.claim_date_source,
-        verdict="not_verifiable",
-        explanation=claim.explanation,
+    # extract_claims dated every claim; the contract rejects one it did not.
+    return ClaimResult.model_validate(
+        {
+            "claim": claim.claim,
+            "claim_date": claim.claim_date,
+            "claim_date_source": claim.claim_date_source,
+            "verdict": "not_verifiable",
+            "explanation": claim.explanation,
+        }
     )

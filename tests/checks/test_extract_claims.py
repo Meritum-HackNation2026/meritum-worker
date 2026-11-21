@@ -166,6 +166,8 @@ def test_only_opinions_are_done_with_model_limitations_even_if_it_judged_them(
     extracted, _ = _extract(state, opinion)
     judged = ClaimResult(
         claim="Rząd sobie nie radzi.",
+        claim_date=date(2026, 1, 1),
+        claim_date_source="today",
         verdict="not_verifiable",
         explanation="Ocena, a nie fakt do sprawdzenia.",
     )
