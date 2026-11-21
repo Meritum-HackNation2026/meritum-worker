@@ -185,7 +185,7 @@ def report_has_dlp_detection_and_over_masking(context: Context) -> None:
     assert score.over_masking is not None
 
 
-@given("zapisane odpowiedzi klasyfikatora wejścia na golden secie")
+@given("zapisane odpowiedzi klasyfikatora wejścia na przypadkach z trzema klasami")
 def recorded_classifier(context: Context) -> None:
     folder = _folder(context)
     config = json.loads((GATES / "input-classifier.json").read_text("utf-8"))

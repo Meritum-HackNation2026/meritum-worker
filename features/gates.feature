@@ -22,6 +22,6 @@ Funkcja: Porównanie bramek przed LLM (ADR-35)
     Wtedy raport podaje wykryte dane osobowe i nadmiarowe maskowanie treści, która musi zostać bez zmian
 
   Scenariusz: klasyfikator wejścia
-    Zakładając zapisane odpowiedzi klasyfikatora wejścia na golden secie
+    Zakładając zapisane odpowiedzi klasyfikatora wejścia na przypadkach z trzema klasami
     Gdy porównanie się kończy
     Wtedy raport podaje trafność i udział twierdzeń, które klasyfikator zatrzymałby przed głównym modelem
