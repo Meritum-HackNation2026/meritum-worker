@@ -19,7 +19,7 @@ COPY . /app
 RUN --mount=type=ssh --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
-FROM python:3.14-slim-trixie
+FROM python:3.15-slim-trixie
 RUN groupadd --system --gid 999 nonroot \
  && useradd --system --gid 999 --uid 999 --create-home nonroot
 COPY --from=builder --chown=nonroot:nonroot /app /app
