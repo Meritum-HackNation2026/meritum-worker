@@ -6,7 +6,8 @@ name: CI/CD
 #   deploy       develop -> meritum-worker-dev, main -> meritum-worker-prd, on dellpromaxgb10,
 #                after lint and tests pass; never cancelled mid-way, one at a time.
 # meritum-core is a private git dependency: every job reads it with the
-# read-only deploy key in the org secret MERITUM_CORE_SSH_KEY.
+# read-only deploy key in the repo secret MERITUM_CORE_SSH_KEY (org secrets do not
+# reach private repos on the Free plan).
 on:
   push:
     branches: ["**"]
