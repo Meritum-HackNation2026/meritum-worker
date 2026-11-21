@@ -8,7 +8,7 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
-from meritum_worker.checks import CheckDeps, CheckState
+from meritum_worker.checks import CheckDeps, CheckState, ExtractedClaim
 
 FIXTURES = Path(__file__).resolve().parents[2] / "features" / "fixtures"
 RECEIVED_AT = datetime(2026, 1, 5, 12, 0, tzinfo=UTC)
@@ -46,4 +46,12 @@ def make_job() -> MakeJob:
 
 @pytest.fixture
 def state() -> CheckState:
-    return CheckState(check_id="check-1", job=_job())
+    """A check whose input holds one extracted fact, as write_answer gets it."""
+    fact = ExtractedClaim(
+        claim="Płaca minimalna wynosi 4806 zł",
+        kind="fact",
+        explanation="Twierdzenie o kwocie, które da się sprawdzić.",
+        claim_date=RECEIVED_AT.date(),
+        claim_date_source="today",
+    )
+    return CheckState(check_id="check-1", job=_job(), claims=[fact])

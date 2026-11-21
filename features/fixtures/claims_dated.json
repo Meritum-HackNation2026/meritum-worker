@@ -1,0 +1,27 @@
+{
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "W marcu 2025 r. bezrobocie wynosiło 5,3%",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych.",
+        "claim_date": "2025-03-01",
+        "claim_date_source": "text"
+      }
+    ]
+  },
+  "AnswerDraft": {
+    "claims": [
+      {
+        "claim": "W marcu 2025 r. bezrobocie wynosiło 5,3%",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      }
+    ],
+    "limitations": [
+      "Odpowiedź z modelu zastępczego, bez przeszukania korpusu."
+    ]
+  }
+}

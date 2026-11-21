@@ -1,4 +1,16 @@
 {
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "text"
+      }
+    ]
+  },
   "AnswerDraft": {
     "claims": [
       {

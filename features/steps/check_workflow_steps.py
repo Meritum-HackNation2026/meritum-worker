@@ -5,7 +5,7 @@ with steps called inline instead of through DBOS; no network, no database.
 """
 
 import asyncio
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from behave import given, then, when
@@ -101,3 +101,61 @@ def result_is_technical_failure(context: Context) -> None:
 def record_is_technical_failure(context: Context) -> None:
     assert context.record.status == "technical_failure"
     assert context.record.verdicts == []
+
+
+VERDICTS = {"nie podlega weryfikacji": "not_verifiable"}
+EIGHT_FACTS = [f"W 2024 r. wskaźnik numer {i} wyniósł {i},5%." for i in range(1, 9)]
+OPINION = "Rząd kompletnie sobie nie radzi."
+
+
+@given('tekst "{text}" z nagranymi odpowiedziami modelu "{fixture}"')
+def text_with_recorded_model(context: Context, text: str, fixture: str) -> None:
+    context.input_text = text
+    context.deps = _deps(fixture)
+
+
+@given('tekst z 8 twierdzeniami o faktach z nagranymi odpowiedziami modelu "{fixture}"')
+def eight_facts_with_recorded_model(context: Context, fixture: str) -> None:
+    text_with_recorded_model(context, " ".join(EIGHT_FACTS), fixture)
+
+
+@when("system wyodrębnia twierdzenia")
+def system_extracts_claims(context: Context) -> None:
+    _run(context, context.input_text)
+
+
+@then("wynik ma stan done i {count:d} wyniki")
+def result_is_done_with(context: Context, count: int) -> None:
+    result = context.result.result
+    assert result.status == "done"
+    assert len(result.claims) == count
+
+
+@then('opinia dostaje werdykt "{verdict}"')
+def opinion_gets_verdict(context: Context, verdict: str) -> None:
+    claims = context.result.result.claims
+    opinion = next(c for c in claims if c.claim == OPINION)
+    assert opinion.verdict == VERDICTS[verdict]
+
+
+@then("sprawdza 5 twierdzeń, a pozostałe 3 są wymienione w limitations")
+def five_checked_three_in_limitations(context: Context) -> None:
+    result = context.result.result
+    assert [c.claim for c in result.claims] == EIGHT_FACTS[:5]
+    for skipped in EIGHT_FACTS[5:]:
+        assert skipped in result.limitations
+
+
+@then("wynik ma stan needs_clarification bez twierdzeń, tylko z komunikatem")
+def result_needs_clarification(context: Context) -> None:
+    result = context.result.result
+    assert result.status == "needs_clarification"
+    assert result.claims == []
+    assert result.message
+
+
+@then('twierdzenie ma claim_date {day} i claim_date_source "{source}"')
+def claim_has_date(context: Context, day: str, source: str) -> None:
+    (claim,) = context.result.result.claims
+    assert claim.claim_date == date.fromisoformat(day)
+    assert claim.claim_date_source == source
