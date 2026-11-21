@@ -1,11 +1,13 @@
 """Constants of the `check` workflow.
 
 Features:
-    US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, F-07, F-22
+    US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, US-BEZ-03, F-07, F-18, F-22
 """
 
 from datetime import timedelta
 from typing import Final
+
+from meritum_core.checks.contracts import FailureCode
 
 RECORD_RETENTION: Final = timedelta(days=30)
 """How long a CheckRecord is kept: retention_until = received_at + 30 days (ADR-13)."""
@@ -16,7 +18,7 @@ NO_CORPUS_VERSION: Final = "none"
 TECHNICAL_FAILURE_MESSAGE: Final = "status_hint.technical_failure"
 """Copy key (design-system copy/pl.json) channels show for a technical failure."""
 
-TECHNICAL_FAILURE_CODE: Final = "provider_unavailable"
+TECHNICAL_FAILURE_CODE: Final[FailureCode] = "provider_unavailable"
 """failure_code of a technical failure: the model call failed or broke the rules."""
 
 ANSWER_INSTRUCTIONS: Final = (
@@ -64,7 +66,7 @@ LIMITATION_MAX_CHARS: Final = 300
 FETCH_URL_STEP: Final = "fetch_url"
 """AnalysisStep code of fetching the citizen's link; skipped when there is none."""
 
-URL_UNAVAILABLE_CODE: Final = "url_unavailable"
+URL_UNAVAILABLE_CODE: Final[FailureCode] = "url_unavailable"
 """failure_code of a check whose link could not be fetched (contract v4)."""
 
 URL_UNAVAILABLE_MESSAGE: Final = "status_hint.technical_failure_url"
@@ -72,3 +74,39 @@ URL_UNAVAILABLE_MESSAGE: Final = "status_hint.technical_failure_url"
 
 MAX_PAGE_TEXT_CHARS: Final = 4000
 """Longest page text checked: the limit of a pasted text and of question_masked."""
+
+STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
+    "receive": timedelta(seconds=10),
+    "fetch_url": timedelta(seconds=30),
+    "transcribe_audio": timedelta(seconds=60),
+    "screen_injection": timedelta(seconds=30),
+    "extract_claims": timedelta(seconds=90),
+    "search_corpus": timedelta(seconds=30),
+    "search_web": timedelta(seconds=10),
+    "search_fact_checks": timedelta(seconds=30),
+    "assess_evidence": timedelta(seconds=90),
+    "verify_citations": timedelta(seconds=30),
+    "write_answer": timedelta(seconds=90),
+    "save_record": timedelta(seconds=30),
+}
+"""Longest wait per AnalysisStep code; web search at most 10 s (US-SPR-06, F-18).
+
+Model codes allow for the core adapter's retries; a timeout ends the check as
+technical_failure.
+"""
+
+TRANSCRIPTION_FAILED_CODE: Final[FailureCode] = "transcription_failed"
+"""failure_code of a check whose voice message could not be transcribed."""
+
+WEB_SEARCH_UNAVAILABLE_CODE: Final[FailureCode] = "web_search_unavailable"
+"""failure_code of a check whose web search failed or timed out."""
+
+TIMEOUT_REASON: Final = "timeout"
+"""What retrieval_errors records after ``<step code>: `` for a step that timed out."""
+
+STEP_FAILURE_CODES: Final[dict[str, FailureCode]] = {
+    "fetch_url": URL_UNAVAILABLE_CODE,
+    "transcribe_audio": TRANSCRIPTION_FAILED_CODE,
+    "search_web": WEB_SEARCH_UNAVAILABLE_CODE,
+}
+"""failure_code of a failed or timed-out step code; any other: provider_unavailable."""

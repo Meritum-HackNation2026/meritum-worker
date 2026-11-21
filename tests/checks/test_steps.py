@@ -2,8 +2,10 @@ import asyncio
 from collections.abc import Callable
 from datetime import timedelta
 
+import pytest
 from meritum_core.checks import InjectionEvent
 from meritum_core.jobs.contracts import CheckInput
+from meritum_core.shared.llm import ProviderUnavailableError
 
 from meritum_worker.checks import CheckDeps, CheckState
 from meritum_worker.checks.steps import save_record, write_answer
@@ -33,14 +35,11 @@ def test_write_answer_turns_contract_breaking_answer_into_technical_failure(
     assert len(out.models) == 1
 
 
-def test_write_answer_turns_provider_failure_into_technical_failure(
+def test_write_answer_leaves_provider_failure_to_the_workflow(
     state: CheckState, make_deps: MakeDeps
 ) -> None:
-    out = asyncio.run(write_answer(state, make_deps(None)))
-    assert out.result is not None
-    assert out.result.status == "technical_failure"
-    assert out.result.failure_code == "provider_unavailable"
-    assert out.models == []
+    with pytest.raises(ProviderUnavailableError):
+        asyncio.run(write_answer(state, make_deps(None)))
 
 
 def test_save_record_keeps_record_30_days_from_receipt(

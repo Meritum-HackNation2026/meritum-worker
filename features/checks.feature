@@ -53,3 +53,15 @@ Funkcja: Smoke test workera
     Zakładając krok workflowu sprawdzania rzuca wyjątek
     Gdy workflow kończy się błędem
     Wtedy strumień postępu dostaje ten krok jako failed i końcowy status technical_failure z kodem awarii z kontraktu v4
+
+  Scenariusz: wyszukiwanie w sieci przekracza 10 s
+    Zakładając sprawdzenie czeka na wynik wyszukiwania w sieci
+    Gdy wyszukiwarka nie odpowiada przez 10 s
+    Wtedy wynik ma stan technical_failure bez twierdzeń i bez werdyktu
+    Oraz CheckRecord.retrieval_errors zapisuje przekroczenie czasu
+
+  Scenariusz: model zawodzi po wyczerpaniu ponowień
+    Zakładając adapter modelu zwraca błąd 503 przy każdej z 3 prób
+    Gdy workflow kończy krok
+    Wtedy wynik ma stan technical_failure, a komunikat nie zawiera nazwy klucza ani dostawcy
+    Oraz CheckRecord ma status technical_failure

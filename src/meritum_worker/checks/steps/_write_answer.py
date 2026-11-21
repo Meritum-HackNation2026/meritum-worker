@@ -6,7 +6,7 @@ Features:
 
 from meritum_core.checks import CheckResult
 from meritum_core.checks.contracts import ClaimResult
-from meritum_core.shared.llm import Prompt, ProviderUnavailableError
+from meritum_core.shared.llm import Prompt
 from pydantic import ValidationError
 
 from meritum_worker.checks.constants import ANSWER_INSTRUCTIONS
@@ -32,7 +32,9 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
 
     Returns:
         The state with the result: done, or technical_failure without claims
-        when the provider fails or the answer breaks the contract rules.
+        when the answer breaks the contract rules.
+
+    A model failure propagates; the workflow maps it to technical_failure.
 
     Features:
         US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, F-07, F-22
@@ -42,10 +44,7 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
     facts = [claim for claim in state.claims if claim.is_fact]
     data = (state.question, *(fact.claim for fact in facts))
     prompt = Prompt(instructions=ANSWER_INSTRUCTIONS, data=data)
-    try:
-        answer = await deps.llm.complete(prompt, AnswerDraft)
-    except ProviderUnavailableError:
-        return state.model_copy(update={"result": state.technical_failure()})
+    answer = await deps.llm.complete(prompt, AnswerDraft)
     models = [*state.models, model_usage(answer.usage)]
     try:
         result = _result_from_draft(state, facts, answer.output)

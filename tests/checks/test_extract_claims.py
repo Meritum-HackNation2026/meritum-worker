@@ -1,6 +1,7 @@
 import asyncio
 from datetime import date
 
+import pytest
 from meritum_core.checks.contracts import ClaimResult
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.security.pii import NullPiiGate
@@ -146,11 +147,10 @@ def test_user_text_goes_to_the_model_only_as_data(state: CheckState) -> None:
     assert state.question not in prompt.instructions
 
 
-def test_provider_failure_is_technical_failure(state: CheckState) -> None:
+def test_provider_failure_reaches_the_workflow(state: CheckState) -> None:
     deps = _deps(_RecordingLlm())
-    out = asyncio.run(extract_claims(state, deps))
-    assert out.result is not None
-    assert out.result.status == "technical_failure"
+    with pytest.raises(ProviderUnavailableError):
+        asyncio.run(extract_claims(state, deps))
 
 
 def test_answer_with_other_count_than_facts_is_technical_failure(
