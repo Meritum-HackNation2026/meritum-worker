@@ -8,7 +8,12 @@ from collections.abc import Callable, Collection, Mapping
 
 from meritum_core.checks import SubjectKind
 
-from meritum_worker.security.constants import WORKFLOW_PAGE
+from meritum_worker.security.constants import (
+    AUDIO_ID_FIELD,
+    CHECK_ID_FIELD,
+    REQUEST_FIELD,
+    WORKFLOW_PAGE,
+)
 from meritum_worker.security.models import StoredWorkflow
 from meritum_worker.security.ports import WorkflowStore
 
@@ -46,7 +51,7 @@ def about_checks(payload: Payload, check_ids: Collection[str]) -> bool:
     Features:
         US-BEZ-05, F-20
     """
-    check_id = None if payload is None else payload.get("check_id")
+    check_id = None if payload is None else payload.get(CHECK_ID_FIELD)
     return isinstance(check_id, str) and check_id in check_ids
 
 
@@ -62,8 +67,8 @@ def audio_id(payload: Payload) -> str | None:
     Features:
         US-BEZ-05, F-20, ADR-31
     """
-    request = None if payload is None else payload.get("request")
-    found = request.get("audio_id") if isinstance(request, Mapping) else None
+    request = None if payload is None else payload.get(REQUEST_FIELD)
+    found = request.get(AUDIO_ID_FIELD) if isinstance(request, Mapping) else None
     return found if isinstance(found, str) else None
 
 

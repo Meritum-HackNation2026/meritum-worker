@@ -88,27 +88,30 @@ class InMemoryWorkflowStore:
             StoredWorkflow(workflow_id, payload) for _, workflow_id, payload in page
         ]
 
-    async def finished(
+    async def older(
         self,
         *,
         limit: int,
-        created_before: datetime | None = None,
+        created_before: datetime,
         name: str | None = None,
+        finished_only: bool = False,
     ) -> list[str]:
-        """Select finished workflows.
+        """Select workflows started before ``created_before``.
 
         Args:
             limit: the most ids to return.
             created_before: only workflows started before this time.
             name: only workflows with this name.
+            finished_only: only finished workflows.
 
         Returns:
             Their ids.
         """
 
         def selected(run: _Run) -> bool:
-            is_old = created_before is None or run.created_at <= created_before
-            return run.done and is_old and name in {None, run.name}
+            is_old = run.created_at <= created_before
+            is_wanted = run.done or not finished_only
+            return is_old and is_wanted and name in {None, run.name}
 
         return [i for i, run in self._runs.items() if selected(run)][:limit]
 

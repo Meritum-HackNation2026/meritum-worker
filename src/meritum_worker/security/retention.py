@@ -23,9 +23,9 @@ async def run_retention(deps: RetentionDeps, now: datetime) -> RetentionReport:
 
     Check records past ``retention_until`` go with their notifications, their
     place in moderator cases and their DBOS workflows, escalations included.
-    Then expired notifications, DBOS workflows started more than 30 days ago,
-    finished ``delete_subject`` runs, files older than 30 days (orphan audio
-    included) and old ids of checks dropped from cases.
+    Then expired notifications, DBOS workflows started more than 30 days ago
+    (stuck ones too), finished ``delete_subject`` runs, files older than 30
+    days (orphan audio included) and old ids of checks dropped from cases.
 
     Args:
         deps: the ports.
@@ -47,11 +47,12 @@ async def run_retention(deps: RetentionDeps, now: datetime) -> RetentionReport:
         else []
     )
     await deps.workflows.delete([w.workflow_id for w in escalations])
-    old = await _delete_finished(deps.workflows, created_before=cutoff)
-    erasures = await _delete_finished(
+    old = await _delete_older(deps.workflows, created_before=cutoff)
+    erasures = await _delete_older(
         deps.workflows,
         created_before=now - ERASURE_RESULT_KEPT,
         name=DELETE_SUBJECT.name,
+        finished_only=True,
     )
     return RetentionReport(
         records=len(expired),
@@ -74,12 +75,19 @@ async def _delete_expired_records(deps: RetentionDeps, now: datetime) -> set[str
     return deleted
 
 
-async def _delete_finished(
-    store: WorkflowStore, *, created_before: datetime, name: str | None = None
+async def _delete_older(
+    store: WorkflowStore,
+    *,
+    created_before: datetime,
+    name: str | None = None,
+    finished_only: bool = False,
 ) -> int:
     deleted = 0
-    while ids := await store.finished(
-        limit=RETENTION_BATCH, created_before=created_before, name=name
+    while ids := await store.older(
+        limit=RETENTION_BATCH,
+        created_before=created_before,
+        name=name,
+        finished_only=finished_only,
     ):
         await store.delete(ids)
         deleted += len(ids)

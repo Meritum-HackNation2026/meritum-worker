@@ -29,10 +29,11 @@ async def erase_subject(
 ) -> DeleteSubjectOutput:
     """Delete everything stored about one session, user or channel user.
 
-    The person's check workflows (running ones are stopped first, so no record
-    appears afterwards) and the escalations of their checks leave DBOS; then the
-    eraser deletes their records, notifications and case checks, and their
-    uploaded audio goes. Running it again deletes nothing more.
+    The person's check workflows (running ones are cancelled first; DBOS stops
+    them at their next step, so a step already saving may still finish, and
+    retention takes that record later) and the escalations of their checks
+    leave DBOS; then the eraser deletes their records, notifications and case
+    checks, and their uploaded audio goes. Running it again deletes nothing more.
 
     Args:
         payload: the ``DeleteSubjectInput`` JSON object the backend enqueued.

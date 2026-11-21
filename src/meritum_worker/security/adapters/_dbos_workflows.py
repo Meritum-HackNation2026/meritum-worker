@@ -52,26 +52,28 @@ class DbosWorkflowStore:
         )
         return [StoredWorkflow(s.workflow_id, _payload(s)) for s in found]
 
-    async def finished(  # ruff: ignore[no-self-use]  # WorkflowStore is an instance protocol
+    async def older(  # ruff: ignore[no-self-use]  # WorkflowStore is an instance protocol
         self,
         *,
         limit: int,
-        created_before: datetime | None = None,
+        created_before: datetime,
         name: str | None = None,
+        finished_only: bool = False,
     ) -> list[str]:
-        """Select workflows in a final status.
+        """Select workflows started before ``created_before``.
 
         Args:
             limit: the most ids to return.
             created_before: only workflows started before this time.
             name: only workflows with this name.
+            finished_only: only workflows in a final status.
 
         Returns:
             Their ids.
         """
         found = await DBOS.list_workflows_async(
-            status=list(FINISHED_STATUSES),
-            end_time=None if created_before is None else created_before.isoformat(),
+            status=list(FINISHED_STATUSES) if finished_only else None,
+            end_time=created_before.isoformat(),
             name=name,
             limit=limit,
             load_input=False,

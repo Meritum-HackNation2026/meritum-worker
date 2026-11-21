@@ -64,15 +64,15 @@ def test_audio_id_reads_the_request_and_ignores_other_shapes() -> None:
     assert audio_id(None) is None
 
 
-def test_retention_deletes_finished_workflows_older_than_30_days_only() -> None:
+def test_retention_deletes_every_workflow_older_than_30_days() -> None:
     store = InMemoryWorkflowStore()
     old, fresh = NOW - timedelta(days=31), NOW - timedelta(days=29)
     store.add("ping_old", "ping", None, created_at=old)
     store.add("ping_fresh", "ping", None, created_at=fresh)
     store.add("running_old", "check", None, created_at=old, done=False)
     report = asyncio.run(run_retention(_deps(store), NOW))
-    assert store.ids() == {"ping_fresh", "running_old"}
-    assert report.workflows == 1
+    assert store.ids() == {"ping_fresh"}
+    assert report.workflows == 2  # the old ping and the stuck old check
 
 
 def test_retention_drops_erasure_runs_after_an_hour() -> None:
@@ -80,8 +80,12 @@ def test_retention_drops_erasure_runs_after_an_hour() -> None:
     payload = {"kind": "session_id", "value": "s_12345678"}
     store.add("del_old", "delete_subject", payload, created_at=NOW - timedelta(hours=2))
     store.add("del_new", "delete_subject", payload, created_at=NOW)
+    old_running = NOW - timedelta(hours=2)
+    store.add(
+        "del_running", "delete_subject", payload, created_at=old_running, done=False
+    )
     asyncio.run(run_retention(_deps(store), NOW))
-    assert store.ids() == {"del_new"}
+    assert store.ids() == {"del_new", "del_running"}
 
 
 def test_retention_sweeps_only_old_blob_files(tmp_path: Path) -> None:

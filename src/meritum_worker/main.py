@@ -136,8 +136,7 @@ def euvsdisinfo_sync_step() -> dict[str, Any]:
 
 
 def _retention_deps() -> security.RetentionDeps:
-    # A worker without MERITUM_BLOB_PROVIDER has no files to delete.
-    blobs = BlobSettings() if "MERITUM_BLOB_PROVIDER" in os.environ else None
+    blobs = BlobSettings() if security.BLOB_PROVIDER_ENV in os.environ else None
     return security.build_retention_deps(DatabaseSettings(), blobs)
 
 
@@ -165,7 +164,7 @@ async def delete_subject_workflow(payload: dict[str, Any]) -> dict[str, Any]:
 
 @DBOS.workflow(name=security.RETENTION_WORKFLOW)
 async def retention_workflow(scheduled_at: datetime, _context: object) -> None:
-    """Delete data past retention; started daily by the RETENTION_CRON schedule.
+    """Delete data past retention; started hourly by the RETENTION_CRON schedule.
 
     Args:
         scheduled_at: the schedule's time; the cutoffs count back from it.

@@ -54,7 +54,7 @@ class StoreBlobCleaner:
             blob_ids: the ids to delete.
 
         Returns:
-            How many valid ids were deleted.
+            How many well-formed ids were deleted or already gone.
         """
         deleted = 0
         for blob_id in blob_ids:

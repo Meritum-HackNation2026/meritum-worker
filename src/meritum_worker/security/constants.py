@@ -64,7 +64,8 @@ uploaded files (ADR-13, US-BEZ-05, US-POW-04)."""
 
 ERASURE_RESULT_KEPT: Final = timedelta(hours=1)
 """How long a finished ``delete_subject`` run stays in DBOS so the backend can read
-its result; its input names the person, so the next retention run deletes it."""
+its result; its input names the person, so the next hourly retention run after
+that deletes it (at most two hours after the erasure)."""
 
 RETENTION_BATCH: Final = 500
 """Most expired check records deleted in one round of the retention run."""
@@ -78,13 +79,27 @@ FINISHED_STATUSES: Final = (
     "CANCELLED",
     "MAX_RECOVERY_ATTEMPTS_EXCEEDED",
 )
-"""DBOS statuses of a workflow that will not run again; only these go by age."""
+"""DBOS statuses of a workflow that will not run again; a ``delete_subject`` run
+goes after an hour only in one of these."""
 
 RETENTION_WORKFLOW: Final = "retention"
 """DBOS name of the daily retention workflow; its schedule starts it, never the API."""
 
-RETENTION_SCHEDULE_NAME: Final = "retention_daily"
+RETENTION_SCHEDULE_NAME: Final = "retention_hourly"
 """Name of the DBOS schedule that starts the retention workflow."""
 
-RETENTION_CRON: Final = "0 3 * * *"
-"""When the retention workflow runs: every day at 03:00 UTC, outside peak hours."""
+RETENTION_CRON: Final = "15 * * * *"
+"""When the retention workflow runs: every hour at :15 UTC. Expired records need a
+daily run; erasure runs (ERASURE_RESULT_KEPT) need the hourly one."""
+
+BLOB_PROVIDER_ENV: Final = "MERITUM_BLOB_PROVIDER"
+"""Environment variable naming the blob store; a worker without it has no files."""
+
+CHECK_ID_FIELD: Final = "check_id"
+"""Field of an ``EscalateClaimInput`` that names its check."""
+
+REQUEST_FIELD: Final = "request"
+"""Field of a ``CheckInput`` holding the ``CheckRequest``."""
+
+AUDIO_ID_FIELD: Final = "audio_id"
+"""Field of a ``CheckRequest`` naming its uploaded audio."""

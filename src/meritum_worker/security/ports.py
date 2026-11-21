@@ -33,19 +33,21 @@ class WorkflowStore(Protocol):
         """
         ...
 
-    async def finished(
+    async def older(
         self,
         *,
         limit: int,
-        created_before: datetime | None = None,
+        created_before: datetime,
         name: str | None = None,
+        finished_only: bool = False,
     ) -> list[str]:
-        """Select workflows that will not run again.
+        """Select workflows started before ``created_before``, in any status.
 
         Args:
             limit: the most ids to return.
             created_before: only workflows started before this time.
             name: only workflows with this name.
+            finished_only: only workflows that will not run again.
 
         Returns:
             Their workflow ids.
@@ -71,13 +73,13 @@ class BlobCleaner(Protocol):
     """
 
     async def delete(self, blob_ids: Sequence[str]) -> int:
-        """Delete the given files; missing ones and malformed ids are skipped.
+        """Delete the given files; malformed ids are skipped.
 
         Args:
             blob_ids: ids as ``CheckRequest.audio_id`` carries them.
 
         Returns:
-            How many ids were valid and deleted.
+            How many well-formed ids were deleted or already gone.
         """
         ...
 

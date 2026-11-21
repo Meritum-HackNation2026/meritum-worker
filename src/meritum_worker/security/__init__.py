@@ -8,6 +8,7 @@ Features:
 """
 
 from meritum_worker.security.constants import (
+    BLOB_PROVIDER_ENV,
     RETENTION_CRON,
     RETENTION_SCHEDULE_NAME,
     RETENTION_WORKFLOW,
@@ -33,6 +34,7 @@ from meritum_worker.security.settings import (
 )
 
 __all__ = [
+    "BLOB_PROVIDER_ENV",
     "RETENTION_CRON",
     "RETENTION_SCHEDULE_NAME",
     "RETENTION_WORKFLOW",
