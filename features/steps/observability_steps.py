@@ -135,7 +135,7 @@ def jury_runs_eval(context: Context) -> None:
         )
     finally:
         for name, value in previous.items():
-            os.environ.pop(name)
+            os.environ.pop(name, None)
             if value is not None:
                 os.environ[name] = value
 

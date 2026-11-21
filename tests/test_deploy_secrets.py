@@ -77,4 +77,17 @@ def test_missing_secret_still_starts_the_container(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("name", secret_names())
 def test_ci_deploy_step_maps_every_listed_secret(name: str) -> None:
-    assert f"{name}: ${{{{ secrets.{name} }}}}" in CI.read_text()
+    # One shared secret, or one per env: <name>_PRD from main, <name>_DEV from develop.
+    per_env = (
+        f"{name}: ${{{{ secrets[format('{name}_{{0}}',"
+        " github.ref_name == 'main' && 'PRD' || 'DEV')] }}"
+    )
+    ci = CI.read_text()
+    assert f"{name}: ${{{{ secrets.{name} }}}}" in ci or per_env in ci
+
+
+@pytest.mark.parametrize("name", secret_names())
+def test_every_listed_secret_is_passed_by_name_only(tmp_path: Path, name: str) -> None:
+    calls, log = deploy(tmp_path, {name: VALUE})
+    assert f"-e {name}" in started(calls)
+    assert VALUE not in calls + log

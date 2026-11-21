@@ -33,7 +33,7 @@ Workflow `check` bierze model, repozytorium zapisów, fetcher stron (ochrona SSR
 
 | Zmienna | Domyślnie | Znaczenie |
 | --- | --- | --- |
-| `MERITUM_LLM_PROVIDER` | `openrouter` | `openrouter` (Claude Haiku 5.5, decyzja D9), `vertex` albo `stub` (bez kluczy i sieci; testy i CI ustawiają go jawnie). Model, rozumowanie i pozostałe `MERITUM_LLM_*` opisuje README meritum-core |
+| `MERITUM_LLM_PROVIDER` | `openrouter` | `openrouter` (Claude Haiku 5.5, decyzja D9), `vertex` albo `stub` (bez kluczy i sieci; testy ustawiają go jawnie). Model, rozumowanie i pozostałe `MERITUM_LLM_*` opisuje README meritum-core |
 | `OPENROUTER_API_KEY` | brak | klucz OpenRouter, wymagany dla `openrouter`; deploy podaje go z sekretu repozytorium (`OPENROUTER_API_KEY_DEV` z `develop`, `OPENROUTER_API_KEY_PRD` z `main`) |
 | `MERITUM_LLM_STUB_FIXTURES` | brak | plik z odpowiedziami stuba; w obrazie `/app/features/fixtures/llm_stub_answer.json`. Bez niego stub nie ma odpowiedzi i każde sprawdzenie kończy się stanem `technical_failure`, więc środowisko na stubie musi go mieć |
 | `MERITUM_DATABASE_PROVIDER` | `memory` | `memory` (fake'i w procesie: testy, CI, praca bez bazy; zapisy giną przy restarcie) albo `postgres` (dev i prd) |
