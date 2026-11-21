@@ -23,7 +23,8 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     text; it stays data for every later prompt (ADR-12). Any fetch failure (an
     internal address, the network, a login wall or a paywall) or an empty page
     ends the check as technical_failure with code url_unavailable and a request
-    to paste the text.
+    to paste the text. A publication date later than the check's receipt is
+    dropped as wrong metadata.
 
     Args:
         state: the check so far.
@@ -55,6 +56,9 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     )
     # Cut again: a marker can be longer than the personal data it replaced.
     text = masked.text[:MAX_PAGE_TEXT_CHARS]
-    return state.model_copy(
-        update={"page_text": text, "published_at": page.published_at}
-    )
+    # shortcut: the check's receipt day stands in for the fetch moment (no fetch
+    # clock in FetchedPage); a page dated after it has wrong metadata.
+    published = page.published_at
+    if published is not None and published > state.job.received_at.date():
+        published = None
+    return state.model_copy(update={"page_text": text, "published_at": published})

@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import Callable
-from datetime import date
+from datetime import timedelta
 
 import pytest
 from meritum_core.checks import CheckRequest
@@ -54,11 +54,21 @@ def test_fetch_url_reads_the_link_as_a_user_link_and_masks_the_page_text(
 def test_fetch_url_keeps_the_publication_date_of_the_page(
     make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
 ) -> None:
-    page = _page().model_copy(update={"published_at": date(2026, 11, 18)})
-    out = asyncio.run(
-        fetch_url(_url_state(make_job), make_deps(pages=FakePageFetcher(page)))
-    )
-    assert out.published_at == date(2026, 11, 18)
+    state = _url_state(make_job)
+    published = state.job.received_at.date() - timedelta(days=1)
+    page = _page().model_copy(update={"published_at": published})
+    out = asyncio.run(fetch_url(state, make_deps(pages=FakePageFetcher(page))))
+    assert out.published_at == published
+
+
+def test_fetch_url_drops_a_publication_date_after_the_fetch(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    state = _url_state(make_job)
+    tomorrow = state.job.received_at.date() + timedelta(days=1)
+    page = _page().model_copy(update={"published_at": tomorrow})
+    out = asyncio.run(fetch_url(state, make_deps(pages=FakePageFetcher(page))))
+    assert out.published_at is None
 
 
 def test_fetch_url_cuts_a_long_page_to_the_length_of_a_pasted_text(

@@ -55,6 +55,12 @@ EXTRACTION_INSTRUCTIONS: Final = (
 )
 """Instructions of the extract_claims model call; user text goes as data (ADR-12)."""
 
+PUBLISHED_ON_INSTRUCTIONS: Final = (
+    " The text was published on {published}: resolve relative dates such as"
+    " yesterday or last week from that day (claim_date_source text)."
+)
+"""Appended to EXTRACTION_INSTRUCTIONS when the linked page's metadata dates it."""
+
 NEEDS_CLARIFICATION_MESSAGE: Final = "Claim extraction found no claims."
 """Diagnostic for an input with no claims."""
 

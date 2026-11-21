@@ -12,6 +12,7 @@ from meritum_worker.checks.constants import (
     MAX_CLAIMS_PER_CHECK,
     NEEDS_CLARIFICATION_MESSAGE,
     OUT_OF_SCOPE_MESSAGE,
+    PUBLISHED_ON_INSTRUCTIONS,
 )
 from meritum_worker.checks.models import (
     CheckDeps,
@@ -30,7 +31,8 @@ async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
     facts come first, the first MAX_CLAIMS_PER_CHECK go on with a date each and
     the rest are named in the limitations. A claim the text does not date
     (or dates by its publication) gets the linked page's metadata date
-    (input_published_at), else today.
+    (input_published_at), else today. A known publication date goes into the
+    instructions, so the model counts relative dates ("wczoraj") from it.
 
     Args:
         state: the check so far; a state that already has a result passes on.
@@ -47,7 +49,11 @@ async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
     """
     if state.result is not None:
         return state
-    prompt = Prompt(instructions=EXTRACTION_INSTRUCTIONS, data=(state.question,))
+    instructions = EXTRACTION_INSTRUCTIONS
+    if state.published_at is not None:
+        published = state.published_at.isoformat()
+        instructions += PUBLISHED_ON_INSTRUCTIONS.format(published=published)
+    prompt = Prompt(instructions=instructions, data=(state.question,))
     answer = await deps.llm.complete(prompt, ClaimExtraction)
     state = state.model_copy(
         update={"models": [*state.models, model_usage(answer.usage)]}

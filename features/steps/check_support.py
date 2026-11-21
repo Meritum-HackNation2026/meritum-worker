@@ -40,7 +40,7 @@ def run(context: Context, text: str | None = None, url: str | None = None) -> No
     job = CheckInput(
         request=CheckRequest(channel="web", text=text, url=url),
         session_id="session-behave-1",
-        received_at=RECEIVED_AT,
+        received_at=getattr(context, "received_at", RECEIVED_AT),
     )
     if not hasattr(context, "runtime"):
         context.runtime = InlineCheckRuntime()
