@@ -13,9 +13,10 @@ from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 
-from meritum_core.shared.llm import LlmSettings
-from pydantic import BaseModel, ConfigDict, Field
+from meritum_core.shared.llm import LlmProvider, LlmSettings
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from meritum_worker.observability.constants import API_KEY_FIELDS
 from meritum_worker.observability.report import CaseRun, EvalReport
 from meritum_worker.observability.scoring import score_runs
 
@@ -37,6 +38,15 @@ class ModelConfig(BaseModel):
     name: str = Field(min_length=1)
     llm: LlmSettings
 
+    @field_validator("llm", mode="before")
+    @classmethod
+    def _no_key_in_file(cls, value: object) -> object:
+        # Config files are committed; a key in one would leak (ADR-14).
+        if isinstance(value, dict) and {k.lower() for k in value} & API_KEY_FIELDS:
+            msg = "API keys come from the environment, never from the config file"
+            raise ValueError(msg)
+        return value
+
 
 class ComparedModel(BaseModel):
     """One candidate's settings and its evaluation report.
@@ -47,7 +57,8 @@ class ComparedModel(BaseModel):
         model: Model ID of the provider.
         region: Region or routing of the provider.
         reasoning: Thinking effort.
-        zero_data_retention: OpenRouter zero-data-retention routing.
+        zero_data_retention: OpenRouter zero-data-retention routing; None for
+            other providers, where the flag means nothing.
         report: The candidate's metrics on the case file.
 
     Features:
@@ -61,7 +72,7 @@ class ComparedModel(BaseModel):
     model: str
     region: str
     reasoning: str
-    zero_data_retention: bool
+    zero_data_retention: bool | None
     report: EvalReport
 
 
@@ -126,7 +137,7 @@ def compare_models(
             model=config.llm.model,
             region=config.llm.region,
             reasoning=config.llm.reasoning,
-            zero_data_retention=config.llm.openrouter_zdr,
+            zero_data_retention=_zdr(config.llm),
             report=score_runs(runs),
         )
         for config, runs in entries
@@ -134,3 +145,8 @@ def compare_models(
     return ModelComparison(
         generated_at=generated_at, cases_file=cases_file, models=models
     )
+
+
+def _zdr(settings: LlmSettings) -> bool | None:
+    is_openrouter = settings.provider is LlmProvider.OPENROUTER
+    return settings.openrouter_zdr if is_openrouter else None

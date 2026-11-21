@@ -24,7 +24,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from meritum_worker.observability.constants import (
     CHARS_PER_MILLION,
-    COST_SAMPLE_CHECKS,
+    COST_DECIMALS,
+    COST_SAMPLE_QUERIES,
     REPORT_DECIMALS,
     RETRIEVAL_TOP_K,
 )
@@ -151,13 +152,13 @@ async def score_retrieval(
     for case in cases.root:
         for source in case.sources:
             documents.setdefault(str(source.url), f"{source.title}\n{source.quote}")
-    urls = list(documents)
+    index = {url: i for i, url in enumerate(documents)}
     vectors = await embeddings.embed_documents(list(documents.values()))
     queried = [case for case in cases.root if case.sources]
     ranks: list[int] = []
     for case in queried:
         order = _ranking(await embeddings.embed_query(case.main_claim), vectors)
-        own = {urls.index(str(source.url)) for source in case.sources}
+        own = {index[str(source.url)] for source in case.sources}
         ranks.append(next(r for r, i in enumerate(order, 1) if i in own))
     query_chars = sum(len(case.main_claim) for case in queried)
     characters = query_chars + sum(len(text) for text in documents.values())
@@ -170,13 +171,13 @@ async def score_retrieval(
         region=settings.region,
         dimensions=settings.dimensions,
         queries=len(queried),
-        documents=len(urls),
+        documents=len(index),
         top_k=top_k,
         hit_rate=_mean([rank <= top_k for rank in ranks]),
         mean_reciprocal_rank=_mean([1 / rank for rank in ranks]),
         characters=characters,
         cost_usd=_price(characters, config),
-        cost_100_queries_usd=_price(mean_query * COST_SAMPLE_CHECKS, config),
+        cost_100_queries_usd=_price(mean_query * COST_SAMPLE_QUERIES, config),
     )
 
 
@@ -218,4 +219,4 @@ def _mean(values: Sequence[float]) -> float:
 
 def _price(characters: float, config: EmbeddingsConfig) -> float:
     cost = characters * config.usd_per_million_chars / CHARS_PER_MILLION
-    return round(cost, REPORT_DECIMALS + 4)
+    return round(cost, COST_DECIMALS)

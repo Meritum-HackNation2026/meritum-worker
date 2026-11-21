@@ -93,8 +93,8 @@ Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 | `abstention` | przypadki z oczekiwanym `insufficient_evidence` albo `not_verifiable`, które dostały ten werdykt |
 | `robustness` | przypadki z `injection` z poprawnym wynikiem |
 | `median_seconds`, `p95_seconds`, `max_seconds` | czas z CheckRecord (`received_at` → `answered_at`), z nieudanymi przypadkami |
-| `input_tokens_per_check`, `output_tokens_per_check`, `cost_per_check_usd`, `cost_100_checks_usd` | tokeny i koszt modeli z CheckRecord; koszt jest zerowy, dopóki krok kosztu nie wycenia wywołań (worker#26) |
-| `output_tokens_per_second` | tokeny odpowiedzi podzielone przez czas sprawdzeń, które dostały jakąkolwiek odpowiedź modelu |
+| `input_tokens_per_check`, `output_tokens_per_check`, `cost_per_check_usd`, `cost_100_checks_usd` | tokeny i koszt modeli z CheckRecord: koszt OpenRoutera z odpowiedzi API, koszt Vertex AI z cennika w meritum-core; wywołania wyszukiwarki wyceni worker#26 |
+| `output_tokens_per_second` | tokeny odpowiedzi (z rozumowaniem, jeśli dostawca je liczy) podzielone przez cały czas sprawdzeń, które dostały jakąkolwiek odpowiedź modelu; to przepustowość całego sprawdzenia, nie sama szybkość generowania |
 | `channel_consistency` | powtórzenia `other_channel`, których JSON z CheckResult ma ten sam stan, werdykty i cytowane źródła co pierwszy przypadek; sformułowania mogą się różnić |
 | `information_loop` | odpowiedzi `insufficient_evidence` przekazane moderatorowi (`escalation`) |
 | `scenarios`, `outcomes` | trafność per scenariusz A–J i wynik każdego przypadku |
@@ -120,8 +120,7 @@ uv run meritum-eval --compare-models evals/models/*.toml --output evals/reports/
 uv run meritum-eval --compare-embeddings evals/embeddings/*.toml --output evals/reports/$(date +%F)-embeddingi.json
 ```
 
-- `--compare-models`: przy każdym kandydacie pełny raport z tabeli wyżej (`macro_f1`, `citation_correctness`, `median_seconds`, `output_tokens_per_second`, `cost_100_checks_usd` i reszta). Koszt OpenRoutera pochodzi z odpowiedzi API, a koszt Vertex AI z cennika w meritum-core.
-- `--compare-embeddings`: korpusem są źródła z golden setu (tytuł i cytat, każdy adres raz). Zapytaniem jest główne twierdzenie każdego przypadku ze źródłami. `hit_rate` to odsetek zapytań, w których własne źródło przypadku trafiło do pierwszych 5 wyników, a `mean_reciprocal_rank` to średnia z 1/pozycja tego źródła. Koszt liczymy z `usd_per_million_chars` w pliku kandydata.
+- `--compare-models`: przy każdym kandydacie pełny raport z tabeli wyżej (`macro_f1`, `citation_correctness`, `median_seconds`, `output_tokens_per_second`, `cost_100_checks_usd` i reszta). - `--compare-embeddings`: korpusem są źródła z golden setu (tytuł i cytat, każdy adres raz). Zapytaniem jest główne twierdzenie każdego przypadku ze źródłami. `hit_rate` to odsetek zapytań, w których własne źródło przypadku trafiło do pierwszych 5 wyników, a `mean_reciprocal_rank` to średnia z 1/pozycja tego źródła. Koszt liczymy z `usd_per_million_chars` w pliku kandydata; przy cenniku za tokeny to szacunek opisany w komentarzu pliku. Korpus z kilkunastu źródeł jest mały, więc wynik porównuje modele między sobą, a nie mówi, jak trafne jest wyszukiwanie w pełnym korpusie.
 
 Jak dodać kandydata: skopiuj plik z katalogu, zmień `name` (nazwa pliku bez `.toml`, sprawdza to test) i tabelę `[llm]` albo `[embeddings]`. Pola tabeli to pola `LlmSettings` albo `EmbeddingsSettings` z meritum-core. Nieznane pole kończy się błędem, a klucze API przychodzą wyłącznie ze środowiska. Model bez endpointu ZDR na OpenRouterze dostaje `openrouter_zdr = false` i wolno go uruchamiać tylko na golden secie, nigdy na danych użytkowników. Raporty z przebiegów z prawdziwymi modelami trafiają do `evals/reports/`. Te przebiegi robimy ręcznie, poza CI (ADR-28).
 

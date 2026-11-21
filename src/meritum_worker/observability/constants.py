@@ -102,3 +102,12 @@ RETRIEVAL_TOP_K: Final = 5
 
 CHARS_PER_MILLION: Final = 1_000_000
 """Embedding prices in config files are per million characters."""
+
+API_KEY_FIELDS: Final = frozenset({"openrouter_api_key"})
+"""LlmSettings fields (any case) a committed config file must not set."""
+
+COST_DECIMALS: Final = 8
+"""Decimal places of an embedding cost; a golden-set run costs fractions of a cent."""
+
+COST_SAMPLE_QUERIES: Final = 100
+"""The embeddings report prices this many corpus queries."""

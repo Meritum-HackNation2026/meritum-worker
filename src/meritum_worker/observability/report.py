@@ -109,8 +109,8 @@ class EvalReport(BaseModel):
         max_seconds: Longest time.
         input_tokens_per_check: Mean prompt tokens per check.
         output_tokens_per_check: Mean answer tokens per check.
-        output_tokens_per_second: Answer tokens over the time of the checks
-            that got any; 0 when none did.
+        output_tokens_per_second: Answer tokens over the whole time of the
+            checks that got any (end-to-end throughput); 0 when none did.
         cost_per_check_usd: Mean model cost per check.
         cost_100_checks_usd: Cost of 100 checks at that mean.
         channel_consistency: other_channel repeats whose CheckResult JSON has the

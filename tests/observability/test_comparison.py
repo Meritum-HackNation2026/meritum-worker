@@ -14,6 +14,7 @@ from meritum_worker.observability import (
     GoldenCase,
     compare_models,
     load_model_config,
+    meritum_eval,
 )
 
 type Make[T] = Callable[..., T]
@@ -61,6 +62,31 @@ def test_config_file_without_llm_table_is_rejected(tmp_path: Path) -> None:
         load_model_config(path)
 
 
+@pytest.mark.parametrize("key", ["openrouter_api_key", "OPENROUTER_API_KEY"])
+def test_config_file_with_an_api_key_is_rejected(tmp_path: Path, key: str) -> None:
+    path = tmp_path / "key.toml"
+    path.write_text(
+        f'name = "key"\n[llm]\nprovider = "stub"\n{key} = "sk-in-file"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValidationError, match="environment"):
+        load_model_config(path)
+
+
+def test_zero_data_retention_is_reported_only_for_openrouter(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-test")
+    path = tmp_path / "or.toml"
+    path.write_text(
+        'name = "or"\n[llm]\nprovider = "openrouter"\nopenrouter_zdr = false\n',
+        encoding="utf-8",
+    )
+    configs = [load_model_config(path), load_model_config(_config(tmp_path, "s"))]
+    compared = compare_models([(c, []) for c in configs], "cases.json", AT).models
+    assert [m.zero_data_retention for m in compared] == [False, None]
+
+
 def test_config_file_with_unknown_setting_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "typo.toml"
     path.write_text(
@@ -94,7 +120,7 @@ def test_comparison_reports_each_config_with_its_metrics(
     assert comparison.cases_file == "cases.json"
     first, second = comparison.models
     assert (first.name, first.model, first.region) == ("a", "model-a", "global")
-    assert (first.reasoning, first.zero_data_retention) == ("low", True)
+    assert first.reasoning == "low"
     assert first.report.macro_f1 == pytest.approx(1.0)
     assert first.report.median_seconds == pytest.approx(3.0)
     assert first.report.output_tokens_per_second == pytest.approx(100 / 6, abs=1e-4)
@@ -121,3 +147,14 @@ def test_repo_model_configs_are_valid(
 ) -> None:
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-test")
     assert load_model_config(path).name == path.stem
+
+
+def test_cli_rejects_a_bad_config_before_any_model_runs(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    bad = tmp_path / "bad.toml"
+    bad.write_text('name = "bad"\n', encoding="utf-8")
+    golden = Path(__file__).parents[2] / "evals" / "golden" / "cases.json"
+    with pytest.raises(SystemExit):
+        meritum_eval(["--cases", str(golden), "--compare-models", str(bad)])
+    assert "config:" in capsys.readouterr().err

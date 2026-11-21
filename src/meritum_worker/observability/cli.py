@@ -18,7 +18,11 @@ from meritum_core.shared.llm import LlmSettings
 from pydantic import BaseModel, ValidationError
 
 from meritum_worker.observability.cases import load_eval_cases
-from meritum_worker.observability.comparison import compare_models, load_model_config
+from meritum_worker.observability.comparison import (
+    ModelConfig,
+    compare_models,
+    load_model_config,
+)
 from meritum_worker.observability.constants import (
     DEFAULT_CASES_FILE,
     DEFAULT_MAX_CONCURRENCY,
@@ -27,6 +31,7 @@ from meritum_worker.observability.constants import (
 from meritum_worker.observability.factory import build_eval_deps
 from meritum_worker.observability.models import GoldenSet
 from meritum_worker.observability.retrieval import (
+    EmbeddingsConfig,
     compare_embeddings,
     load_embeddings_config,
     score_retrieval,
@@ -64,17 +69,14 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
         # Too few cases, bad JSON or an invalid case: a message, not a traceback.
         parser.error(f"{args.cases}: {error}")
     try:
-        report = asyncio.run(
-            _report(
-                cases,
-                args.cases,
-                args.compare_models,
-                args.compare_embeddings,
-                args.max_concurrency,
-            )
-        )
+        # Every file loads before any model runs, so a typo costs nothing.
+        models = [load_model_config(path) for path in args.compare_models]
+        embeddings = [load_embeddings_config(p) for p in args.compare_embeddings]
     except (OSError, tomllib.TOMLDecodeError, ValidationError) as error:
         parser.error(f"config: {error}")
+    report = asyncio.run(
+        _report(cases, args.cases, models, embeddings, args.max_concurrency)
+    )
     text = report.model_dump_json(indent=2) + "\n"
     if args.output is None:
         sys.stdout.write(text)
@@ -85,24 +87,21 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
 async def _report(
     cases: GoldenSet,
     cases_file: Path,
-    models: Sequence[Path],
-    embeddings: Sequence[Path],
+    models: Sequence[ModelConfig],
+    embeddings: Sequence[EmbeddingsConfig],
     concurrency: int,
 ) -> BaseModel:
     now = datetime.now(UTC)
     if models:
-        # Load every file first, so a typo fails before any model is paid for.
-        configs = [load_model_config(path) for path in models]
         entries = [
             (c, await run_eval(cases, build_eval_deps(c.llm), concurrency))
-            for c in configs
+            for c in models
         ]
         return compare_models(entries, str(cases_file), now)
     if embeddings:
-        embedding_configs = [load_embeddings_config(path) for path in embeddings]
         scores = [
             await score_retrieval(cases, c, build_embeddings(c.embeddings))
-            for c in embedding_configs
+            for c in embeddings
         ]
         return compare_embeddings(scores, str(cases_file), now)
     deps_for = build_eval_deps(LlmSettings())

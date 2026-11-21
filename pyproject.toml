@@ -122,7 +122,7 @@ max-lines = 250
 [tool.vulture]
 paths = ["src", "scripts", "tests", "features"]
 # DBOS and behave register functions through their decorators.
-ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator"]
+ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator", "@field_validator"]
 ignore_names = ["before_scenario", "model_config", "__call__"]  # behave hook; Pydantic settings; Protocol call signatures
 min_confidence = 60
 
