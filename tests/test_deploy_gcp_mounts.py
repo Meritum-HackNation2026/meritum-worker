@@ -19,3 +19,11 @@ def test_no_gcp_mount_without_entry_in_env_file(tmp_path: Path) -> None:
     calls, log = deploy(tmp_path, {})
     assert "/gcp/" not in started(calls)
     assert "without GCP credentials" in log
+
+
+def test_gcp_mount_without_read_only_is_skipped(tmp_path: Path) -> None:
+    calls, log = deploy(tmp_path, {}, f"MERITUM_GCP_MOUNTS=/h/gcp:/etc/gcp {SPEECH}\n")
+    run = started(calls)
+    assert "/h/gcp" not in run
+    assert f"-v {SPEECH} " in run
+    assert "::warning title=GCP mount skipped::/h/gcp:/etc/gcp is not :ro" in log

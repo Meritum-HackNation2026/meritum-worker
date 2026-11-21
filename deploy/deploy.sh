@@ -42,7 +42,11 @@ fi
 gcp_mounts=$(env_value MERITUM_GCP_MOUNTS)
 if [ -n "$gcp_mounts" ]; then
   read -ra gcp_entries <<<"$gcp_mounts"  # split on spaces, no globbing
-  for mount in "${gcp_entries[@]}"; do volume_args+=(-v "$mount"); done
+  for mount in "${gcp_entries[@]}"; do
+    # credentials are never mounted writable; same warning as meritum-backend deploy
+    [[ $mount == *:ro ]] || { echo "::warning title=GCP mount skipped::$mount is not :ro" >&2; continue; }
+    volume_args+=(-v "$mount")
+  done
 else
   log "no MERITUM_GCP_MOUNTS in $envfile: container starts without GCP credentials"
 fi
