@@ -4,7 +4,8 @@
 # Runs on the self-hosted runner `dellpromaxgb10` (on the host itself).
 # Needs the platform (meritum-infra: onprem/dellpromaxgb10/platform/setup.sh):
 # network `meritum`, meritum-postgres and ~/meritum/envs/worker-<env>.env.
-# Env: CORE_KEY_FILE, a read-only deploy key of meritum-core (BuildKit --ssh).
+# Env: CORE_KEY_FILE, a read-only deploy key of meritum-core (BuildKit --ssh),
+# and the repository secrets in worker_secrets, set by the deploy job of ci.yml.
 set -euo pipefail
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 branch=${1:?usage: deploy.sh <main|develop> [sha]}
@@ -14,6 +15,14 @@ state=${M_STATE:-$HOME/meritum}
 envfile="$state/envs/worker-$env.env"
 container="meritum-worker-$env"
 image="meritum-worker:$env-${sha:0:12}"
+# Repository secrets the worker container gets. docker run -e NAME copies the
+# value from this process's env, so it is never on a command line or on disk;
+# an unset secret is left out and the container still starts (worker#28 will
+# name it in the readiness report).
+# Add a name here and in the env of the Deploy step in .github/workflows/ci.yml.
+worker_secrets=(EUVSDISINFO_MCP_API_KEY)
+secret_args=()
+for name in "${worker_secrets[@]}"; do secret_args+=(-e "$name"); done
 log() { printf '[meritum-worker] %s\n' "$*" >&2; }
 
 [ -f "$envfile" ] || { echo "::error::$envfile missing: run the platform workflow in meritum-infra"; exit 1; }
@@ -35,7 +44,7 @@ log "DBOS schema migrated"
 # workflows resume on the new container.
 docker rm -f "$container" >/dev/null 2>&1 || true
 docker run -d --name "$container" --network meritum --restart unless-stopped --stop-timeout 40 \
-  "${labels[@]}" --env-file "$envfile" "$image" >/dev/null
+  "${labels[@]}" --env-file "$envfile" "${secret_args[@]}" "$image" >/dev/null
 log "started $container"
 
 for i in $(seq 30); do

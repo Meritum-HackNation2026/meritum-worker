@@ -71,6 +71,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Deploy
+        env: # the names in worker_secrets of deploy/deploy.sh
+          EUVSDISINFO_MCP_API_KEY: ${{ secrets.EUVSDISINFO_MCP_API_KEY }}
         run: |
           export CORE_KEY_FILE="$RUNNER_TEMP/core_key"
           install -m 600 /dev/null "$CORE_KEY_FILE" && printf '%s\n' "$CORE_KEY" >"$CORE_KEY_FILE"
