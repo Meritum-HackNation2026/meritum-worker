@@ -20,7 +20,7 @@ image="meritum-worker:$env-${sha:0:12}"
 # an unset secret is left out and the container still starts (worker#28 will
 # name it in the readiness report).
 # Add a name here and in the env of the Deploy step in .github/workflows/ci.yml.
-worker_secrets=(EUVSDISINFO_MCP_API_KEY)
+worker_secrets=(EUVSDISINFO_MCP_API_KEY OPENROUTER_API_KEY)
 secret_args=()
 for name in "${worker_secrets[@]}"; do secret_args+=(-e "$name"); done
 # ADR-31: the files volume shared with the backend of this env (meritum-infra#8

@@ -83,6 +83,7 @@ def test_a_check_that_raises_ends_as_technical_failure() -> None:
 def test_forced_model_fault_fails_only_its_case(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv("MERITUM_LLM_PROVIDER", "stub")
     monkeypatch.setenv("MERITUM_LLM_STUB_FIXTURES", str(STUB_ANSWER))
     deps_for = build_eval_deps(LlmSettings())
 
