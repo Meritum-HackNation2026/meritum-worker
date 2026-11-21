@@ -6,6 +6,7 @@ Features:
 
 from meritum_core.checks.contracts import FailureCode
 from meritum_core.checks.transcription import TranscriptionUnavailableError
+from meritum_core.corpus.web_search import WebSearchError, WebSearchTimeoutError
 from meritum_core.shared.llm import ProviderUnavailableError
 
 from meritum_worker.checks.constants import (
@@ -51,10 +52,10 @@ def provider_failure(step: str, error: Exception) -> ProviderFailureError | None
     """
     if isinstance(error, ProviderFailureError):
         return error
-    if not isinstance(
-        error, ProviderUnavailableError | TranscriptionUnavailableError | TimeoutError
-    ):
+    known = ProviderUnavailableError | TranscriptionUnavailableError | WebSearchError
+    if not isinstance(error, known | TimeoutError):
         return None
     code = STEP_FAILURE_CODES.get(step, TECHNICAL_FAILURE_CODE)
-    what = TIMEOUT_REASON if isinstance(error, TimeoutError) else code
+    timed_out = isinstance(error, TimeoutError | WebSearchTimeoutError)
+    what = TIMEOUT_REASON if timed_out else code
     return ProviderFailureError(code, f"{step}: {what}")

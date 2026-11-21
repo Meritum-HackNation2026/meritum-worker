@@ -19,7 +19,7 @@ from meritum_core.shared.llm import (
 )
 from pydantic import BaseModel
 
-from meritum_worker.checks import CheckDeps, FakePageFetcher, audio_ports
+from meritum_worker.checks import CheckDeps, FakePageFetcher, audio_ports, web_ports
 from meritum_worker.observability import (
     GoldenCase,
     GoldenSet,
@@ -56,6 +56,7 @@ def _deps(records: InMemoryCheckRecordRepository | None = None) -> CheckDeps:
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
         **audio_ports(),
+        **web_ports(),
     )
 
 
@@ -74,6 +75,7 @@ def test_a_check_that_raises_ends_as_technical_failure() -> None:
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
         **audio_ports(),
+        **web_ports(),
     )
     runs = asyncio.run(run_eval(GOLDEN, lambda _case: broken, max_concurrency=2))
     assert {r.result.status for r in runs} == {"technical_failure"}

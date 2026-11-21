@@ -1,25 +1,58 @@
-"""Placeholder step that searches the web next to the corpus.
-
-Live web search (worker#33) replaces this module.
+"""Search the web for the checked facts, next to the corpus search.
 
 Features:
-    US-SPR-01, US-OBS-01, F-22
+    US-KOR-04, US-SPR-04, US-WTY-03, US-OBS-01, F-13, F-22, ADR-07
 """
 
+from meritum_worker import corpus
+from meritum_worker.checks.constants import LIMITATION_MAX_CHARS, SEARCH_WEB_STEP
 from meritum_worker.checks.models import CheckDeps, CheckState
 
 
-async def search_web(state: CheckState, _deps: CheckDeps) -> CheckState:
-    """Pass the state on unchanged until live web search (worker#33) lands.
+async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
+    """Search catalogue domains live; pages past quarantine become evidence.
+
+    Each fact is one query, masked before it leaves. A page with an
+    instruction is dropped: its ``source_dropped`` event goes to the record
+    and its address to the limitations. A check with no fact skips the step.
 
     Args:
-        state: the check so far.
-        _deps: the ports; unused by the placeholder.
+        state: the check so far; a state that already has a result passes on.
+        deps: the ports; web search, the page fetcher, the detector and the
+            masking gate are called.
 
     Returns:
-        The same state.
+        The state with the new evidence, events, limitations and search count.
+
+    A web search failure or timeout propagates; the workflow maps it to
+    technical_failure with code web_search_unavailable.
 
     Features:
-        US-SPR-01, US-OBS-01, F-22
+        US-KOR-04, US-SPR-04, US-WTY-03, US-OBS-01, F-13, F-22, ADR-07
     """
-    return state
+    if state.result is not None:
+        return state
+    facts = [claim.claim for claim in state.claims if claim.is_fact]
+    if not facts:
+        return state.model_copy(
+            update={"skipped_steps": [*state.skipped_steps, SEARCH_WEB_STEP]}
+        )
+    ports = corpus.LiveSearchPorts(
+        web_search=deps.web_search,
+        pages=deps.pages,
+        injection=deps.injection,
+        pii=deps.pii,
+        catalog=deps.catalog,
+    )
+    found = await corpus.search_live(facts, ports)
+    return state.model_copy(
+        update={
+            "web_search_calls": state.web_search_calls + found.calls,
+            "evidence": [*state.evidence, *found.documents],
+            "injection_events": [*state.injection_events, *found.dropped],
+            "limitations": [
+                *state.limitations,
+                *(str(e.source_url)[:LIMITATION_MAX_CHARS] for e in found.dropped),
+            ],
+        }
+    )

@@ -41,6 +41,10 @@ Workflow `check` bierze model, repozytorium zapisów, fetcher stron (ochrona SSR
 | `MERITUM_PII_GATE` | `none` | bramka maskowania danych osobowych w tekście strony z linku: `none` (tylko wzorce telefonów, e-maili i PESEL; pominięcie bramki trafia do logu) albo `sdp` (Google Sensitive Data Protection) |
 | `MERITUM_PII_PROJECT` | brak | projekt Google Cloud rozliczany za Sensitive Data Protection; wymagany dla `sdp` |
 | `MERITUM_PII_LOCATION` | `europe-central2` | region UE punktu końcowego Sensitive Data Protection; sprawdzany tylko dla `sdp` |
+| `MERITUM_WEB_SEARCH_PROVIDER` | `stub` | wyszukiwanie na żywo: `stub` (adresy z pliku, bez sieci) albo `vertex_search` (Vertex AI Search, lokalizacja `global`) |
+| `MERITUM_WEB_SEARCH_PROJECT` | brak | projekt aplikacji Vertex AI Search (na dev `196419832223`); wymagany dla `vertex_search` |
+| `MERITUM_WEB_SEARCH_ENGINE` | brak | id aplikacji (engine) nad website data store (na dev `meritum-live-search`, serving config `default_search`); wymagany dla `vertex_search` |
+| `MERITUM_WEB_SEARCH_STUB_FIXTURE` | brak | plik JSON z listą adresów, które zwraca stub; bez niego stub nic nie znajduje |
 
 Przy `technical_failure` wynik zawiera `failure_code` z kontraktu meritum-core. Pole `message` w wynikach bez werdyktu zawiera tekst diagnostyczny do użytku wewnętrznego.
 
@@ -109,6 +113,10 @@ Czego przebieg jeszcze nie obsługuje:
 - `--max-concurrency` większe niż domyślne 1 nie gwarantuje, że powtórzenie (`same_session`, `other_channel`) przyjdzie po przypadku, który powtarza, a współbieżne wywołania modelu zawyżają czas.
 
 Polecenie uruchamiaj z katalogu repozytorium, bo domyślna ścieżka `evals/golden/cases.json` jest względna. Jeśli MSZ opublikuje jawną część zestawu referencyjnego, uruchom przebieg osobno na niej i na golden secie: każdy plik daje własny raport. Plik CSV rozdziela kolumny przecinkiem; znacznik BOM z arkusza kalkulacyjnego nie przeszkadza.
+
+## Wyszukiwanie na żywo
+
+Krok `search_web` biegnie równolegle z `search_corpus` (jeden etap workflow, dwa kroki DBOS). Dla każdego faktu, najwyżej 5, wysyła jedno zapytanie przez `WebSearchPort` z meritum-core, który przepuszcza tylko adresy z domen katalogu. Każdy adres pobiera fetcher z meritum-core z kontrolą `robots.txt` i Content-Signal; strona, której końcowy adres po przekierowaniu wyszedł poza katalog, odpada. Pobrana strona czeka w kwarantannie na skan detektorem wstrzyknięć: czysta jest dowodem w tym sprawdzeniu (`Source.via = web_search`, trafia do `CheckRecord.source_ids`), a strona z poleceniem wypada z `InjectionEvent(action=source_dropped)` i jej adresem w `limitations`. Sprawdzenie nie zmienia wspólnego korpusu; stronę do następnej migawki przekaże [worker#90](https://github.com/Meritum-HackNation2026/meritum-worker/issues/90). Cały krok ma jeden limit 10 s (`WEB_SEARCH_TIMEOUT` w `corpus/constants.py`) na wyszukiwanie, pobranie i skan. Wyszukiwanie, które nie skończy się w tym czasie, albo jego awaria dają `technical_failure` z kodem `web_search_unavailable`. Strona, której nie zdążyliśmy zeskanować albo której detektor nie zeskanował, nie jest dowodem, trafia tylko do logu, a sprawdzenie biegnie dalej.
 
 ## Bramka klasyfikatora wstrzyknięć
 

@@ -1,8 +1,8 @@
-"""The `check` workflow body: the 12 AnalysisStep codes in order, each with its steps.
+"""The `check` workflow body: the 12 AnalysisStep codes in stages, each with its steps.
 
 Features:
-    US-SPR-01, US-SPR-02, US-OBS-01, US-BEZ-03, US-SPR-04, US-SPR-06, F-18, F-22,
-    ADR-03
+    US-SPR-01, US-SPR-02, US-OBS-01, US-BEZ-03, US-SPR-04, US-SPR-06, US-KOR-04,
+    F-13, F-18, F-22, ADR-03
 """
 
 import asyncio
@@ -40,38 +40,57 @@ class Step(Protocol):
         ...
 
 
-def pipeline() -> tuple[tuple[str, tuple[Step, ...]], ...]:
-    """The steps run under each AnalysisStep code, in order.
+type Lane = tuple[str, tuple[Step, ...]]
+"""One AnalysisStep code and its step functions, run in order."""
+
+
+def pipeline() -> tuple[tuple[Lane, ...], ...]:
+    """The stages of the check, in order; the lanes of one stage run concurrently.
 
     Steps outside the 12 codes (image, incidents, sanctions, cases, cost) run
     under the code whose work they extend; their issues only replace modules.
+    A lane in a stage with others holds one step, so DBOS starts the
+    concurrent steps in a fixed order.
 
     Returns:
-        Pairs of the step code and its step functions.
+        The stages, each a tuple of lanes.
 
     Features:
-        US-SPR-01, US-SPR-02, F-22
+        US-SPR-01, US-SPR-02, US-KOR-04, F-13, F-22
     """
     return (
-        ("receive", (steps.receive, steps.read_image)),
-        ("fetch_url", (steps.fetch_url,)),
-        ("transcribe_audio", (steps.transcribe_audio,)),
-        ("screen_injection", (steps.screen_injection,)),
-        ("extract_claims", (steps.extract_claims,)),
-        ("search_corpus", (steps.search_corpus,)),
-        ("search_web", (steps.search_web,)),
-        ("search_fact_checks", (steps.search_fact_checks,)),
-        ("assess_evidence", (steps.assess_evidence, steps.match_incidents)),
-        ("verify_citations", (steps.verify_citations,)),
-        ("write_answer", (steps.write_answer, steps.sanctions_warning, steps.cost)),
-        ("save_record", (steps.moderator_cases, steps.notify_done, steps.save_record)),
+        (("receive", (steps.receive, steps.read_image)),),
+        (("fetch_url", (steps.fetch_url,)),),
+        (("transcribe_audio", (steps.transcribe_audio,)),),
+        (("screen_injection", (steps.screen_injection,)),),
+        (("extract_claims", (steps.extract_claims,)),),
+        # Live web search runs next to the corpus search, never after it (F-13).
+        (
+            ("search_corpus", (steps.search_corpus,)),
+            ("search_web", (steps.search_web,)),
+        ),
+        (("search_fact_checks", (steps.search_fact_checks,)),),
+        (("assess_evidence", (steps.assess_evidence, steps.match_incidents)),),
+        (("verify_citations", (steps.verify_citations,)),),
+        (
+            (
+                "write_answer",
+                (steps.write_answer, steps.sanctions_warning, steps.cost),
+            ),
+        ),
+        (
+            (
+                "save_record",
+                (steps.moderator_cases, steps.notify_done, steps.save_record),
+            ),
+        ),
     )
 
 
 async def run_check(
     payload: dict[str, object], check_id: str, deps: CheckDeps, runtime: CheckRuntime
 ) -> CheckOutput:
-    """Run every step, publishing an AnalysisStatus before and after each code.
+    """Run every stage, publishing an AnalysisStatus before and after each one.
 
     The code whose steps produced a technical failure ends as "failed". The
     last status carries the result; the stream closes right after it. A step
@@ -88,10 +107,11 @@ async def run_check(
         The workflow output.
 
     Raises:
-        ValueError: the payload has an unsupported contract version.
+        ValueError: the payload has an unsupported contract version, or two
+            parallel steps changed one field (a pipeline bug).
 
     Features:
-        US-SPR-01, US-SPR-02, US-OBS-01, F-22, ADR-03
+        US-SPR-01, US-SPR-02, US-OBS-01, US-KOR-04, F-13, F-22, ADR-03
     """
     job = CHECK.input.model_validate(payload)
     if job.contract_version != CONTRACT_VERSION:
@@ -99,24 +119,75 @@ async def run_check(
         raise ValueError(msg)
     state = CheckState(check_id=check_id, job=job)
     stages = pipeline()
-    progress = [_step(code, "pending") for code, _ in stages]
-    for index, (code, functions) in enumerate(stages):
-        progress[index] = _step(code, "active")
-        await runtime.publish(AnalysisStatus(check_id=check_id, steps=progress))
-        before = state
-        try:
-            for function in functions:
-                state = await runtime.step(
-                    function.__name__, _bind(code, function, deps), state
-                )
-        except Exception:
-            progress[index] = _step(code, "failed")
-            await _finish(runtime, check_id, progress, state.technical_failure())
-            raise
-        progress[index] = _step(code, _outcome(code, before, state))
+    progress = {code: _step(code, "pending") for stage in stages for code, _ in stage}
+    for stage in stages:
+        progress.update({code: _step(code, "active") for code, _ in stage})
+        await runtime.publish(
+            AnalysisStatus(check_id=check_id, steps=list(progress.values()))
+        )
+        outputs = await asyncio.gather(
+            *(_run_lane(lane, state, deps, runtime) for lane in stage),
+            return_exceptions=True,
+        )
+        failures = [o for o in outputs if isinstance(o, BaseException)]
+        for (code, _), output in zip(stage, outputs, strict=True):
+            progress[code] = _step(code, _lane_outcome(code, state, output))
+        if failures:
+            failed = state.technical_failure()
+            await _finish(runtime, check_id, list(progress.values()), failed)
+            raise failures[0]
+        state = _merged(state, [o for o in outputs if isinstance(o, CheckState)])
     result = state.final_result()
-    await _finish(runtime, check_id, progress, result)
+    await _finish(runtime, check_id, list(progress.values()), result)
     return CheckOutput(result=result)
+
+
+async def _run_lane(
+    lane: Lane, state: CheckState, deps: CheckDeps, runtime: CheckRuntime
+) -> CheckState:
+    code, functions = lane
+    for function in functions:
+        state = await runtime.step(
+            function.__name__, _bind(code, function, deps), state
+        )
+    return state
+
+
+def _lane_outcome(
+    code: str, before: CheckState, output: CheckState | BaseException
+) -> str:
+    if isinstance(output, BaseException):
+        return "failed"
+    return _outcome(code, before, output)
+
+
+def _merged(before: CheckState, outputs: list[CheckState]) -> CheckState:
+    # Lanes start from the same state: lists keep every lane's new items, and
+    # any other field takes the value of the one lane that changed it.
+    merged = before
+    for output in outputs:
+        update = {
+            name: _field(name, before, merged, output)
+            for name in CheckState.model_fields
+            if getattr(output, name) != getattr(before, name)
+        }
+        merged = merged.model_copy(update=update)
+    return merged
+
+
+def _field(
+    name: str, before: CheckState, merged: CheckState, output: CheckState
+) -> object:
+    base, ours, theirs = (getattr(s, name) for s in (before, merged, output))
+    only_appended = isinstance(base, list) and theirs[: len(base)] == base
+    if only_appended:
+        return [*ours, *theirs[len(base) :]]
+    if ours != base or isinstance(base, list):
+        # Two parallel steps changing one field, or rewriting a list, would
+        # lose one step's work without a trace.
+        msg = f"parallel steps changed {name} in a way that cannot be merged"
+        raise ValueError(msg)
+    return theirs
 
 
 async def _finish(
