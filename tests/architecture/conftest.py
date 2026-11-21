@@ -13,9 +13,11 @@ from pytestarch import EvaluableArchitecture, Rule, get_evaluable_architecture
 PACKAGE = "meritum_worker"
 # Modules that may use frameworks and adapters: main registers the workflows with
 # DBOS and runs them; workflow bodies (jobs) stay plain functions.
-WIRING = re.compile(r"^meritum_worker\.(main|[a-z_]+\.(adapters|factory))(\.|$)")
+# Fakes stand in for external services, so they may use the HTTP client's mock
+# transport like the adapters they replace.
+WIRING = re.compile(r"^meritum_worker\.(main|[a-z_]+\.(adapters|factory|fakes))(\.|$)")
 FRAMEWORKS = re.compile(
-    r"^(dbos|fastapi|starlette|slowapi|psycopg|uvicorn|httpx|cryptography)(\.|$)"
+    r"^(dbos|fastapi|starlette|slowapi|psycopg|uvicorn|httpx2?|cryptography)(\.|$)"
 )
 ADAPTERS = re.compile(r"^meritum_[a-z]+(\.[a-z_]+)*\.adapters(\.|$)")
 

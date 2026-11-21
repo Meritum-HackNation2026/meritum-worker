@@ -1,18 +1,27 @@
 """Entry point: launch DBOS, register queues and wait for work."""
 
+import asyncio
 import os
 import signal
 import threading
+from datetime import UTC, datetime
 from functools import cache
 from typing import Any
 
 from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
 from meritum_core.jobs.contracts import APPLICATION_NAME, CHECK, DEFAULT_QUEUE, PING
 from meritum_core.shared.database import DatabaseSettings
+from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings
 
-from meritum_worker import checks, jobs
+from meritum_worker import checks, corpus, jobs
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
+
+
+@cache
+def _euvs_copy() -> corpus.EuvsCopyPort:
+    # One copy per process; the sync step reuses it across runs.
+    return corpus.build_euvsdisinfo_copy()
 
 
 def env() -> str:
@@ -74,6 +83,43 @@ async def check_workflow(payload: dict[str, Any]) -> dict[str, Any]:
         payload, DBOS.workflow_id or "", check_deps(), build_check_runtime()
     )
     return output.model_dump(mode="json")
+
+
+@DBOS.workflow(
+    name=corpus.SYNC_WORKFLOW,
+    serialization_type=WorkflowSerializationFormat.PORTABLE,
+)
+def euvsdisinfo_sync_workflow() -> dict[str, Any]:
+    """Refresh the local EUvsDisinfo copy; started by hand, never during a check.
+
+    Returns:
+        The ``SyncReport`` JSON; only ``missing_env`` without a token.
+
+    Features:
+        US-KOR-08, F-11, ADR-26
+    """
+    return euvsdisinfo_sync_step()
+
+
+@DBOS.step(retries_allowed=True)
+def euvsdisinfo_sync_step() -> dict[str, Any]:
+    """Run ``corpus.run_euvsdisinfo_sync`` as one step; a failure writes nothing.
+
+    Returns:
+        The ``SyncReport`` JSON.
+
+    Features:
+        US-KOR-08, F-11
+    """
+    embeddings = build_embeddings(EmbeddingsSettings())
+    report = asyncio.run(
+        corpus.run_euvsdisinfo_sync(
+            os.environ, _euvs_copy(), embeddings, now=datetime.now(UTC)
+        )
+    )
+    if report.missing_env:
+        DBOS.logger.warning("EUvsDisinfo sync skipped, missing %s", report.missing_env)
+    return report.model_dump(mode="json")
 
 
 def config() -> DBOSConfig:

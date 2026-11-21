@@ -849,6 +849,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "dbos" },
+    { name = "httpx2" },
     { name = "meritum-core" },
     { name = "pydantic" },
 ]
@@ -867,6 +868,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "dbos", specifier = ">=3.6.0" },
+    { name = "httpx2", specifier = ">=2.16.2" },
     { name = "meritum-core", git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=7ce3c2f659149916476775cacbd8ca1c68b5f1f7" },
     { name = "pydantic", specifier = ">=2.14.4" },
 ]
