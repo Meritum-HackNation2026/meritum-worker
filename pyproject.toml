@@ -11,11 +11,13 @@ dependencies = [
     "meritum-core",
     "psycopg[binary]>=3.3",
     "pydantic>=2.14.4",
+    "pydantic-evals>=2.71.0",
 ]
 
 [project.scripts]
 meritum-worker = "meritum_worker.main:main"
 meritum-worker-migrate = "meritum_worker.main:migrate"
+meritum-eval = "meritum_worker.observability:meritum_eval"
 
 [build-system]
 requires = ["uv_build>=0.13.0,<0.14.0"]
