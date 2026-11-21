@@ -78,6 +78,14 @@ def app_database(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
         conn.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(schema))
 
 
+@pytest.fixture
+def postgres_records(
+    app_database: str, records: CheckRecordRepository
+) -> tuple[str, CheckRecordRepository]:
+    """The app schema URL and the records, built after MERITUM_DATABASE_* is set."""
+    return app_database, records
+
+
 def _launch() -> None:
     main.check_deps.cache_clear()
     DBOS(config=main.config())
@@ -91,10 +99,10 @@ def _restart() -> None:
 
 @pytest.mark.integration
 def test_check_record_survives_worker_restart(
-    app_database: str,
-    records: CheckRecordRepository,
+    postgres_records: tuple[str, CheckRecordRepository],
     make_job: Callable[..., CheckInput],
 ) -> None:
+    app_database, records = postgres_records
     payload = make_job().model_dump(mode="json")
     output, _ = asyncio.run(_check(payload, records))
     check_id = output.result.check_id

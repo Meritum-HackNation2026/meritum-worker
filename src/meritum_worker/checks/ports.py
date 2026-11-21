@@ -42,3 +42,7 @@ class CheckRuntime(Protocol):
             status: the steps so far, and the result once the check finished.
         """
         ...
+
+    async def close(self) -> None:
+        """Close the progress stream; readers stop after the last status."""
+        ...

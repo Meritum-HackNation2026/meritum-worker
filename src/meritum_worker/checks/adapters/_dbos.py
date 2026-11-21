@@ -57,3 +57,7 @@ class DbosCheckRuntime:
             status.model_dump(mode="json"),
             serialization_type=WorkflowSerializationFormat.PORTABLE,
         )
+
+    async def close(self) -> None:  # ruff: ignore[no-self-use]  # CheckRuntime is an instance protocol
+        """Close the PROGRESS_KEY stream so readers end after the final status."""
+        await DBOS.close_stream_async(PROGRESS_KEY)

@@ -69,7 +69,8 @@ async def run_check(
 ) -> CheckOutput:
     """Run every step, publishing an AnalysisStatus before and after each code.
 
-    The code whose steps produced a technical failure ends as "failed".
+    The code whose steps produced a technical failure ends as "failed". The
+    last status carries the result; the stream closes right after it.
 
     Args:
         payload: the `CheckInput` JSON object.
@@ -104,6 +105,7 @@ async def run_check(
     await runtime.publish(
         AnalysisStatus(check_id=check_id, steps=progress, result=result)
     )
+    await runtime.close()
     return CheckOutput(result=result)
 
 

@@ -19,6 +19,8 @@ class InlineCheckRuntime:
     Attributes:
         published: every AnalysisStatus, in order.
         step_names: the name of every step run, in order.
+        closed_after: how many statuses were published when the stream closed;
+            None while it is open.
 
     Features:
         US-SPR-01, US-SPR-02, F-22
@@ -27,6 +29,7 @@ class InlineCheckRuntime:
     def __init__(self) -> None:
         self.published: list[AnalysisStatus] = []
         self.step_names: list[str] = []
+        self.closed_after: int | None = None
 
     async def step(self, name: str, run: StepRun, state: CheckState) -> CheckState:
         """Run the step on a JSON copy of the state.
@@ -52,3 +55,7 @@ class InlineCheckRuntime:
         self.published.append(
             AnalysisStatus.model_validate_json(status.model_dump_json())
         )
+
+    async def close(self) -> None:
+        """Close the progress stream and note how many statuses came before."""
+        self.closed_after = len(self.published)
