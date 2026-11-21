@@ -116,6 +116,20 @@ Krok badań porządkuje fragmenty z wyszukiwania rerankerem typu cross-encoder (
 
 Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration tests/corpus/test_reranker_integration.py`.
 
+## Nagrania głosowe
+
+Krok `transcribe_audio` czyta nagranie z `BlobStore` (`MERITUM_BLOB_*`; bez `MERITUM_BLOB_PROVIDER` magazyn w pamięci), transkrybuje je portem z meritum-core (`MERITUM_TRANSCRIPTION_*`, domyślnie stub; `speech_v2` to Chirp 3 w multi-regionie `eu`), maskuje dane osobowe i sprawdza transkrypcję jak wklejony tekst. Nieobsługiwany format albo nagranie ponad 10 min kończy się stanem `out_of_scope` z komunikatem, co wysłać zamiast; awaria dostawcy albo brak pliku: `technical_failure` z kodem `transcription_failed`. Po nagraniu dłuższym niż 55 s (tryb batch) worker zapisuje w skrzynce powiadomienie `check_done`. Plik usuwa retencja razem z zapisem sprawdzenia (osierocone nagrania po 30 dniach), a transkrypcja żyje tylko w wyniku i zapisie.
+
+Ręczny test, czy Chirp 3 dekoduje OGG z Opus 48 kHz z Discorda bez konwersji (poza CI):
+
+```bash
+MERITUM_TRANSCRIPTION_PROVIDER=speech_v2 MERITUM_TRANSCRIPTION_PROJECT=... \
+MERITUM_BLOB_PROVIDER=gcs MERITUM_BLOB_BUCKET=... \
+MERITUM_TEST_AUDIO_FILE=wiadomosc.ogg uv run pytest -m integration tests/checks/test_transcription_integration.py
+```
+
+Wynik: jeszcze nie uruchomiony (wymaga poświadczeń GCP); wpisz go tutaj po pierwszym przebiegu.
+
 ## Retencja i usuwanie danych
 
 Workflow `retention` (`src/meritum_worker/security/`) startuje co godzinę (o :15 UTC) z harmonogramu DBOS. Usuwa zapisy sprawdzeń po `retention_until` razem z ich powiadomieniami, miejscem w sprawach moderatora i workflowami DBOS (także eskalacjami), potem wygasłe powiadomienia, wszystkie workflowy DBOS starsze niż 30 dni (także zawieszone i niezwiązane z osobą, np. historia synchronizacji korpusu), pliki z wolumenu starsze niż 30 dni (w tym nagrania `audio_*`, których nie użyło żadne sprawdzenie) i wpisy `removed_case_checks` starsze niż 30 dni. Na GCS pliki usuwa reguła bucketu, więc tam workflow plików nie przegląda.

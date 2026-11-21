@@ -18,7 +18,7 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.security.pii import NullPiiGate
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
-from meritum_worker.checks import CheckDeps, FakePageFetcher
+from meritum_worker.checks import CheckDeps, FakePageFetcher, audio_ports
 from meritum_worker.observability import (
     GoldenCase,
     GoldenSet,
@@ -183,6 +183,7 @@ def _deps(seconds: float, fixtures: Path | None) -> CheckDeps:
         records=_ShiftedRecords(seconds),
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
+        **audio_ports(),
     )
 
 

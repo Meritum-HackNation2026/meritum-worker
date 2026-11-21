@@ -18,8 +18,8 @@ from meritum_worker.checks.models import (
     CheckState,
     ClaimExtraction,
     ExtractedClaim,
-    model_usage,
 )
+from meritum_worker.checks.usage import model_usage
 
 
 async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:

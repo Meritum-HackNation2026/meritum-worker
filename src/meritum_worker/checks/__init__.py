@@ -5,9 +5,12 @@ Features:
 """
 
 from meritum_worker.checks.fakes import (
+    AudioPorts,
     FailingCheckRuntime,
     FakePageFetcher,
     InlineCheckRuntime,
+    audio_ports,
+    ogg_opus,
 )
 from meritum_worker.checks.models import (
     AnswerDraft,
@@ -21,6 +24,7 @@ from meritum_worker.checks.workflow import pipeline, run_check
 
 __all__ = [
     "AnswerDraft",
+    "AudioPorts",
     "CheckDeps",
     "CheckRuntime",
     "CheckState",
@@ -29,6 +33,8 @@ __all__ = [
     "FailingCheckRuntime",
     "FakePageFetcher",
     "InlineCheckRuntime",
+    "audio_ports",
+    "ogg_opus",
     "pipeline",
     "run_check",
 ]

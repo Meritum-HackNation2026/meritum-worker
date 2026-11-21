@@ -4,14 +4,28 @@ Features:
     US-SPR-01, US-SPR-07, F-06, F-22
 """
 
-from typing import override
+from pathlib import Path
+from typing import TypedDict, override
 
 from meritum_core.checks import AnalysisStatus
+from meritum_core.checks.transcription import (
+    TranscriptionPort,
+    TranscriptionSettings,
+    build_transcriber,
+)
 from meritum_core.corpus.fetching import (
     FetchedPage,
     FetchFailureReason,
     FetchPurpose,
     PageFetchError,
+)
+from meritum_core.notifications import NotificationRepository
+from meritum_core.notifications.fakes import InMemoryNotificationRepository
+from meritum_core.shared.blobs import (
+    BlobProvider,
+    BlobSettings,
+    BlobStore,
+    build_blob_store,
 )
 
 from meritum_worker.checks.models import CheckState
@@ -141,3 +155,63 @@ class FakePageFetcher:
         if isinstance(self._answer, PageFetchError):
             raise self._answer
         return self._answer
+
+
+def ogg_opus(seconds: float) -> bytes:
+    """Build the smallest Ogg Opus file ``inspect_audio`` reads as ``seconds`` long.
+
+    Two Ogg pages: the first holds ``OpusHead``, the last states the length as
+    a granule position in 48 kHz samples. No audio; the stub transcriber does
+    not decode it.
+
+    Args:
+        seconds: the length the file states.
+
+    Returns:
+        The file's bytes.
+
+    Features:
+        US-SPR-11, F-08
+    """
+    header = b"OggS\x00\x02" + bytes(21) + b"\x13"  # 27-byte page header, 1 lacing byte
+    last = b"OggS\x00\x04" + int(seconds * 48_000).to_bytes(8, "little") + bytes(13)
+    return header + b"OpusHead" + bytes(11) + last
+
+
+class AudioPorts(TypedDict):
+    """The CheckDeps ports of a voice message, for ``CheckDeps(**audio_ports())``.
+
+    Attributes:
+        blobs: the in-memory store of the recordings.
+        transcriber: the core stub transcriber over that store.
+        notifications: the in-memory inbox.
+
+    Features:
+        US-SPR-11, US-POW-01, F-08
+    """
+
+    blobs: BlobStore
+    transcriber: TranscriptionPort
+    notifications: NotificationRepository
+
+
+def audio_ports(transcript: Path | None = None) -> AudioPorts:
+    """An in-memory blob store, the core stub transcriber over it and an inbox.
+
+    Args:
+        transcript: JSON file with the stub's ``Transcript``; None makes every
+            transcription fail as the provider would.
+
+    Returns:
+        The ports.
+
+    Features:
+        US-SPR-11, US-POW-01, F-08
+    """
+    blobs = build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
+    settings = TranscriptionSettings(stub_fixture=transcript)
+    return AudioPorts(
+        blobs=blobs,
+        transcriber=build_transcriber(settings, blobs),
+        notifications=InMemoryNotificationRepository(),
+    )

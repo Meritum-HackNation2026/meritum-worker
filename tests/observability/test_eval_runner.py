@@ -1,6 +1,7 @@
 """The evaluation run on the stub model: no network, no database (ADR-28)."""
 
 import asyncio
+import dataclasses
 from datetime import timedelta
 from pathlib import Path
 from typing import override
@@ -18,7 +19,7 @@ from meritum_core.shared.llm import (
 )
 from pydantic import BaseModel
 
-from meritum_worker.checks import CheckDeps, FakePageFetcher
+from meritum_worker.checks import CheckDeps, FakePageFetcher, audio_ports
 from meritum_worker.observability import (
     GoldenCase,
     GoldenSet,
@@ -54,6 +55,7 @@ def _deps(records: InMemoryCheckRecordRepository | None = None) -> CheckDeps:
         records=records or InMemoryCheckRecordRepository(),
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
+        **audio_ports(),
     )
 
 
@@ -71,6 +73,7 @@ def test_a_check_that_raises_ends_as_technical_failure() -> None:
         records=InMemoryCheckRecordRepository(),
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
+        **audio_ports(),
     )
     runs = asyncio.run(run_eval(GOLDEN, lambda _case: broken, max_concurrency=2))
     assert {r.result.status for r in runs} == {"technical_failure"}
@@ -96,9 +99,7 @@ def test_forced_model_fault_fails_only_its_case(
 def test_failed_check_keeps_its_time_from_the_record() -> None:
     no_answers = LlmSettings(provider=LlmProvider.STUB, stub_fixtures=None)
     deps = _deps(_SlowRecords())
-    broken = CheckDeps(
-        llm=build_llm(no_answers), records=deps.records, pages=deps.pages, pii=deps.pii
-    )
+    broken = dataclasses.replace(deps, llm=build_llm(no_answers))
     runs = asyncio.run(run_eval(GOLDEN, lambda _case: broken, max_concurrency=4))
     assert {r.result.status for r in runs} == {"technical_failure"}
     assert all(r.seconds == pytest.approx(42) for r in runs)

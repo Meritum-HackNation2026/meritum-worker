@@ -16,10 +16,13 @@ from meritum_core.checks.contracts import (
     FailureCode,
     ModelUsage,
 )
+from meritum_core.checks.transcription import TranscriptionPort
 from meritum_core.corpus.fetching import PageFetcherPort
 from meritum_core.jobs.contracts import CheckInput
+from meritum_core.notifications import NotificationRepository
 from meritum_core.security.pii import PiiGatePort
-from meritum_core.shared.llm import LlmPort, LlmUsage
+from meritum_core.shared.blobs import BlobStore
+from meritum_core.shared.llm import LlmPort
 from pydantic import BaseModel, ConfigDict, Field
 
 from meritum_worker.checks.constants import (
@@ -84,16 +87,22 @@ class CheckDeps:
         llm: the language model, from the core LLM factory.
         records: where the CheckRecord is saved.
         pages: the SSRF-safe page fetcher, from the core fetching factory.
-        pii: the personal-data masking gate applied to fetched pages.
+        pii: the personal-data masking gate applied to pages and transcripts.
+        blobs: the store holding uploaded recordings (ADR-31).
+        transcriber: transcription over the same store (ADR-30).
+        notifications: the inbox the end of a long check is announced in.
 
     Features:
-        US-SPR-01, US-SPR-07, US-OBS-01, F-06, F-22
+        US-SPR-01, US-SPR-07, US-SPR-11, US-OBS-01, US-POW-01, F-06, F-08, F-22
     """
 
     llm: LlmPort
     records: CheckRecordRepository
     pages: PageFetcherPort
     pii: PiiGatePort
+    blobs: BlobStore
+    transcriber: TranscriptionPort
+    notifications: NotificationRepository
 
 
 class CheckState(BaseModel):
@@ -111,6 +120,8 @@ class CheckState(BaseModel):
         injection_events: instructions found and neutralised.
         page_text: the masked main text of the linked page, once fetch_url read it.
         published_at: the linked page's publication date from its metadata, if any.
+        transcript: the masked automatic transcript, once transcribe_audio ran.
+        audio_seconds: the recording's length, once transcribe_audio read it.
         skipped_steps: step codes that had nothing to do for this input.
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
         limitations: what the check already knows it will not cover.
@@ -131,6 +142,8 @@ class CheckState(BaseModel):
     injection_events: list[InjectionEvent] = []
     page_text: str | None = None
     published_at: date | None = None
+    transcript: str | None = None
+    audio_seconds: float | None = None
     skipped_steps: list[str] = []
     claims: list[ExtractedClaim] = []
     limitations: list[str] = []
@@ -143,12 +156,12 @@ class CheckState(BaseModel):
 
     @property
     def question(self) -> str:
-        """The masked question: the text, else the page, the link or the audio id."""
+        """The masked question: text, else page, transcript, link or audio id."""
         request = self.job.request
         if self.has_text:
             return request.text or ""
         link = str(request.url or "")
-        return self.page_text or link or request.audio_id or ""
+        return self.page_text or self.transcript or link or request.audio_id or ""
 
     def with_message(self, status: NotAVerdict, message: str) -> CheckResult:
         """Build a non-verdict result with a diagnostic message.
@@ -195,9 +208,10 @@ class CheckState(BaseModel):
         """The answer, or a technical failure when no step produced one.
 
         Returns:
-            The result the workflow returns and records.
+            The result, with the transcript of an audio input.
         """
-        return self.result or self.technical_failure()
+        result = self.result or self.technical_failure()
+        return result.model_copy(update={"transcript": self.transcript})
 
 
 class AnswerDraft(BaseModel):
@@ -213,27 +227,3 @@ class AnswerDraft(BaseModel):
 
     claims: list[ClaimResult]
     limitations: list[str]
-
-
-def model_usage(usage: LlmUsage) -> ModelUsage:
-    """Turn one LLM call's usage into the ModelUsage the CheckRecord keeps.
-
-    Cost stays 0 until the cost step prices the call (worker#26).
-
-    Args:
-        usage: provider, model, region and tokens of the call.
-
-    Returns:
-        The usage entry.
-
-    Features:
-        US-OBS-01, F-22
-    """
-    return ModelUsage(
-        provider=usage.provider,
-        model=usage.model,
-        region=usage.region,
-        input_tokens=usage.input_tokens,
-        output_tokens=usage.output_tokens,
-        cost_usd=0.0,
-    )

@@ -64,7 +64,7 @@ def pipeline() -> tuple[tuple[str, tuple[Step, ...]], ...]:
         ("assess_evidence", (steps.assess_evidence, steps.match_incidents)),
         ("verify_citations", (steps.verify_citations,)),
         ("write_answer", (steps.write_answer, steps.sanctions_warning, steps.cost)),
-        ("save_record", (steps.moderator_cases, steps.save_record)),
+        ("save_record", (steps.moderator_cases, steps.notify_done, steps.save_record)),
     )
 
 

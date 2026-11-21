@@ -76,7 +76,8 @@ def check_deps() -> checks.CheckDeps:
     Features:
         US-SPR-01, F-22
     """
-    return build_check_deps(LlmSettings(), DatabaseSettings())
+    blobs = BlobSettings() if security.BLOB_PROVIDER_ENV in os.environ else None
+    return build_check_deps(LlmSettings(), DatabaseSettings(), blobs)
 
 
 @DBOS.workflow(name=CHECK.name, serialization_type=WorkflowSerializationFormat.PORTABLE)
