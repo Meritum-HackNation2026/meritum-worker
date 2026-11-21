@@ -8,9 +8,14 @@ from collections.abc import Mapping
 from datetime import datetime
 
 from httpx2 import AsyncClient
+from meritum_core.corpus import CorpusProvider, CorpusSettings
 from meritum_core.shared.embeddings import EmbeddingsPort
 
-from meritum_worker.corpus.adapters import McpEuvsDisinfo, MemoryEuvsCopy
+from meritum_worker.corpus.adapters import (
+    McpEuvsDisinfo,
+    MemoryEuvsCopy,
+    PostgresEuvsCopy,
+)
 from meritum_worker.corpus.constants import (
     EUVSDISINFO_MCP_URL,
     REQUEST_TIMEOUT_SECONDS,
@@ -47,18 +52,33 @@ def build_euvsdisinfo_client(
     return McpEuvsDisinfo(EUVSDISINFO_MCP_URL, token, http_client)
 
 
-def build_euvsdisinfo_copy() -> EuvsCopyPort:
-    """Build the local copy of EUvsDisinfo.
+def build_euvsdisinfo_copy(settings: CorpusSettings | None = None) -> EuvsCopyPort:
+    """Build the local copy of EUvsDisinfo named by the corpus settings.
+
+    Args:
+        settings: Usually ``CorpusSettings()`` from ``MERITUM_CORPUS_*``; postgres
+            keeps the copy in the shared ``corpus`` schema. None (tests) or
+            memory: an in-process copy, lost on restart.
 
     Returns:
-        The in-memory copy.
+        The PostgreSQL or the in-memory copy.
+
+    Raises:
+        ValueError: postgres without a database URL (settings built unvalidated).
 
     Features:
-        US-KOR-08, F-11
+        US-KOR-08, F-11, ADR-26
     """
-    # shortcut: in-memory only, lost on restart; add a PostgreSQL copy once the
-    # corpus schema has its tables (worker#59).
-    return MemoryEuvsCopy()
+    if settings is None:
+        return MemoryEuvsCopy()
+    match settings.provider:
+        case CorpusProvider.POSTGRES:
+            if settings.database_url is None:
+                msg = "MERITUM_CORPUS_DATABASE_URL is required for postgres"
+                raise ValueError(msg)
+            return PostgresEuvsCopy(settings.database_url.get_secret_value())
+        case CorpusProvider.MEMORY:
+            return MemoryEuvsCopy()
 
 
 async def run_euvsdisinfo_sync(

@@ -81,7 +81,13 @@ client.enqueue(
 )
 ```
 
-Na razie kopia żyje w pamięci procesu workera i znika przy każdym restarcie i deployu. Trwały zapis w PostgreSQL to [worker#59](https://github.com/Meritum-HackNation2026/meritum-worker/issues/59). Do tego czasu nie uruchamiaj synchronizacji na dev ani prd z `MERITUM_EMBEDDINGS_PROVIDER=vertex`: każdy przebieg embedduje całą bazę od nowa.
+Gdzie leży kopia, wybiera `build_euvsdisinfo_copy` z ustawień korpusu z meritum-core: `MERITUM_CORPUS_PROVIDER=postgres` i `MERITUM_CORPUS_DATABASE_URL` (baza ze schematem `corpus`) zapisują ją w tabelach `corpus.euvsdisinfo_entries` i `corpus.euvsdisinfo_flagged_domains`, więc przeżywa restart i deploy, a kolejny przebieg zapisuje tylko różnicę. Tabele tworzy migracja corpus `0002_euvsdisinfo_copy.sql` z meritum-core, uruchamiana tylko z `main` (worker#32). Te same zmienne wybierają w meritum-core bazę wyszukiwania w korpusie, więc jedno ustawienie przełącza oba. Prawo zapisu do schematu `corpus` ma tylko rola workera prd (`db.sh` w meritum-infra); na dev kopia w PostgreSQL działa tylko do odczytu, więc synchronizację uruchamiamy z prd. Domyślne `memory` trzyma kopię w pamięci procesu i gubi ją przy restarcie; wtedy nie uruchamiaj synchronizacji z `MERITUM_EMBEDDINGS_PROVIDER=vertex`, bo każdy przebieg embedduje całą bazę od nowa.
+
+Test adaptera PostgreSQL uruchamiamy lokalnie na obrazie `meritum-postgres` z meritum-infra. Baza z `MERITUM_TEST_DATABASE_URL` musi mieć puste tabele kopii; test je potem czyści:
+
+```bash
+MERITUM_TEST_DATABASE_URL=postgresql://... uv run pytest -m integration tests/corpus
+```
 
 ## CI/CD
 
