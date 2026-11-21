@@ -42,3 +42,18 @@ fallback naming the case."""
 
 SOURCE_TITLE_MAX: Final = 200
 """Longest ``Source.title`` the core contract accepts; longer titles are cut."""
+
+CASE_KEY_PREFIX: Final = "case:"
+"""Prefix of a case's key in the local copy, before the EUvsDisinfo id."""
+
+ARTICLE_KEY_PREFIX: Final = "article:"
+"""Prefix of an article's key in the local copy, before the EUvsDisinfo id."""
+
+SOURCE_LANGUAGE: Final = "en"
+"""Language of EUvsDisinfo fact texts as cited sources."""
+
+CATALOG_LICENSE: Final = "unknown; short quotes with the source named"
+"""No licence found for the database, so it is quoted briefly with its source."""
+
+CATALOG_QUALIFIED_BECAUSE: Final = "EEAS registry of pro-Kremlin disinformation cases"
+"""Why EUvsDisinfo is in the source catalogue."""

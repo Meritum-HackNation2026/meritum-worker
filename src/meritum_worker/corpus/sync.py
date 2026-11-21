@@ -18,10 +18,15 @@ from meritum_core.checks.contracts import CatalogEntry, Source
 from meritum_core.shared.embeddings import EmbeddingsPort, Vector
 
 from meritum_worker.corpus.constants import (
+    ARTICLE_KEY_PREFIX,
+    CASE_KEY_PREFIX,
+    CATALOG_LICENSE,
+    CATALOG_QUALIFIED_BECAUSE,
     PAGE_SIZE,
     PUBLISHER_ID,
     PUBLISHER_NAME,
     SOURCE_DOMAIN,
+    SOURCE_LANGUAGE,
     SOURCE_TITLE_MAX,
     SOURCE_TITLE_MIN,
     TOKEN_ENV,
@@ -66,9 +71,9 @@ def catalog_entry() -> CatalogEntry:
         publisher_id=PUBLISHER_ID,
         kind="fact_check",
         tier="secondary",
-        license="unknown; short quotes with the source named",
+        license=CATALOG_LICENSE,
         ingest="mcp",
-        qualified_because="EEAS registry of pro-Kremlin disinformation cases",
+        qualified_because=CATALOG_QUALIFIED_BECAUSE,
     )
 
 
@@ -81,15 +86,17 @@ async def sync_euvsdisinfo(
 ) -> SyncReport:
     """Read every case and article and write the difference to the local copy.
 
+    Every page is read and embedded before the first write, so a failure of
+    the server (``EuvsDisinfoUnavailableError``) or of the embeddings leaves the
+    copy as it was. An entry seen twice (pages shift while the source grows)
+    counts once; one missed because the source shrank mid-scan is marked
+    deleted and comes back on the next run.
+
     Args:
         client: The EUvsDisinfo MCP client.
         store: The local copy.
         embeddings: Multilingual embeddings for descriptions and fact texts.
         now: When the sync runs; marks deleted entries and fetched sources.
-
-    Every page is read and embedded before the first write, so a failure of
-    the server (``EuvsDisinfoUnavailableError``) or of the embeddings leaves the
-    copy as it was.
 
     Returns:
         How many entries were added, updated and marked deleted.
@@ -99,7 +106,8 @@ async def sync_euvsdisinfo(
     """
     cases = await _all_pages(client.cases)
     articles = await _all_pages(client.articles)
-    fetched = [_case_entry(c) for c in cases] + [_article_entry(a) for a in articles]
+    entries = [_case_entry(c) for c in cases] + [_article_entry(a) for a in articles]
+    fetched = list({e.key: e for e in entries}.values())
     stored = {s.entry.key: s for s in await store.entries()}
     fresh = [e for e in fetched if _is_fresh(e, stored.get(e.key))]
     keys = {e.key for e in fetched}
@@ -132,7 +140,7 @@ def _domain(link: str) -> str | None:
 def _case_entry(case: EuvsCase) -> Entry:
     domains = {d for d in map(_domain, case.links) if d is not None}
     return Entry(
-        key=f"case:{case.id}",
+        key=f"{CASE_KEY_PREFIX}{case.id}",
         kind="case",
         title=case.title,
         url=case.url,
@@ -148,7 +156,7 @@ def _article_entry(article: EuvsArticle) -> Entry:
     if published is not None and published.tzinfo is None:
         published = published.replace(tzinfo=UTC)  # dateGmt carries no offset
     return Entry(
-        key=f"article:{article.id}",
+        key=f"{ARTICLE_KEY_PREFIX}{article.id}",
         kind="article",
         title=article.title,
         url=article.url,
@@ -183,7 +191,7 @@ async def _embed(texts: Sequence[str], embeddings: EmbeddingsPort) -> list[Vecto
 
 
 def _fact_source(entry: Entry, fetched_at: datetime) -> Source:
-    case_id = entry.key.removeprefix("case:")
+    case_id = entry.key.removeprefix(CASE_KEY_PREFIX)
     too_short = len(entry.title) < SOURCE_TITLE_MIN
     title = f"EUvsDisinfo {case_id}" if too_short else entry.title
     return Source(
@@ -197,7 +205,7 @@ def _fact_source(entry: Entry, fetched_at: datetime) -> Source:
         tier="secondary",
         published_at=entry.published_at,
         fetched_at=fetched_at,
-        language="en",
+        language=SOURCE_LANGUAGE,
         via="mcp",
     )
 

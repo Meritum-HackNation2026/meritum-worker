@@ -16,11 +16,15 @@ NOW = datetime(2026, 11, 21, tzinfo=UTC)
 def sync(
     server: FakeEuvsDisinfoServer, store: corpus.EuvsCopyPort
 ) -> corpus.SyncReport:
-    client = corpus.build_euvsdisinfo_client(
-        {"EUVSDISINFO_MCP_API_KEY": TOKEN}, http_client=server.client()
+    return asyncio.run(
+        corpus.run_euvsdisinfo_sync(
+            {"EUVSDISINFO_MCP_API_KEY": TOKEN},
+            store,
+            build_embeddings(EmbeddingsSettings()),
+            now=NOW,
+            http_client=server.client(),
+        )
     )
-    embeddings = build_embeddings(EmbeddingsSettings())
-    return asyncio.run(corpus.sync_euvsdisinfo(client, store, embeddings, now=NOW))
 
 
 def by_key(store: corpus.EuvsCopyPort) -> dict[str, corpus.StoredEntry]:
@@ -78,7 +82,7 @@ def test_linked_domains_are_flagged_without_www() -> None:
     store = corpus.build_euvsdisinfo_copy()
     server.seed(cases=3, articles=0)
     sync(server, store)
-    assert store.flagged_domains == {  # ty: ignore[missing-attribute]  # memory copy
+    assert asyncio.run(store.flagged_domains()) == {
         "fake-news-0.example": ("case:3",),
         "fake-news-1.example": ("case:1",),
         "fake-news-2.example": ("case:2",),
@@ -103,7 +107,7 @@ def test_sse_answers_are_read() -> None:
 def test_rejected_token_is_unavailable() -> None:
     server = FakeEuvsDisinfoServer("other")
     client = corpus.build_euvsdisinfo_client(
-        {"EUVSDISINFO_MCP_API_KEY": TOKEN}, http_client=server.client()
+        {"EUVSDISINFO_MCP_API_KEY": TOKEN}, server.client()
     )
     with pytest.raises(corpus.EuvsDisinfoUnavailableError):
         asyncio.run(client.cases(limit=100, offset=0))
@@ -111,7 +115,7 @@ def test_rejected_token_is_unavailable() -> None:
 
 def test_missing_token_is_not_a_client() -> None:
     with pytest.raises(corpus.MissingTokenError):
-        corpus.build_euvsdisinfo_client({})
+        corpus.build_euvsdisinfo_client({}, FakeEuvsDisinfoServer(TOKEN).client())
     assert corpus.missing_env({"EUVSDISINFO_MCP_API_KEY": TOKEN}) == []
 
 
@@ -122,3 +126,26 @@ def test_catalog_entry_is_ingested_through_mcp() -> None:
         "eeas-euvsdisinfo",
         "secondary",
     )
+
+
+def test_page_seen_twice_counts_once() -> None:
+    server, store = FakeEuvsDisinfoServer(TOKEN), corpus.build_euvsdisinfo_copy()
+    server.seed(cases=150, articles=0)
+    server.add_cases_after_first_page(3)
+    # The 3 repeat on page 2; the new ones, before offset 0, wait for the next run.
+    assert sync(server, store) == corpus.SyncReport(added=150)
+    assert len(asyncio.run(store.entries())) == 150
+
+
+def test_sse_event_split_over_lines_is_read() -> None:
+    server = FakeEuvsDisinfoServer(TOKEN, sse=True, split_data=True)
+    server.seed(cases=2, articles=0)
+    assert sync(server, corpus.build_euvsdisinfo_copy()) == corpus.SyncReport(added=2)
+
+
+def test_case_without_id_is_unavailable() -> None:
+    server = FakeEuvsDisinfoServer(TOKEN)
+    server.seed(cases=1, articles=0)
+    server.drop_field("id")
+    with pytest.raises(corpus.EuvsDisinfoUnavailableError):
+        sync(server, corpus.build_euvsdisinfo_copy())

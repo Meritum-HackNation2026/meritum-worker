@@ -30,29 +30,13 @@ class EuvsCase(BaseModel):
 
     model_config = ConfigDict(frozen=True, populate_by_name=True)
 
-    id: str
+    id: int | str
     title: str
     claim: str
     fact: str
     date: int
     links: list[str] = Field(default=[], alias="linksToDisinformation")
     url: str
-
-    # The server sends numeric ids; keys are strings.
-    @classmethod
-    def from_json(cls, item: dict[str, object]) -> EuvsCase:
-        """Validate one item, accepting a numeric id.
-
-        Args:
-            item: One element of the tool result.
-
-        Returns:
-            The case.
-
-        Features:
-            US-KOR-08, F-11
-        """
-        return cls.model_validate({**item, "id": str(item.get("id"))})
 
 
 class EuvsArticle(BaseModel):
@@ -71,26 +55,11 @@ class EuvsArticle(BaseModel):
 
     model_config = ConfigDict(frozen=True, populate_by_name=True)
 
-    id: str
+    id: int | str
     title: str
     content: str
     date_gmt: datetime | None = Field(default=None, alias="dateGmt")
     url: str
-
-    @classmethod
-    def from_json(cls, item: dict[str, object]) -> EuvsArticle:
-        """Validate one item, accepting a numeric id.
-
-        Args:
-            item: One element of the tool result.
-
-        Returns:
-            The article.
-
-        Features:
-            US-KOR-08, F-11
-        """
-        return cls.model_validate({**item, "id": str(item.get("id"))})
 
 
 class Entry(BaseModel):
@@ -146,12 +115,13 @@ class StoredEntry(BaseModel):
 
 
 class SyncReport(BaseModel):
-    """What one sync changed in the local copy.
+    """What one sync changed in the local copy, or why it did not run.
 
     Attributes:
         added: New entries.
         updated: Entries whose content changed.
         deleted: Entries marked deleted in this run.
+        missing_env: Unset variables that stopped the sync before any call.
 
     Features:
         US-KOR-08, F-11
@@ -162,3 +132,4 @@ class SyncReport(BaseModel):
     added: int = 0
     updated: int = 0
     deleted: int = 0
+    missing_env: list[str] = []

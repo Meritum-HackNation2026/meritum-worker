@@ -85,6 +85,14 @@ class EuvsCopyPort(Protocol):
         """
         ...
 
+    async def flagged_domains(self) -> dict[str, tuple[str, ...]]:
+        """Return the domains the domain warning reads (worker/010).
+
+        Returns:
+            Domain to the keys of live cases that link to it.
+        """
+        ...
+
     async def replace_flagged_domains(
         self, domains: Mapping[str, tuple[str, ...]]
     ) -> None:

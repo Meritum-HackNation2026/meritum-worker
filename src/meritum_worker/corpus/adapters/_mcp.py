@@ -8,7 +8,6 @@ Features:
 """
 
 import json
-from collections.abc import Callable
 from itertools import count
 
 from httpx2 import AsyncClient, HTTPError, Response
@@ -47,7 +46,7 @@ class McpEuvsDisinfo:
         Returns:
             The page.
         """
-        return await self._page("cases", limit, offset, EuvsCase.from_json)
+        return await self._page("cases", limit, offset, EuvsCase)
 
     async def articles(self, *, limit: int, offset: int) -> list[EuvsArticle]:
         """Return one page of articles (see ``EuvsDisinfoPort.articles``).
@@ -59,14 +58,10 @@ class McpEuvsDisinfo:
         Returns:
             The page.
         """
-        return await self._page("articles", limit, offset, EuvsArticle.from_json)
+        return await self._page("articles", limit, offset, EuvsArticle)
 
-    async def _page[T](
-        self,
-        tool: str,
-        limit: int,
-        offset: int,
-        parse: Callable[[dict[str, object]], T],
+    async def _page[T: BaseModel](
+        self, tool: str, limit: int, offset: int, model: type[T]
     ) -> list[T]:
         request = {
             "jsonrpc": "2.0",
@@ -79,7 +74,9 @@ class McpEuvsDisinfo:
                 self._url, json=request, headers=self._headers
             )
             response.raise_for_status()
-            return [parse(item) for item in _items(_message(response), tool)]
+            return [
+                model.model_validate(item) for item in _items(_message(response), tool)
+            ]
         except (
             HTTPError,
             ValidationError,
@@ -109,16 +106,22 @@ class _Message(BaseModel):
 def _message(response: Response) -> _Message:
     if "text/event-stream" not in response.headers.get("content-type", ""):
         return _Message.model_validate_json(response.content)
-    lines = response.text.splitlines()
-    payloads = [
-        line.removeprefix(SSE_DATA_PREFIX)
-        for line in lines
-        if line.startswith(SSE_DATA_PREFIX)
-    ]
-    if not payloads:
+    # One event may split its data over several lines; they join with "\n".
+    blocks = response.text.replace("\r\n", "\n").split("\n\n")
+    events = ["\n".join(_data_lines(block)) for block in blocks]
+    data = [event for event in events if event]
+    if not data:
         msg = "empty SSE response"
         raise ValueError(msg)
-    return _Message.model_validate_json(payloads[-1])
+    return _Message.model_validate_json(data[-1])
+
+
+def _data_lines(block: str) -> list[str]:
+    return [
+        line.removeprefix(SSE_DATA_PREFIX).removeprefix(" ")
+        for line in block.splitlines()
+        if line.startswith(SSE_DATA_PREFIX)
+    ]
 
 
 def _items(message: _Message, tool: str) -> list[dict[str, object]]:

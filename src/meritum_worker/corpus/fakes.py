@@ -15,6 +15,7 @@ class FakeEuvsDisinfoServer:
     Args:
         token: The only token the server accepts.
         sse: Answer with one SSE event instead of plain JSON.
+        split_data: Split the SSE event's JSON over several ``data:`` lines.
 
     Attributes:
         calls: ``(tool, limit, offset)`` of every page served, in order.
@@ -23,9 +24,14 @@ class FakeEuvsDisinfoServer:
         US-KOR-08, F-11
     """
 
-    def __init__(self, token: str, *, sse: bool = False) -> None:
+    def __init__(
+        self, token: str, *, sse: bool = False, split_data: bool = False
+    ) -> None:
         self._token = token
         self._sse = sse
+        self._split_data = split_data
+        self._late_cases = 0
+        self._dropped: set[str] = set()
         self._items: dict[str, list[dict[str, object]]] = {"cases": [], "articles": []}
         self._next_id = 1
         self._failing_offset: int | None = None
@@ -69,18 +75,38 @@ class FakeEuvsDisinfoServer:
         for case in self._items["cases"][-count:]:
             case["fact"] = f"{case['fact']} Updated."
 
-    def remove_cases(self, count: int) -> list[dict[str, object]]:
-        """Withdraw cases, skipping the 10 oldest (``change_cases`` edits those).
+    def remove_cases(
+        self, count: int, *, keep_oldest: int = 10
+    ) -> list[dict[str, object]]:
+        """Withdraw cases, sparing the oldest ones ``change_cases`` edits.
 
         Args:
             count: How many.
+            keep_oldest: Oldest cases left in place.
 
         Returns:
             The withdrawn cases, for ``restore_cases``.
         """
-        removed = self._items["cases"][-count - 10 : -10]
-        del self._items["cases"][-count - 10 : -10]
+        window = slice(-count - keep_oldest, -keep_oldest)
+        removed = self._items["cases"][window]
+        del self._items["cases"][window]
         return removed
+
+    def add_cases_after_first_page(self, count: int) -> None:
+        """Publish new cases right after the first page is served.
+
+        Args:
+            count: How many; they shift later pages, so some cases repeat.
+        """
+        self._late_cases = count
+
+    def drop_field(self, name: str) -> None:
+        """Leave a field out of every served item.
+
+        Args:
+            name: The field.
+        """
+        self._dropped.add(name)
 
     def restore_cases(self, cases: list[dict[str, object]]) -> None:
         """Publish withdrawn cases again.
@@ -111,12 +137,23 @@ class FakeEuvsDisinfoServer:
         self.calls.append((tool, limit, offset))
         if offset == self._failing_offset:
             return Response(500, json={"jsonrpc": "2.0", "error": {"code": -32603}})
-        page = self._items[tool][offset : offset + limit]
+        page = [
+            {k: v for k, v in item.items() if k not in self._dropped}
+            for item in self._items[tool][offset : offset + limit]
+        ]
+        if self._late_cases:
+            self.add_cases(self._late_cases)
+            self._late_cases = 0
         content = [{"type": "text", "text": json.dumps(page)}]
         message = {"jsonrpc": "2.0", "id": call["id"], "result": {"content": content}}
+        return self._respond(message)
+
+    def _respond(self, message: dict[str, object]) -> Response:
         if not self._sse:
             return Response(200, json=message)
-        body = f"event: message\ndata: {json.dumps(message)}\n\n"
+        text = json.dumps(message, indent=1 if self._split_data else None)
+        data = "".join(f"data: {line}\n" for line in text.splitlines())
+        body = f"event: message\n{data}\n"
         return Response(200, text=body, headers={"content-type": "text/event-stream"})
 
 

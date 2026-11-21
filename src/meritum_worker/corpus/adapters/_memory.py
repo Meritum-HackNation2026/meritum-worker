@@ -19,7 +19,7 @@ class MemoryEuvsCopy:
 
     def __init__(self) -> None:
         self._entries: dict[str, StoredEntry] = {}
-        self.flagged_domains: dict[str, tuple[str, ...]] = {}
+        self._domains: dict[str, tuple[str, ...]] = {}
 
     async def entries(self) -> list[StoredEntry]:
         """Return every stored entry (see ``EuvsCopyPort.entries``).
@@ -49,6 +49,14 @@ class MemoryEuvsCopy:
                 update={"deleted_at": at}
             )
 
+    async def flagged_domains(self) -> dict[str, tuple[str, ...]]:
+        """Return flagged domains (see ``EuvsCopyPort.flagged_domains``).
+
+        Returns:
+            Domain to case keys.
+        """
+        return dict(self._domains)
+
     async def replace_flagged_domains(
         self, domains: Mapping[str, tuple[str, ...]]
     ) -> None:
@@ -57,4 +65,4 @@ class MemoryEuvsCopy:
         Args:
             domains: Domain to case keys.
         """
-        self.flagged_domains = dict(domains)
+        self._domains = dict(domains)

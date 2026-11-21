@@ -47,13 +47,13 @@ def sync_finishes(context: Context) -> None:
 
 
 def run_sync(context: Context) -> None:
-    client = corpus.build_euvsdisinfo_client(
-        context.env, http_client=context.server.client()
-    )
-    embeddings = build_embeddings(EmbeddingsSettings())
     context.report = asyncio.run(
-        corpus.sync_euvsdisinfo(
-            client, context.store, embeddings, now=datetime.now(UTC)
+        corpus.run_euvsdisinfo_sync(
+            context.env,
+            context.store,
+            build_embeddings(EmbeddingsSettings()),
+            now=datetime.now(UTC),
+            http_client=context.server.client(),
         )
     )
 
@@ -94,9 +94,12 @@ def diff_is_applied(context: Context, added: int, updated: int, deleted: int) ->
 
 @given("brak tokenu EUvsDisinfo")
 def no_token(context: Context) -> None:
+    valid_token(context)
     context.env = {}
 
 
-@then('raport gotowości workera wskazuje brak "{name}"')
-def readiness_names_missing(context: Context, name: str) -> None:
+@then('raport wskazuje brak "{name}" bez zapytań do serwera MCP')
+def report_names_missing(context: Context, name: str) -> None:
+    assert context.report.missing_env == [name]
     assert corpus.missing_env(context.env) == [name]
+    assert context.server.calls == []

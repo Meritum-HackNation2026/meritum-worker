@@ -71,8 +71,14 @@ Synchronizację z prawdziwym serwerem uruchamiamy ręcznie, poza CI, w środowis
 ```python
 from dbos import DBOSClient
 
-client = DBOSClient(system_database_url=URL, dbos_system_schema="worker_dev", application_name="meritum-worker")
-client.enqueue({"workflow_name": "euvsdisinfo_sync", "queue_name": "default", "app_version": "dev"})
+client = DBOSClient(
+    system_database_url=URL,
+    dbos_system_schema="worker_dev",
+    application_name="meritum-worker",
+)
+client.enqueue(
+    {"workflow_name": "euvsdisinfo_sync", "queue_name": "default", "app_version": "dev"}
+)
 ```
 
 Na razie kopia żyje w pamięci procesu workera. Trwały zapis w PostgreSQL czeka na tabele w schemacie `corpus`.

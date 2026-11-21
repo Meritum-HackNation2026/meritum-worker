@@ -10,6 +10,7 @@ from meritum_worker.corpus.errors import EuvsDisinfoUnavailableError, MissingTok
 from meritum_worker.corpus.factory import (
     build_euvsdisinfo_client,
     build_euvsdisinfo_copy,
+    run_euvsdisinfo_sync,
 )
 from meritum_worker.corpus.models import (
     Entry,
@@ -35,5 +36,6 @@ __all__ = [
     "build_euvsdisinfo_copy",
     "catalog_entry",
     "missing_env",
+    "run_euvsdisinfo_sync",
     "sync_euvsdisinfo",
 ]

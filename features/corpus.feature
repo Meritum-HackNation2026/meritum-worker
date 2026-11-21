@@ -15,6 +15,7 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Gdy workflow synchronizacji kończy przebieg
     Wtedy 5 wpisów jest dodanych, 2 zaktualizowane, a 1 oznaczony jako usunięty
 
-  Scenariusz: brak tokenu trafia do raportu gotowości
+  Scenariusz: brak tokenu trafia do raportu, a nie do błędu
     Zakładając brak tokenu EUvsDisinfo
-    Wtedy raport gotowości workera wskazuje brak "EUVSDISINFO_MCP_API_KEY"
+    Gdy workflow synchronizacji kończy przebieg
+    Wtedy raport wskazuje brak "EUVSDISINFO_MCP_API_KEY" bez zapytań do serwera MCP
