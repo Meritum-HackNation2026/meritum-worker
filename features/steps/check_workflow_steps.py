@@ -13,10 +13,17 @@ from behave.runner import Context
 from meritum_core.checks import CheckRequest
 from meritum_core.checks.contracts import CheckRecord
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
+from meritum_core.corpus.fetching import FetchFailureReason, LoginWallError
 from meritum_core.jobs.contracts import CheckInput
+from meritum_core.security.pii import NullPiiGate
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
-from meritum_worker.checks import CheckDeps, InlineCheckRuntime, run_check
+from meritum_worker.checks import (
+    CheckDeps,
+    FakePageFetcher,
+    InlineCheckRuntime,
+    run_check,
+)
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 CHECK_ID = "check-behave-1"
@@ -24,14 +31,19 @@ RECEIVED_AT = datetime(2026, 1, 5, 12, 0, tzinfo=UTC)
 DEFAULT_TEXT = "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł"
 
 
-def _deps(fixture: str) -> CheckDeps:
+def _deps(fixture: str, pages: FakePageFetcher | None = None) -> CheckDeps:
     settings = LlmSettings(provider=LlmProvider.STUB, stub_fixtures=FIXTURES / fixture)
-    return CheckDeps(llm=build_llm(settings), records=InMemoryCheckRecordRepository())
+    return CheckDeps(
+        llm=build_llm(settings),
+        records=InMemoryCheckRecordRepository(),
+        pages=pages or FakePageFetcher(),
+        pii=NullPiiGate(),
+    )
 
 
-def _run(context: Context, text: str) -> None:
+def _run(context: Context, text: str | None = None, url: str | None = None) -> None:
     job = CheckInput(
-        request=CheckRequest(channel="web", text=text),
+        request=CheckRequest(channel="web", text=text, url=url),
         session_id="session-behave-1",
         received_at=RECEIVED_AT,
     )
@@ -69,7 +81,7 @@ def check_is_done(context: Context) -> None:
     assert result.check_id == CHECK_ID
     final = context.runtime.published[-1]
     assert final.result == result
-    assert {step.status for step in final.steps} == {"done"}
+    assert {step.status for step in final.steps} == {"done", "skipped"}
 
 
 @then(
@@ -159,3 +171,48 @@ def claim_has_date(context: Context, day: str, source: str) -> None:
     (claim,) = context.result.result.claims
     assert claim.claim_date == date.fromisoformat(day)
     assert claim.claim_date_source == source
+
+
+FACEBOOK_POST = "https://www.facebook.com/groups/1/posts/2"
+
+
+@given("link do posta na Facebooku wymagającego logowania")
+def facebook_post_behind_login(context: Context) -> None:
+    wall = LoginWallError(FetchFailureReason.LOGIN_WALL)
+    context.deps = _deps("llm_stub_answer.json", FakePageFetcher(wall))
+
+
+@when("workflow sprawdza link")
+def check_gets_link(context: Context) -> None:
+    _run(context, url=FACEBOOK_POST)
+
+
+@then(
+    'wynik ma stan technical_failure z kodem "{code}" i prośbą o wklejenie tekstu,'
+    " bez werdyktu"
+)
+def result_asks_to_paste_text(context: Context, code: str) -> None:
+    result = context.result.result
+    assert result.status == "technical_failure"
+    assert result.failure_code == code
+    assert result.message == "status_hint.technical_failure_url"
+    assert result.claims == []
+    assert context.deps.pages.calls[0][0] == FACEBOOK_POST
+
+
+@given("wklejony tekst bez adresu")
+def pasted_text_without_link(context: Context) -> None:
+    context.deps = _deps("llm_stub_answer.json")
+
+
+@when("workflow publikuje postęp")
+def check_publishes_progress(context: Context) -> None:
+    _run(context, DEFAULT_TEXT)
+
+
+@then("krok fetch_url ma stan {status}")
+def fetch_url_has_status(context: Context, status: str) -> None:
+    for published in context.runtime.published[2:]:
+        steps = {step.code: step.status for step in published.steps}
+        assert steps["fetch_url"] == status
+    assert context.deps.pages.calls == []

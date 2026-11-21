@@ -60,3 +60,12 @@ OUT_OF_SCOPE_MESSAGE: Final = "status_hint.out_of_scope"
 
 LIMITATION_MAX_CHARS: Final = 300
 """Longest limitation CheckResult accepts; a longer skipped claim is cut to fit."""
+
+URL_UNAVAILABLE_CODE: Final = "url_unavailable"
+"""failure_code of a check whose link could not be fetched (contract v4)."""
+
+URL_UNAVAILABLE_MESSAGE: Final = "status_hint.technical_failure_url"
+"""Copy key (design-system copy/pl.json) asking the citizen to paste the text."""
+
+MAX_PAGE_TEXT_CHARS: Final = 4000
+"""Longest page text checked: the limit of a pasted text and of question_masked."""

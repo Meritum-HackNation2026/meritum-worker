@@ -1,10 +1,16 @@
-"""In-process CheckRuntime for tests and behave: no DBOS, no database.
+"""In-process fakes for tests and behave: no DBOS, no database, no network.
 
 Features:
-    US-SPR-01, F-22
+    US-SPR-01, US-SPR-07, F-06, F-22
 """
 
 from meritum_core.checks import AnalysisStatus
+from meritum_core.corpus.fetching import (
+    FetchedPage,
+    FetchFailureReason,
+    FetchPurpose,
+    PageFetchError,
+)
 
 from meritum_worker.checks.models import CheckState
 from meritum_worker.checks.ports import StepRun
@@ -59,3 +65,42 @@ class InlineCheckRuntime:
     async def close(self) -> None:
         """Close the progress stream and note how many statuses came before."""
         self.closed_after = len(self.published)
+
+
+class FakePageFetcher:
+    """PageFetcherPort that answers every link with one page or one failure.
+
+    Args:
+        answer: the page, or the failure raised; None fails as unreachable.
+
+    Attributes:
+        calls: every fetched URL with its purpose, in order.
+
+    Features:
+        US-SPR-07, F-06
+    """
+
+    def __init__(
+        self,
+        answer: FetchedPage | PageFetchError | None = None,
+    ) -> None:
+        self.calls: list[tuple[str, FetchPurpose]] = []
+        self._answer = answer or PageFetchError(FetchFailureReason.UNREACHABLE)
+
+    async def fetch(self, url: str, *, purpose: FetchPurpose) -> FetchedPage:
+        """Note the call and return the page, or raise the failure.
+
+        Args:
+            url: the link.
+            purpose: why it is fetched.
+
+        Returns:
+            The page given at construction.
+
+        Raises:
+            PageFetchError: The failure given at construction (unreachable by default).
+        """  # ruff: ignore[docstring-extraneous-exception]  # the failure is the stored instance
+        self.calls.append((url, purpose))
+        if isinstance(self._answer, PageFetchError):
+            raise self._answer
+        return self._answer

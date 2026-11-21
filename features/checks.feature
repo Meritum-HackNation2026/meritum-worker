@@ -38,3 +38,13 @@ Funkcja: Smoke test workera
     Zakładając tekst "W marcu 2025 r. bezrobocie wynosiło 5,3%" z nagranymi odpowiedziami modelu "claims_dated.json"
     Gdy system wyodrębnia twierdzenia
     Wtedy twierdzenie ma claim_date 2025-03-01 i claim_date_source "text"
+
+  Scenariusz: post za logowaniem
+    Zakładając link do posta na Facebooku wymagającego logowania
+    Gdy workflow sprawdza link
+    Wtedy wynik ma stan technical_failure z kodem "url_unavailable" i prośbą o wklejenie tekstu, bez werdyktu
+
+  Scenariusz: sam tekst bez linku
+    Zakładając wklejony tekst bez adresu
+    Gdy workflow publikuje postęp
+    Wtedy krok fetch_url ma stan skipped
