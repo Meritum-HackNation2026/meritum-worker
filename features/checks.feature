@@ -48,3 +48,8 @@ Funkcja: Smoke test workera
     Zakładając wklejony tekst bez adresu
     Gdy workflow publikuje postęp
     Wtedy krok fetch_url ma stan skipped
+
+  Scenariusz: awaria kroku kończy sprawdzenie od razu
+    Zakładając krok workflowu sprawdzania rzuca wyjątek
+    Gdy workflow kończy się błędem
+    Wtedy strumień postępu dostaje ten krok jako failed i końcowy status technical_failure z kodem awarii z kontraktu v4

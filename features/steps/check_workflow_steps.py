@@ -20,10 +20,12 @@ from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
 from meritum_worker.checks import (
     CheckDeps,
+    FailingCheckRuntime,
     FakePageFetcher,
     InlineCheckRuntime,
     run_check,
 )
+from meritum_worker.checks.constants import TECHNICAL_FAILURE_CODE
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 CHECK_ID = "check-behave-1"
@@ -47,7 +49,8 @@ def _run(context: Context, text: str | None = None, url: str | None = None) -> N
         session_id="session-behave-1",
         received_at=RECEIVED_AT,
     )
-    context.runtime = InlineCheckRuntime()
+    if not hasattr(context, "runtime"):
+        context.runtime = InlineCheckRuntime()
     context.result = asyncio.run(
         run_check(job.model_dump(mode="json"), CHECK_ID, context.deps, context.runtime)
     )
@@ -64,6 +67,12 @@ def stub_breaks_contract(context: Context) -> None:
     context.deps = _deps("llm_stub_broken_answer.json")
 
 
+@given("krok workflowu sprawdzania rzuca wyjątek")
+def check_step_raises(context: Context) -> None:
+    context.deps = _deps("llm_stub_answer.json")
+    context.runtime = FailingCheckRuntime("search_web")
+
+
 @when('workflow "check" dostaje CheckRequest z tekstem "{text}"')
 def check_gets_text(context: Context, text: str) -> None:
     _run(context, text)
@@ -72,6 +81,14 @@ def check_gets_text(context: Context, text: str) -> None:
 @when("workflow buduje CheckResult")
 def check_builds_result(context: Context) -> None:
     _run(context, DEFAULT_TEXT)
+
+
+@when("workflow kończy się błędem")
+def workflow_fails(context: Context) -> None:
+    try:
+        _run(context, DEFAULT_TEXT)
+    except RuntimeError as error:
+        context.workflow_error = error
 
 
 @then("workflow kończy się stanem done z CheckResult zgodnym z kontraktem")
@@ -113,6 +130,20 @@ def result_is_technical_failure(context: Context) -> None:
 def record_is_technical_failure(context: Context) -> None:
     assert context.record.status == "technical_failure"
     assert context.record.verdicts == []
+
+
+@then(
+    "strumień postępu dostaje ten krok jako failed i końcowy status "
+    "technical_failure z kodem awarii z kontraktu v4"
+)
+def failed_step_closes_with_technical_failure(context: Context) -> None:
+    assert str(context.workflow_error) == "step failed"
+    final = context.runtime.published[-1]
+    failed = [step.code for step in final.steps if step.status == "failed"]
+    assert failed == ["search_web"]
+    assert final.result.status == "technical_failure"
+    assert final.result.failure_code == TECHNICAL_FAILURE_CODE
+    assert context.runtime.closed_after == len(context.runtime.published)
 
 
 VERDICTS = {"nie podlega weryfikacji": "not_verifiable"}
