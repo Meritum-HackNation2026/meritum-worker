@@ -12,6 +12,7 @@ from typing import Any
 
 import psycopg
 from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
+from meritum_core.corpus import CorpusSettings
 from meritum_core.jobs.contracts import APPLICATION_NAME, CHECK, DEFAULT_QUEUE, PING
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.database.adapters import apply_migrations
@@ -26,7 +27,7 @@ from meritum_worker.corpus.adapters import apply_corpus_migrations
 @cache
 def _euvs_copy() -> corpus.EuvsCopyPort:
     # One copy per process; the sync step reuses it across runs.
-    return corpus.build_euvsdisinfo_copy()
+    return corpus.build_euvsdisinfo_copy(CorpusSettings())
 
 
 def env() -> str:
