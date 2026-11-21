@@ -2,10 +2,10 @@
 
 Workery Meritum: trwałe workflowy [DBOS](https://docs.dbos.dev/) do długich operacji w tle, na PostgreSQL. Zadania zleca [meritum-backend](https://github.com/Meritum-HackNation2026/meritum-backend) przez `DBOSClient`, a nazwy workflowów, kolejki i modele danych są w [meritum-core](https://github.com/Meritum-HackNation2026/meritum-core) (`meritum_core.jobs.contracts`).
 
-| Środowisko | Gałąź | Kontener | Schemat (tabele DBOS i workera) | Wersja aplikacji DBOS |
-| --- | --- | --- | --- | --- |
-| dev | `develop` | `meritum-worker-dev` | `worker_dev` (rola `meritum_worker_dev`) | `dev` |
-| prd | `main` | `meritum-worker-prd` | `worker_prd` (rola `meritum_worker_prd`) | `prd` |
+| Środowisko | Gałąź | Kontener | Schemat aplikacji | Baza DBOS | Wersja aplikacji DBOS |
+| --- | --- | --- | --- | --- | --- |
+| dev | `develop` | `meritum-worker-dev` | `app_dev` (rola `meritum_worker_dev`) | `meritum_dbos_dev` | `dev` |
+| prd | `main` | `meritum-worker-prd` | `app_prd` (rola `meritum_worker_prd`) | `meritum_dbos_prd` | `prd` |
 
 Worker wykonuje tylko zadania zlecone z jego `application_version`, więc dev i prd nie podbierają sobie pracy, nawet gdyby trafiły do jednej kolejki.
 
@@ -85,7 +85,25 @@ Na razie kopia żyje w pamięci procesu workera i znika przy każdym restarcie i
 
 ## CI/CD
 
-`.github/workflows/ci.yml`: `lint` i `tests` na runnerach GCP, `deploy` na `dellpromaxgb10` tylko z `develop` i `main`, po zielonym CI. `deploy/deploy.sh` buduje obraz, uruchamia `dbos migrate` jako rola workera (z `-r meritum_api_<env>`, żeby API mogło zlecać zadania), podmienia kontener z `--stop-timeout 40` i czeka, aż worker zgłosi gotowość. Niedokończone workflowy wznawia nowy kontener.
+`.github/workflows/ci.yml`: `lint` i `tests` na runnerach GCP, `deploy` na `dellpromaxgb10` tylko z `develop` i `main`, po zielonym CI. `deploy/deploy.sh` buduje obraz, robi migracje, podmienia kontener z `--stop-timeout 40` i czeka, aż worker zgłosi gotowość. Niedokończone workflowy wznawia nowy kontener.
+
+### Migracje
+
+Deploy robi je w obrazie nowej wersji, w tej kolejności, zanim ruszy stary kontener:
+
+1. `dbos migrate` jako rola workera w osobnej bazie DBOS środowiska (`MERITUM_DBOS_URL`, baza `meritum_dbos_<env>`), z `-r meritum_api_<env>`, żeby API mogło zlecać zadania.
+2. `meritum-worker-migrate`: migracje SQL z meritum-core dla schematu aplikacji `app_<env>` (`MERITUM_DATABASE_URL`). Z `main` z flagą `--corpus`, więc potem także migracje wspólnego schematu `corpus`.
+
+Deploy z `develop` pomija migracje `corpus` i pisze w logu `corpus migrations run only from main`. Każdy zestaw idzie w jednej transakcji, a każdy plik raz (tabele `schema_migrations` w `app_<env>` i `corpus.schema_migrations`). Nieudana migracja kończy deploy błędem `::error title=Migration failed::migration <app_dev|app_prd|corpus> failed: …` z nazwą pliku, a stary kontener działa dalej.
+
+Schemat `corpus` czytają dev i prd, a dev może działać na starszym kodzie niż prd, więc migracje `corpus` muszą być zgodne wstecz: tylko nowe tabele, kolumny (z wartością domyślną albo dopuszczające `NULL`) i indeksy. Kolumnę albo tabelę usuwamy lub zmieniamy dopiero wtedy, gdy kod na `main` i na `develop` przestał jej używać, osobną migracją w kolejnym wdrożeniu (zasada z meritum-infra#13).
+
+Lokalnie, na obrazie `meritum-postgres` z meritum-infra:
+
+```bash
+MERITUM_TEST_DATABASE_URL=postgresql://postgres:test@localhost:55432/meritum uv run pytest -m integration tests/corpus
+MERITUM_ENV=local MERITUM_DATABASE_URL='postgresql://...?options=-csearch_path%3Dapp_local,public' uv run meritum-worker-migrate --corpus
+```
 
 Sekrety repozytorium (dziś `EUVSDISINFO_MCP_API_KEY`) trafiają do kontenera inną drogą niż plik środowiska. Ich lista jest w jednym miejscu, w tablicy `worker_secrets` w `deploy/deploy.sh`. Krok `Deploy` w jobie `deploy` (`.github/workflows/ci.yml`) podaje każdy z nich jako zmienną środowiska kroku z `${{ secrets.NAZWA }}`, a `deploy.sh` przekazuje go do `docker run` jako `-e NAZWA`, bez wartości. Wartość nie trafia więc do logu, linii poleceń ani pliku na serwerze. Nieustawiony sekret jest pomijany i kontener startuje bez niego. Nazwę brakującej zmiennej pokaże raport gotowości workera z [worker#28](https://github.com/Meritum-HackNation2026/meritum-worker/issues/28). Nowy sekret dopisz w obu miejscach; test `tests/test_deploy_secrets.py` pilnuje, żeby się zgadzały.
 

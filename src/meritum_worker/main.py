@@ -1,21 +1,26 @@
 """Entry point: launch DBOS, register queues and wait for work."""
 
+import argparse
 import asyncio
 import os
 import signal
+import sys
 import threading
 from datetime import UTC, datetime
 from functools import cache
 from typing import Any
 
+import psycopg
 from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
 from meritum_core.jobs.contracts import APPLICATION_NAME, CHECK, DEFAULT_QUEUE, PING
-from meritum_core.shared.database import DatabaseSettings
+from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
+from meritum_core.shared.database.adapters import apply_migrations
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings
 
 from meritum_worker import checks, corpus, jobs
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
+from meritum_worker.corpus.adapters import apply_corpus_migrations
 
 
 @cache
@@ -157,6 +162,35 @@ def main() -> None:
     DBOS.logger.info("meritum-worker ready (env=%s)", env())
     stop.wait()
     DBOS.destroy()
+
+
+def migrate(argv: list[str] | None = None) -> None:
+    """Run meritum-core migrations before a deploy (``meritum-worker-migrate``).
+
+    Always migrates the env's app schema named by ``MERITUM_DATABASE_URL``; with
+    ``--corpus`` (deploys from main only) also the shared ``corpus`` schema.
+
+    Args:
+        argv: command-line arguments; ``sys.argv[1:]`` when None.
+
+    Features:
+        US-WDR-01, US-KOR-02, F-30, F-12, ADR-04, ADR-32
+    """
+    parser = argparse.ArgumentParser(prog="meritum-worker-migrate")
+    parser.add_argument("--corpus", action="store_true", help="also migrate corpus")
+    corpus = parser.parse_args(argv).corpus
+    url = DatabaseSettings(provider=DatabaseProvider.POSTGRES).url
+    if url is None:  # the settings validator already refuses this
+        sys.exit("MERITUM_DATABASE_URL is required")
+    steps = [(f"app_{env()}", apply_migrations)]
+    if corpus:
+        steps.append(("corpus", apply_corpus_migrations))
+    for name, apply in steps:
+        try:
+            applied = apply(url.get_secret_value())
+        except (psycopg.Error, RuntimeError) as exc:
+            sys.exit(f"migration {name} failed: {exc}")
+        sys.stdout.write(f"{name}: {', '.join(applied) or 'up to date'}\n")
 
 
 if __name__ == "__main__":

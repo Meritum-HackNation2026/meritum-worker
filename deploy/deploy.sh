@@ -58,11 +58,27 @@ log "built $image"
 exec 9>"$state/deploy.lock"
 flock 9  # one change at a time on this host
 
-# DBOS system tables in worker_<env>, owned by the worker role; the API role
-# gets access to them so it can enqueue (DBOSClient).
+# DBOS system tables in the env's own database meritum_dbos_<env> (MERITUM_DBOS_URL,
+# infra#12), owned by the worker role; the API role gets access so it can enqueue.
 docker run --rm --network meritum --env-file "$envfile" "$image" \
   sh -c 'dbos migrate -s "$MERITUM_DBOS_URL" --schema "$MERITUM_DBOS_SCHEMA" -r "$MERITUM_API_ROLE"' >/dev/null
 log "DBOS schema migrated"
+
+# meritum-core migrations of app_<env>; the shared corpus schema only from main,
+# because dev may run older code than prd (corpus migrations are backward compatible).
+migrate=(meritum-worker-migrate)
+if [ "$branch" = main ]; then
+  migrate+=(--corpus)
+else
+  log "corpus migrations run only from main: skipped"
+fi
+# A failed migration stops here, before the old container is touched.
+if ! out=$(docker run --rm --network meritum --env-file "$envfile" "$image" "${migrate[@]}" 2>&1); then
+  printf '%s\n' "$out" >&2
+  echo "::error title=Migration failed::${out##*$'\n'}" >&2
+  exit 1
+fi
+log "migrated: ${out//$'\n'/; }"
 
 # --stop-timeout: DBOS gets time to finish the current step; unfinished
 # workflows resume on the new container.
