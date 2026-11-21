@@ -11,6 +11,7 @@ from meritum_worker.corpus.errors import EuvsDisinfoUnavailableError, MissingTok
 from meritum_worker.corpus.factory import (
     build_euvsdisinfo_client,
     build_euvsdisinfo_copy,
+    build_reranker,
     run_euvsdisinfo_sync,
 )
 from meritum_worker.corpus.models import (
@@ -21,6 +22,8 @@ from meritum_worker.corpus.models import (
     SyncReport,
 )
 from meritum_worker.corpus.ports import EuvsCopyPort, EuvsDisinfoPort
+from meritum_worker.corpus.reranking import Reranking, rerank_passages
+from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
 from meritum_worker.corpus.sync import catalog_entry, missing_env, sync_euvsdisinfo
 
 __all__ = [
@@ -32,12 +35,17 @@ __all__ = [
     "EuvsDisinfoPort",
     "EuvsDisinfoUnavailableError",
     "MissingTokenError",
+    "RerankerProvider",
+    "RerankerSettings",
+    "Reranking",
     "StoredEntry",
     "SyncReport",
     "build_euvsdisinfo_client",
     "build_euvsdisinfo_copy",
+    "build_reranker",
     "catalog_entry",
     "missing_env",
+    "rerank_passages",
     "run_euvsdisinfo_sync",
     "sync_euvsdisinfo",
 ]

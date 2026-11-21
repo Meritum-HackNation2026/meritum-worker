@@ -74,3 +74,49 @@ MIGRATION_SUFFIX: Final = ".sql"
 MIGRATIONS_LOCK: Final = 32_0001
 """Advisory lock key (issue number + 0001, like core's 38_0001 for the app schema):
 two deploys migrating corpus at once run one after another."""
+
+RERANKER_ENV: Final = "MERITUM_RERANKER"
+"""Environment variable naming the reranker: ``none``, ``vertex`` or ``workers_ai``."""
+
+RERANKER_ENV_PREFIX: Final = "MERITUM_RERANKER_"
+"""Prefix of the reranker's other variables (``MERITUM_RERANKER_PROJECT``)."""
+
+RERANK_RETRIES: Final = 2
+"""HTTP attempts per reranking, the first included; then the search order stays."""
+
+RERANK_RETRY_BACKOFF_SECONDS: Final = 0.5
+"""Pause before the second attempt, doubled before each further one."""
+
+RERANK_TIMEOUT_SECONDS: Final = 10.0
+"""Timeout of one reranking call; 20 passages are a few kilobytes."""
+
+RERANK_FAILED_ERROR: Final = "search_corpus: reranker_unavailable"
+"""What retrieval_errors records when the reranker failed; the search order stays.
+Reranking runs under the ``search_corpus`` step code, hence the prefix."""
+
+VERTEX_RANKING_HOST: Final = "discoveryengine.googleapis.com"
+"""Host of the Vertex AI ranking API; a location other than ``global`` prefixes it."""
+
+VERTEX_RANKING_LOCATION: Final = "global"
+"""Default location of the ranking config; the only one the ranking guide shows."""
+
+VERTEX_RANKING_MODEL: Final = "semantic-ranker-default-005"
+"""Default ranking model, pinned rather than ``@latest``: 25 languages, 1024 tokens
+per record."""
+
+VERTEX_RANKING_SCOPES: Final = ("https://www.googleapis.com/auth/cloud-platform",)
+"""OAuth scope of the ranking API's access token."""
+
+WORKERS_AI_RERANK_ENDPOINT: Final = "https://api.cloudflare.com/client/v4/accounts"
+"""Cloudflare API base; the run URL is ``{base}/{account}/ai/run/{model}``."""
+
+WORKERS_AI_RERANK_MODEL: Final = "@cf/baai/bge-reranker-base"
+"""Default Workers AI reranker: a bge cross-encoder, 512 tokens per context."""
+
+URL_SEGMENT: Final = r"^[A-Za-z0-9][A-Za-z0-9_-]*$"
+"""Pattern of a project, location or account id: one URL path segment, so a
+setting cannot redirect the request that carries the token."""
+
+MODEL_ID: Final = r"^@?[A-Za-z0-9][A-Za-z0-9_@/-]*$"
+"""Pattern of a model id (``semantic-ranker-default-005``,
+``@cf/baai/bge-reranker-base``); no ``.``, ``?`` or ``#`` reach the URL."""

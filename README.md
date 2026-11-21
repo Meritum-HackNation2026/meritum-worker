@@ -103,6 +103,19 @@ Obaj dostawcy nie podają, gdzie w tekście jest polecenie. Bramka wysyła więc
 
 Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration tests/security`.
 
+## Reranker fragmentów
+
+Krok badań porządkuje fragmenty z wyszukiwania rerankerem typu cross-encoder (ADR-35) przez `meritum_worker.corpus.rerank_passages`, a reranker buduje `build_reranker`. Dostawcę wybiera `MERITUM_RERANKER`; bez niego działa pusta bramka z meritum-core (`NullReranker`), która zostawia kolejność z wyszukiwania i loguje pominięcie. Awaria dostawcy (brak odpowiedzi, błąd HTTP po ponowieniach, odrzucone poświadczenia, nieczytelna odpowiedź) nie jest awarią sprawdzenia: fragmenty zostają w kolejności z wyszukiwania, a do `retrieval_errors` trafia `search_corpus: reranker_unavailable`. Ranking nie jest źródłem dowodu. Który dostawca zostaje, rozstrzyga ewaluacja na golden secie ([worker#41](https://github.com/Meritum-HackNation2026/meritum-worker/issues/41)).
+
+| Dostawca | Zmienne | Region | Koszt | Co wysyłamy |
+| --- | --- | --- | --- | --- |
+| `vertex`: Vertex AI ranking API, model `semantic-ranker-default-005` (25 języków, 1024 tokeny na fragment) | `MERITUM_RERANKER_PROJECT`, opcjonalnie `MERITUM_RERANKER_LOCATION` (domyślnie `global`) i `MERITUM_RERANKER_MODEL`; poświadczenia z ADC | `global` (poza UE); przewodnik po ranking API podaje tylko tę lokalizację | około 1 USD za 1000 zapytań po najwyżej 100 fragmentów, do potwierdzenia w cenniku AI Applications przed wyborem | zamaskowane twierdzenie i tekst fragmentów z korpusu (najwyżej 20 na zapytanie) |
+| `workers_ai`: `@cf/baai/bge-reranker-base` w Cloudflare Workers AI | `MERITUM_RERANKER_ACCOUNT_ID`, `MERITUM_RERANKER_API_TOKEN`, opcjonalnie `MERITUM_RERANKER_MODEL` | sieć Cloudflare, bez gwarancji regionu UE; Cloudflare deklaruje brak retencji danych | 0,00311 USD za 1 mln tokenów wejścia | zamaskowane twierdzenie i tekst fragmentów (512 tokenów na fragment) |
+
+`MERITUM_RERANKER_RETRIES` (domyślnie 2) to liczba prób HTTP na jedno porządkowanie. Rejestr podmiotów przetwarzających (`copy/privacy.json` w meritum-design-system) dostaje wybranego dostawcę w [meritum-design-system#68](https://github.com/Meritum-HackNation2026/meritum-design-system/issues/68).
+
+Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration tests/corpus/test_reranker_integration.py`.
+
 ## Retencja i usuwanie danych
 
 Workflow `retention` (`src/meritum_worker/security/`) startuje co godzinę (o :15 UTC) z harmonogramu DBOS. Usuwa zapisy sprawdzeń po `retention_until` razem z ich powiadomieniami, miejscem w sprawach moderatora i workflowami DBOS (także eskalacjami), potem wygasłe powiadomienia, wszystkie workflowy DBOS starsze niż 30 dni (także zawieszone i niezwiązane z osobą, np. historia synchronizacji korpusu), pliki z wolumenu starsze niż 30 dni (w tym nagrania `audio_*`, których nie użyło żadne sprawdzenie) i wpisy `removed_case_checks` starsze niż 30 dni. Na GCS pliki usuwa reguła bucketu, więc tam workflow plików nie przegląda.
