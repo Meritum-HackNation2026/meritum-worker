@@ -27,6 +27,7 @@ def load_eval_cases(path: Path) -> GoldenSet:
         The validated cases.
 
     Raises:
+        TypeError: The JSON file is not a list of cases.
         TooFewCasesError: The file holds fewer than MIN_EVAL_CASES cases.
         OSError: The file cannot be read.
         json.JSONDecodeError: The file, or a CSV cell meant to hold JSON, is not JSON.
@@ -37,9 +38,11 @@ def load_eval_cases(path: Path) -> GoldenSet:
     """  # ruff: ignore[docstring-extraneous-exception]  # raised by the readers and model_validate
     is_csv = path.suffix.lower() == ".csv"
     rows = _read_csv(path) if is_csv else json.loads(path.read_text("utf-8"))
-    count = len(rows) if isinstance(rows, list) else 0
-    if count < MIN_EVAL_CASES:
-        raise TooFewCasesError(count)
+    if not isinstance(rows, list):
+        msg = "a case file holds a list of cases"
+        raise TypeError(msg)
+    if len(rows) < MIN_EVAL_CASES:
+        raise TooFewCasesError(len(rows))
     return GoldenSet.model_validate(rows)
 
 

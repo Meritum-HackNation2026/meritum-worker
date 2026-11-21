@@ -104,12 +104,14 @@ def test_failed_check_keeps_its_time_from_the_record() -> None:
     assert all(r.seconds == pytest.approx(42) for r in runs)
 
 
-def test_case_the_request_contract_rejects_is_a_technical_failure() -> None:
+def test_screenshot_without_text_is_out_of_scope() -> None:
     raw = [c.model_dump(mode="json") for c in GOLDEN.root]
     screenshot = next(c for c in raw if c.get("image_text"))
     screenshot["text"] = None
     cases = GoldenSet.model_validate(raw)
     runs = asyncio.run(run_eval(cases, lambda _case: _deps(), max_concurrency=4))
     found = next(r for r in runs if r.case.id == screenshot["id"])
-    assert found.result.status == "technical_failure"
+    # No OCR yet: the system answers a screenshot alone with out_of_scope (README).
+    assert found.result.status == "out_of_scope"
+    assert found.models == ()
     assert len(runs) == len(raw)

@@ -79,9 +79,10 @@ def test_csv_with_byte_order_mark_is_read(tmp_path: Path) -> None:
     [
         ("id,scenario,sources\n" + "D-x,D,{nie-json\n" * 30, [], "jury.csv: Expecting"),
         ("[]", [], "jury.json: an evaluation file needs at least 30 cases"),
+        ('{"id": "D-x"}', [], "jury.json: a case file holds a list of cases"),
         (GOLDEN.read_text(encoding="utf-8"), ["--max-concurrency", "0"], "argument"),
     ],
-    ids=["bad JSON cell", "too few cases", "zero concurrency"],
+    ids=["bad JSON cell", "too few cases", "not a list", "zero concurrency"],
 )
 def test_bad_input_ends_with_a_message(
     content: str,
@@ -90,7 +91,7 @@ def test_bad_input_ends_with_a_message(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    path = tmp_path / ("jury.json" if content.startswith("[") else "jury.csv")
+    path = tmp_path / ("jury.csv" if content.startswith("id,") else "jury.json")
     path.write_text(content, encoding="utf-8")
     with pytest.raises(SystemExit) as stop:
         meritum_eval(["--cases", str(path), *argv])

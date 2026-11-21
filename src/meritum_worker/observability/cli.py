@@ -42,7 +42,7 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
     try:
         cases = load_eval_cases(args.cases)
-    except (OSError, ValueError, csv.Error) as error:
+    except (OSError, TypeError, ValueError, csv.Error) as error:
         # Too few cases, bad JSON or an invalid case: a message, not a traceback.
         parser.error(f"{args.cases}: {error}")
     deps_for = build_eval_deps(LlmSettings())

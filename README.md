@@ -77,11 +77,11 @@ Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 | `information_loop` | odpowiedzi `insufficient_evidence` przekazane moderatorowi (`escalation`) |
 | `scenarios`, `outcomes` | trafność per scenariusz A–J i wynik każdego przypadku |
 
-Wynik przypadku liczy się według głównego twierdzenia. Gdy pasuje kilka twierdzeń, zostaje najgorszy wynik w kolejności: błędny werdykt rozstrzygający, stan niebędący werdyktem, błędne wstrzymanie się, wynik poprawny. Wyjątek w sprawdzeniu, także przypadek, którego kontrakt żądania nie przyjmuje (sam zrzut ekranu), kończy przypadek stanem `technical_failure`, a przypadek zostaje w medianie czasu.
+Wynik przypadku liczy się według głównego twierdzenia. Gdy pasuje kilka twierdzeń, zostaje najgorszy wynik w kolejności: błędny werdykt rozstrzygający, stan niebędący werdyktem, błędne wstrzymanie się, wynik poprawny. Wyjątek w sprawdzeniu kończy przypadek stanem `technical_failure`, a przypadek zostaje w medianie czasu.
 
 Czego przebieg jeszcze nie obsługuje:
 
-- obrazy i zrzuty ekranu: bez OCR system odpowiada na nie `out_of_scope`, a przebieg wysyła tylko tekst przypadku, bez `image_text`;
+- obrazy i zrzuty ekranu: bez OCR system odpowiada na nie `out_of_scope`. Przypadek z samym `image_text` dostaje więc `out_of_scope` bez wołania modelu, a przypadek z tekstem idzie bez `image_text`;
 - atak z `injection.place = "source_page"`: strona z poleceniem czeka na kasety (ADR-27), więc przypadek biegnie na samym tekście;
 - wymuszone awarie `fact_check_api` i `web_search`: kroki wyszukiwania są jeszcze zaślepkami; działa tylko `fault: llm` (model bez odpowiedzi);
 - `--max-concurrency` większe niż domyślne 1 nie gwarantuje, że powtórzenie (`same_session`, `other_channel`) przyjdzie po przypadku, który powtarza, a współbieżne wywołania modelu zawyżają czas.

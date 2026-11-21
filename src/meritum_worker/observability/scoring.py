@@ -138,7 +138,7 @@ def _comparable(run: CaseRun) -> tuple[str, list[str], list[str]]:
     # The JSON fields every channel shows the same; wording may differ.
     claims = run.result.claims
     cited = {str(c.source.url) for claim in claims for c in claim.citations}
-    return run.result.status, [c.verdict for c in claims], sorted(cited)
+    return run.result.status, sorted(c.verdict for c in claims), sorted(cited)
 
 
 def _scenarios(scores: Sequence[CaseScore]) -> tuple[ScenarioScore, ...]:

@@ -63,3 +63,6 @@ FAILURE_CODE: Final = "provider_unavailable"
 
 NO_CORPUS_VERSION: Final = "none"
 """Corpus version of a case whose check raised before searching any corpus."""
+
+OUT_OF_SCOPE_MESSAGE: Final = "status_hint.out_of_scope"
+"""Copy key of a screenshot-only case, which the system cannot read without OCR."""

@@ -19,6 +19,7 @@ from meritum_worker.observability.constants import (
     FAILURE_CODE,
     FAILURE_MESSAGE,
     NO_CORPUS_VERSION,
+    OUT_OF_SCOPE_MESSAGE,
 )
 from meritum_worker.observability.models import GoldenCase, GoldenSet
 from meritum_worker.observability.report import CaseRun
@@ -45,6 +46,8 @@ async def run_eval(
     """
 
     async def task(case: GoldenCase) -> CaseRun:
+        if case.text is None and case.url is None:
+            return _screenshot_only(case)
         return await _check(case, deps_for(case))
 
     dataset = Dataset[GoldenCase, CaseRun, None](
@@ -63,8 +66,6 @@ async def _check(case: GoldenCase, deps: CheckDeps) -> CaseRun:
     check_id = uuid.uuid4().hex
     received_at = datetime.now(UTC)
     try:
-        # Inside the try: a case the request contract rejects (a screenshot
-        # alone) is a technical failure too, not a crashed run.
         job = _job(case, received_at)
         output = await run_check(
             job.model_dump(mode="json"), check_id, deps, InlineCheckRuntime()
@@ -95,6 +96,18 @@ def _failure(check_id: str) -> CheckResult:
         failure_code=FAILURE_CODE,
         corpus_version=NO_CORPUS_VERSION,
     )
+
+
+def _screenshot_only(case: GoldenCase) -> CaseRun:
+    # shortcut: no OCR yet, so a screenshot alone is out_of_scope without a check;
+    # send the image once the request contract and OCR take it.
+    result = CheckResult(
+        check_id=uuid.uuid4().hex,
+        status="out_of_scope",
+        message=OUT_OF_SCOPE_MESSAGE,
+        corpus_version=NO_CORPUS_VERSION,
+    )
+    return CaseRun(case=case, result=result, seconds=0.0)
 
 
 def _lost(case: GoldenCase) -> CaseRun:
