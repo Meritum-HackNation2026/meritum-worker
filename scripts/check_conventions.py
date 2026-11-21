@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
-SCANNED_DIRS = ("src", "tests", "scripts")
+SCANNED_DIRS = ("src", "tests", "scripts", "features")
 FEATURE_ID = re.compile(r"^(US-[A-Z]{3}-\d{2}|F-\d{2}|ADR-\d{2})$")
 NO_FEATURE = "none (infrastructure)"
 CONSTANT_NAME = re.compile(r"^_?[A-Z][A-Z0-9_]*$")
