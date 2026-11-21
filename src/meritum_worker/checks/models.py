@@ -14,7 +14,9 @@ from meritum_core.checks.contracts import (
     ClaimResult,
     ModelUsage,
 )
+from meritum_core.corpus.fetching import PageFetcherPort
 from meritum_core.jobs.contracts import CheckInput
+from meritum_core.security.pii import PiiGatePort
 from meritum_core.shared.llm import LlmPort, LlmUsage
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -79,13 +81,17 @@ class CheckDeps:
     Attributes:
         llm: the language model, from the core LLM factory.
         records: where the CheckRecord is saved.
+        pages: the SSRF-safe page fetcher, from the core fetching factory.
+        pii: the personal-data masking gate applied to fetched pages.
 
     Features:
-        US-SPR-01, US-OBS-01, F-22
+        US-SPR-01, US-SPR-07, US-OBS-01, F-06, F-22
     """
 
     llm: LlmPort
     records: CheckRecordRepository
+    pages: PageFetcherPort
+    pii: PiiGatePort
 
 
 class CheckState(BaseModel):
@@ -101,6 +107,8 @@ class CheckState(BaseModel):
         web_search_calls: how many web searches ran.
         retrieval_errors: retrieval failures met on the way.
         injection_events: instructions found and neutralised.
+        page_text: the masked main text of the linked page, once fetch_url read it.
+        skipped_steps: step codes that had nothing to do for this input.
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
@@ -118,15 +126,18 @@ class CheckState(BaseModel):
     web_search_calls: int = 0
     retrieval_errors: list[str] = []
     injection_events: list[InjectionEvent] = []
+    page_text: str | None = None
+    skipped_steps: list[str] = []
     claims: list[ExtractedClaim] = []
     limitations: list[str] = []
     result: CheckResult | None = None
 
     @property
     def question(self) -> str:
-        """The masked question: the text, else the link, else the audio id."""
+        """The masked question: the text, else the page, the link or the audio id."""
         request = self.job.request
-        return request.text or str(request.url or "") or request.audio_id or ""
+        link = str(request.url or "")
+        return request.text or self.page_text or link or request.audio_id or ""
 
     def with_message(self, status: NotAVerdict, message: str) -> CheckResult:
         """Build a result that is not a verdict: no claims, a message instead.
