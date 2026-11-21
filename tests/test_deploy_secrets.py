@@ -27,14 +27,14 @@ def secret_names() -> list[str]:
     return names.split()
 
 
-def deploy(tmp_path: Path, env: dict[str, str]) -> tuple[str, str]:
+def deploy(tmp_path: Path, env: dict[str, str], env_file: str = "") -> tuple[str, str]:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     for name, body in (("docker", FAKE_DOCKER), ("flock", "#!/bin/sh\n")):
         (bin_dir / name).write_text(body)
         (bin_dir / name).chmod(0o755)
     (tmp_path / "envs").mkdir()
-    (tmp_path / "envs" / "worker-dev.env").write_text("")
+    (tmp_path / "envs" / "worker-dev.env").write_text(env_file)
     calls = tmp_path / "calls"
     run_env = {
         "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
