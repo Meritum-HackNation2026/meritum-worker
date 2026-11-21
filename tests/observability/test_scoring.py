@@ -125,9 +125,10 @@ def test_channel_consistency_compares_result_json(
         related_case="D-own-test",
     )
     answer = (claim("insufficient_evidence"),)
+    reworded = (claim("insufficient_evidence", text="Czy jest strefa w Pcimiu?"),)
     runs = [
         run(first, result(claims=answer, check_id="c1")),
-        run(same, result(claims=answer, check_id="c2")),
+        run(same, result(claims=reworded, check_id="c2")),
         run(other, result(claims=(claim("not_verifiable"),), check_id="c3")),
     ]
     assert score_runs(runs).channel_consistency == pytest.approx(0.5)

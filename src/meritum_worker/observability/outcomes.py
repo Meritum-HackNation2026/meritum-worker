@@ -1,7 +1,7 @@
 """Case outcome by the main claim and verdict macro-F1 (US-OBS-04).
 
 Features:
-    US-OBS-04, F-27
+    US-OBS-04, US-OBS-05, F-27
 """
 
 from collections.abc import Sequence
@@ -28,7 +28,7 @@ def expected_label(case: GoldenCase) -> str:
         The label.
 
     Features:
-        US-OBS-04, F-27
+        US-OBS-04, US-OBS-05, F-27
     """
     return case.expected_verdict or case.expected_status
 
@@ -47,7 +47,7 @@ def case_outcome(case: GoldenCase, result: CheckResult) -> tuple[str, Outcome]:
         The predicted label and its outcome.
 
     Features:
-        US-OBS-04, F-27
+        US-OBS-04, US-OBS-05, F-27
     """
     expected = expected_label(case)
     predicted = _predicted_labels(case, result)
@@ -69,7 +69,7 @@ def macro_f1(pairs: Sequence[tuple[str, str]]) -> float:
         The mean F1 over every class seen; 0 without cases.
 
     Features:
-        US-OBS-04, F-27
+        US-OBS-04, US-OBS-05, F-27
     """
     classed = [(e, p if _keeps_label(e, p) else NON_VERDICT_CLASS) for e, p in pairs]
     classes = {label for pair in classed for label in pair}

@@ -73,11 +73,11 @@ Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 | `robustness` | przypadki z `injection` z poprawnym wynikiem |
 | `median_seconds`, `p95_seconds`, `max_seconds` | czas z CheckRecord (`received_at` → `answered_at`), z nieudanymi przypadkami |
 | `input_tokens_per_check`, `output_tokens_per_check`, `cost_per_check_usd`, `cost_100_checks_usd` | tokeny i koszt modeli z CheckRecord; koszt jest zerowy, dopóki krok kosztu nie wycenia wywołań (worker#26) |
-| `channel_consistency` | powtórzenia `other_channel`, których JSON z CheckResult (bez `check_id`) równa się wynikowi pierwszego przypadku |
+| `channel_consistency` | powtórzenia `other_channel`, których JSON z CheckResult ma ten sam stan, werdykty i cytowane źródła co pierwszy przypadek; sformułowania mogą się różnić |
 | `information_loop` | odpowiedzi `insufficient_evidence` przekazane moderatorowi (`escalation`) |
 | `scenarios`, `outcomes` | trafność per scenariusz A–J i wynik każdego przypadku |
 
-Wynik przypadku liczy się według głównego twierdzenia. Gdy pasuje kilka twierdzeń, zostaje najgorszy wynik w kolejności: błędny werdykt rozstrzygający, stan niebędący werdyktem, błędne wstrzymanie się, wynik poprawny. Wyjątek w sprawdzeniu kończy przypadek stanem `technical_failure`, a przypadek zostaje w medianie czasu.
+Wynik przypadku liczy się według głównego twierdzenia. Gdy pasuje kilka twierdzeń, zostaje najgorszy wynik w kolejności: błędny werdykt rozstrzygający, stan niebędący werdyktem, błędne wstrzymanie się, wynik poprawny. Wyjątek w sprawdzeniu, także przypadek, którego kontrakt żądania nie przyjmuje (sam zrzut ekranu), kończy przypadek stanem `technical_failure`, a przypadek zostaje w medianie czasu.
 
 Czego przebieg jeszcze nie obsługuje:
 

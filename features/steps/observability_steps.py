@@ -1,24 +1,32 @@
 """Steps for features/observability.feature; they call only the public API."""
 
+import asyncio
 import csv
 import json
 import math
 import os
 import shutil
 import tempfile
+from datetime import timedelta
 from pathlib import Path
+from typing import override
 
 from behave import given, then, when
 from behave.runner import Context
-from meritum_core.checks import CheckResult
+from meritum_core.checks.contracts import CheckRecord
+from meritum_core.checks.fakes import InMemoryCheckRecordRepository
+from meritum_core.security.pii import NullPiiGate
+from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
+from meritum_worker.checks import CheckDeps, FakePageFetcher
 from meritum_worker.observability import (
-    CaseRun,
     GoldenCase,
+    GoldenSet,
     TooFewCasesError,
     load_eval_cases,
     load_golden_set,
     meritum_eval,
+    run_eval,
     score_runs,
 )
 
@@ -139,64 +147,62 @@ def report_has_metrics(context: Context) -> None:
     assert {s["scenario"] for s in report["scenarios"]} <= set("ABCDEFGHIJ")
 
 
-def _run(case_id: str, status: str, verdict: str | None, seconds: float) -> CaseRun:
-    expected = "insufficient_evidence" if case_id != "C" else "not_verifiable"
-    case = GoldenCase.model_validate(
+class _ShiftedRecords(InMemoryCheckRecordRepository):
+    """Saves every record as answered a fixed time after it was received."""
+
+    def __init__(self, seconds: float) -> None:
+        super().__init__()
+        self._delay = timedelta(seconds=seconds)
+
+    @override
+    async def save(self, record: CheckRecord) -> None:
+        answered = record.received_at + self._delay
+        await super().save(record.model_copy(update={"answered_at": answered}))
+
+
+def _case(slug: str) -> GoldenCase:
+    return GoldenCase.model_validate(
         {
-            "id": f"D-own-{case_id.lower()}",
+            "id": f"D-own-{slug}",
             "scenario": "D",
             "origin": "own",
             "channel": "web",
-            "text": "Czy w Pcimiu jest nowa strefa parkowania?",
-            "main_claim": "W Pcimiu jest nowa strefa parkowania.",
+            "text": "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł",
+            "main_claim": "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł",
             "expected_status": "done",
-            "expected_verdict": expected,
+            "expected_verdict": "insufficient_evidence",
             "expected_behavior": "Mówi, jakie źródło rozstrzygnęłoby sprawę.",
         }
     )
-    claims = (
-        []
-        if verdict is None
-        else [
-            {
-                "claim": case.main_claim,
-                "claim_date": "2026-01-05",
-                "claim_date_source": "today",
-                "verdict": verdict,
-                "explanation": "Wyjaśnienie werdyktu po polsku.",
-                "unresolved": "Brak źródła, które rozstrzyga sprawę.",
-            }
-        ]
+
+
+def _deps(seconds: float, fixtures: Path | None) -> CheckDeps:
+    settings = LlmSettings(provider=LlmProvider.STUB, stub_fixtures=fixtures)
+    return CheckDeps(
+        llm=build_llm(settings),
+        records=_ShiftedRecords(seconds),
+        pages=FakePageFetcher(),
+        pii=NullPiiGate(),
     )
-    failed = {
-        "message": "status_hint.technical_failure",
-        "failure_code": "provider_unavailable",
-    }
-    answered = {"limitations": ["Bez przeszukania korpusu."]}
-    result = CheckResult.model_validate(
-        {
-            "check_id": f"check-{case_id}",
-            "status": status,
-            "claims": claims,
-            "corpus_version": "none",
-        }
-        | (failed if verdict is None else answered)
-    )
-    return CaseRun(case=case, result=result, seconds=seconds)
 
 
 @given("przypadek kończy się stanem technical_failure")
 def failed_case(context: Context) -> None:
-    context.runs = [
-        _run("A", "done", "insufficient_evidence", 10.0),
-        _run("B", "technical_failure", None, 50.0),
-        _run("C", "done", "not_verifiable", 20.0),
-    ]
+    # The stub without answers fails like an unavailable model provider.
+    context.cases = GoldenSet.model_validate([_case(s) for s in ("a", "b", "c")])
+    context.deps = {
+        "D-own-a": _deps(10, STUB_ANSWER),
+        "D-own-b": _deps(SLOWEST, None),
+        "D-own-c": _deps(MEDIAN_WITH_FAILURE, STUB_ANSWER),
+    }
 
 
 @when("skrypt liczy czas")
 def script_scores(context: Context) -> None:
-    context.report = score_runs(context.runs)
+    deps = context.deps
+    runs = asyncio.run(run_eval(context.cases, lambda c: deps[c.id], 1))
+    assert runs[1].result.status == "technical_failure"
+    context.report = score_runs(runs)
 
 
 @then("czas przypadku z CheckRecord liczy się do mediany")
@@ -207,8 +213,8 @@ def failure_in_median(context: Context) -> None:
 
 @then("stan niebędący werdyktem jest w macro-F1 osobną klasą błędu")
 def non_verdict_is_a_class(context: Context) -> None:
-    # insufficient_evidence: F1 2/3, not_verifiable: 1, non_verdict: 0.
-    assert math.isclose(context.report.macro_f1, round(5 / 9, 4))
+    # insufficient_evidence: tp 2, fn 1 -> F1 4/5; non_verdict: fp 1 -> 0.
+    assert math.isclose(context.report.macro_f1, 0.4)
 
 
 @given("plik z 12 przypadkami")

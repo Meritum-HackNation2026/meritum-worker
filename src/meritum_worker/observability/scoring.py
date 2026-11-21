@@ -124,7 +124,7 @@ def _host(url: str) -> str:
 
 
 def _channel_consistency(runs: Sequence[CaseRun]) -> Ratio:
-    # Channels render the same CheckResult, so its JSON must match (US-WTY-03).
+    # Channels render the same CheckResult (US-WTY-03): same state, verdicts, sources.
     by_id = {run.case.id: run for run in runs}
     hits = [
         _comparable(run) == _comparable(by_id[run.case.related_case])
@@ -134,8 +134,11 @@ def _channel_consistency(runs: Sequence[CaseRun]) -> Ratio:
     return _share(hits)
 
 
-def _comparable(run: CaseRun) -> str:
-    return run.result.model_dump_json(exclude={"check_id"})
+def _comparable(run: CaseRun) -> tuple[str, list[str], list[str]]:
+    # The JSON fields every channel shows the same; wording may differ.
+    claims = run.result.claims
+    cited = {str(c.source.url) for claim in claims for c in claim.citations}
+    return run.result.status, [c.verdict for c in claims], sorted(cited)
 
 
 def _scenarios(scores: Sequence[CaseScore]) -> tuple[ScenarioScore, ...]:

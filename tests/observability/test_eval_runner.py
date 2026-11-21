@@ -19,7 +19,12 @@ from meritum_core.shared.llm import (
 from pydantic import BaseModel
 
 from meritum_worker.checks import CheckDeps, FakePageFetcher
-from meritum_worker.observability import GoldenCase, load_golden_set, run_eval
+from meritum_worker.observability import (
+    GoldenCase,
+    GoldenSet,
+    load_golden_set,
+    run_eval,
+)
 from meritum_worker.observability.factory import build_eval_deps
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -86,3 +91,25 @@ def test_forced_model_fault_fails_only_its_case(
     assert faulty
     assert {status(c) for c in faulty} == {"technical_failure"}
     assert status(GOLDEN.root[0]) == "done"
+
+
+def test_failed_check_keeps_its_time_from_the_record() -> None:
+    no_answers = LlmSettings(provider=LlmProvider.STUB, stub_fixtures=None)
+    deps = _deps(_SlowRecords())
+    broken = CheckDeps(
+        llm=build_llm(no_answers), records=deps.records, pages=deps.pages, pii=deps.pii
+    )
+    runs = asyncio.run(run_eval(GOLDEN, lambda _case: broken, max_concurrency=4))
+    assert {r.result.status for r in runs} == {"technical_failure"}
+    assert all(r.seconds == pytest.approx(42) for r in runs)
+
+
+def test_case_the_request_contract_rejects_is_a_technical_failure() -> None:
+    raw = [c.model_dump(mode="json") for c in GOLDEN.root]
+    screenshot = next(c for c in raw if c.get("image_text"))
+    screenshot["text"] = None
+    cases = GoldenSet.model_validate(raw)
+    runs = asyncio.run(run_eval(cases, lambda _case: _deps(), max_concurrency=4))
+    found = next(r for r in runs if r.case.id == screenshot["id"])
+    assert found.result.status == "technical_failure"
+    assert len(runs) == len(raw)

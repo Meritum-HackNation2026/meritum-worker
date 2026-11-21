@@ -54,3 +54,12 @@ REPORT_DECIMALS: Final = 4
 
 UNANSWERED_VERDICT: Final = "insufficient_evidence"
 """Verdict that must reach the moderator queue to close the information loop."""
+
+FAILURE_MESSAGE: Final = "status_hint.technical_failure"
+"""Copy key of a case whose check raised, as the check workflow uses it."""
+
+FAILURE_CODE: Final = "provider_unavailable"
+"""failure_code of a case whose check raised before the workflow answered."""
+
+NO_CORPUS_VERSION: Final = "none"
+"""Corpus version of a case whose check raised before searching any corpus."""

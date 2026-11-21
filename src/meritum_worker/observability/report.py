@@ -30,7 +30,7 @@ class CaseRun(BaseModel):
         models: ``provider/model`` of every model called.
 
     Features:
-        US-OBS-04, F-27
+        US-OBS-04, US-OBS-05, F-27
     """
 
     model_config = ConfigDict(frozen=True)
@@ -56,7 +56,7 @@ class CaseScore(BaseModel):
         seconds: Time from the CheckRecord.
 
     Features:
-        US-OBS-04, F-27
+        US-OBS-04, US-OBS-05, F-27
     """
 
     model_config = ConfigDict(frozen=True)
@@ -79,7 +79,7 @@ class ScenarioScore(BaseModel):
         accuracy: correct / cases.
 
     Features:
-        US-OBS-04, F-27
+        US-OBS-04, US-OBS-05, F-27
     """
 
     model_config = ConfigDict(frozen=True)
@@ -111,8 +111,8 @@ class EvalReport(BaseModel):
         output_tokens_per_check: Mean answer tokens per check.
         cost_per_check_usd: Mean model cost per check.
         cost_100_checks_usd: Cost of 100 checks at that mean.
-        channel_consistency: other_channel repeats whose CheckResult JSON equals
-            the repeated case's, check id aside.
+        channel_consistency: other_channel repeats whose CheckResult JSON has the
+            repeated case's state, verdicts and cited sources.
         information_loop: insufficient_evidence answers that reached the
             moderator queue (an escalation).
         scenarios: Quality per scenario.

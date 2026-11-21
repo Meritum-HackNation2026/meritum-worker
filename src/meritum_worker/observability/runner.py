@@ -9,12 +9,17 @@ import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 
-from meritum_core.checks import SESSIONLESS_CHANNELS, CheckRequest
+from meritum_core.checks import SESSIONLESS_CHANNELS, CheckRequest, CheckResult
 from meritum_core.jobs.contracts import CheckInput
 from pydantic_evals import Case, Dataset
 
-from meritum_worker.checks import CheckDeps, CheckState, InlineCheckRuntime, run_check
-from meritum_worker.observability.constants import EVAL_NAME
+from meritum_worker.checks import CheckDeps, InlineCheckRuntime, run_check
+from meritum_worker.observability.constants import (
+    EVAL_NAME,
+    FAILURE_CODE,
+    FAILURE_MESSAGE,
+    NO_CORPUS_VERSION,
+)
 from meritum_worker.observability.models import GoldenCase, GoldenSet
 from meritum_worker.observability.report import CaseRun
 
@@ -50,19 +55,23 @@ async def run_eval(
         task, name=EVAL_NAME, max_concurrency=max_concurrency, progress=False
     )
     runs = {run.name: run.output for run in report.cases}
-    return [runs[case.id] for case in cases.root]
+    # _check never raises; a case pydantic-evals still lost ends as a failure.
+    return [runs.get(case.id) or _lost(case) for case in cases.root]
 
 
 async def _check(case: GoldenCase, deps: CheckDeps) -> CaseRun:
     check_id = uuid.uuid4().hex
-    job = _job(case, datetime.now(UTC))
+    received_at = datetime.now(UTC)
     try:
+        # Inside the try: a case the request contract rejects (a screenshot
+        # alone) is a technical failure too, not a crashed run.
+        job = _job(case, received_at)
         output = await run_check(
             job.model_dump(mode="json"), check_id, deps, InlineCheckRuntime()
         )
         result = output.result
     except Exception:  # ruff: ignore[blind-except]  # the task returns a state, so the case stays in the median
-        result = CheckState(check_id=check_id, job=job).technical_failure()
+        result = _failure(check_id)
     # A check that raised saved no record; the clock then stands in for it.
     record = await deps.records.get(check_id)
     answered_at = record.answered_at if record else datetime.now(UTC)
@@ -70,12 +79,26 @@ async def _check(case: GoldenCase, deps: CheckDeps) -> CaseRun:
     return CaseRun(
         case=case,
         result=result,
-        seconds=(answered_at - job.received_at).total_seconds(),
+        seconds=(answered_at - received_at).total_seconds(),
         input_tokens=sum(m.input_tokens for m in models),
         output_tokens=sum(m.output_tokens for m in models),
         cost_usd=sum(m.cost_usd for m in models),
         models=tuple(sorted({f"{m.provider}/{m.model}" for m in models})),
     )
+
+
+def _failure(check_id: str) -> CheckResult:
+    return CheckResult(
+        check_id=check_id,
+        status="technical_failure",
+        message=FAILURE_MESSAGE,
+        failure_code=FAILURE_CODE,
+        corpus_version=NO_CORPUS_VERSION,
+    )
+
+
+def _lost(case: GoldenCase) -> CaseRun:
+    return CaseRun(case=case, result=_failure(uuid.uuid4().hex), seconds=0.0)
 
 
 def _job(case: GoldenCase, received_at: datetime) -> CheckInput:
