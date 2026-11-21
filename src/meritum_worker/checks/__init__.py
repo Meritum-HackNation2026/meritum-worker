@@ -4,7 +4,6 @@ Features:
     US-SPR-01, US-OBS-01, F-22
 """
 
-from meritum_worker.checks._notifications import save_notification
 from meritum_worker.checks.fakes import (
     AudioPorts,
     FailingCheckRuntime,
@@ -21,6 +20,7 @@ from meritum_worker.checks.models import (
     ClaimExtraction,
     ExtractedClaim,
 )
+from meritum_worker.checks.notifications import save_notification
 from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.workflow import pipeline, run_check
 

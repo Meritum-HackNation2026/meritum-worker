@@ -6,9 +6,9 @@ Features:
 
 from datetime import UTC, datetime
 
-from meritum_worker.checks._notifications import save_notification
 from meritum_worker.checks.constants import CHECK_LINK, LONG_AUDIO_SECONDS
 from meritum_worker.checks.models import CheckDeps, CheckState
+from meritum_worker.checks.notifications import save_notification
 
 
 async def notify_done(state: CheckState, deps: CheckDeps) -> CheckState:

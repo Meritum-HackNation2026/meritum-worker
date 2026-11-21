@@ -163,5 +163,5 @@ SEARCH_WEB_STEP: Final = "search_web"
 NOTIFICATION_RETENTION: Final = timedelta(days=30)
 """How long a Notification is kept: retention_until = created_at + 30 days."""
 
-USER_ID_PATTERN: Final = re.compile(r"^[a-z0-9_-]+:\S+$")
+USER_ID_PATTERN: Final = re.compile(r"^[^:\s]+:\S+$")
 """A signed-in user id as the backend reads it: ``{provider}:{subject}``."""
