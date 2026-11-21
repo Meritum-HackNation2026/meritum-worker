@@ -9,12 +9,16 @@ from datetime import date
 from typing import Annotated, Literal
 
 from meritum_core.checks import CheckRecordRepository, CheckResult, InjectionEvent
+from meritum_core.checks.constants import MIN_TEXT_CHARS
 from meritum_core.checks.contracts import (
     ClaimDateSource,
     ClaimResult,
+    FailureCode,
     ModelUsage,
 )
+from meritum_core.corpus.fetching import PageFetcherPort
 from meritum_core.jobs.contracts import CheckInput
+from meritum_core.security.pii import PiiGatePort
 from meritum_core.shared.llm import LlmPort, LlmUsage
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -79,13 +83,17 @@ class CheckDeps:
     Attributes:
         llm: the language model, from the core LLM factory.
         records: where the CheckRecord is saved.
+        pages: the SSRF-safe page fetcher, from the core fetching factory.
+        pii: the personal-data masking gate applied to fetched pages.
 
     Features:
-        US-SPR-01, US-OBS-01, F-22
+        US-SPR-01, US-SPR-07, US-OBS-01, F-06, F-22
     """
 
     llm: LlmPort
     records: CheckRecordRepository
+    pages: PageFetcherPort
+    pii: PiiGatePort
 
 
 class CheckState(BaseModel):
@@ -101,6 +109,8 @@ class CheckState(BaseModel):
         web_search_calls: how many web searches ran.
         retrieval_errors: retrieval failures met on the way.
         injection_events: instructions found and neutralised.
+        page_text: the masked main text of the linked page, once fetch_url read it.
+        skipped_steps: step codes that had nothing to do for this input.
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
@@ -118,15 +128,25 @@ class CheckState(BaseModel):
     web_search_calls: int = 0
     retrieval_errors: list[str] = []
     injection_events: list[InjectionEvent] = []
+    page_text: str | None = None
+    skipped_steps: list[str] = []
     claims: list[ExtractedClaim] = []
     limitations: list[str] = []
     result: CheckResult | None = None
 
     @property
+    def has_text(self) -> bool:
+        """Whether the citizen pasted text, by the contract's MIN_TEXT_CHARS rule."""
+        return len((self.job.request.text or "").strip()) >= MIN_TEXT_CHARS
+
+    @property
     def question(self) -> str:
-        """The masked question: the text, else the link, else the audio id."""
+        """The masked question: the text, else the page, the link or the audio id."""
         request = self.job.request
-        return request.text or str(request.url or "") or request.audio_id or ""
+        if self.has_text:
+            return request.text or ""
+        link = str(request.url or "")
+        return self.page_text or link or request.audio_id or ""
 
     def with_message(self, status: NotAVerdict, message: str) -> CheckResult:
         """Build a result that is not a verdict: no claims, a message instead.
@@ -147,13 +167,27 @@ class CheckState(BaseModel):
             corpus_version=self.corpus_version,
         )
 
-    def technical_failure(self) -> CheckResult:
+    def technical_failure(
+        self,
+        code: FailureCode = TECHNICAL_FAILURE_CODE,
+        message: str = TECHNICAL_FAILURE_MESSAGE,
+    ) -> CheckResult:
         """Build the technical-failure result: no claims, a message instead.
+
+        Args:
+            code: why the check failed; the model provider by default.
+            message: the copy key channels show.
 
         Returns:
             The result channels show as „Problem techniczny”.
         """
-        return self.with_message("technical_failure", TECHNICAL_FAILURE_MESSAGE)
+        return CheckResult(
+            check_id=self.check_id,
+            status="technical_failure",
+            message=message,
+            failure_code=code,
+            corpus_version=self.corpus_version,
+        )
 
     def final_result(self) -> CheckResult:
         """The answer, or a technical failure when no step produced one.

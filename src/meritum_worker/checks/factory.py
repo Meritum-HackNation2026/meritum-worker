@@ -4,7 +4,9 @@ Features:
     US-SPR-01, US-OBS-01, F-22, ADR-03
 """
 
+from meritum_core.corpus.fetching import build_page_fetcher
 from meritum_core.observability import build_app_repositories
+from meritum_core.security.pii import PiiGateSettings, build_pii_gate
 from meritum_core.shared.database import DatabaseSettings
 from meritum_core.shared.llm import LlmSettings, build_llm
 
@@ -14,7 +16,7 @@ from meritum_worker.checks.ports import CheckRuntime
 
 
 def build_check_deps(settings: LlmSettings, database: DatabaseSettings) -> CheckDeps:
-    """Build the model and the record repository the steps call.
+    """Build the model, the record repository, the page fetcher and the masking gate.
 
     Args:
         settings: LLM settings, usually ``LlmSettings()`` from ``MERITUM_LLM_*``.
@@ -26,10 +28,15 @@ def build_check_deps(settings: LlmSettings, database: DatabaseSettings) -> Check
         The ports.
 
     Features:
-        US-SPR-01, US-OBS-01, F-22
+        US-SPR-01, US-SPR-07, US-OBS-01, F-06, F-22
     """
     records = build_app_repositories(database).records
-    return CheckDeps(llm=build_llm(settings), records=records)
+    return CheckDeps(
+        llm=build_llm(settings),
+        records=records,
+        pages=build_page_fetcher(),
+        pii=build_pii_gate(PiiGateSettings()),
+    )
 
 
 def build_check_runtime() -> CheckRuntime:

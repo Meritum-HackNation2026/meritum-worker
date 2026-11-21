@@ -100,7 +100,7 @@ async def run_check(
         before = state
         for function in functions:
             state = await runtime.step(function.__name__, _bind(function, deps), state)
-        progress[index] = _step(code, _outcome(before, state))
+        progress[index] = _step(code, _outcome(code, before, state))
     result = state.final_result()
     await runtime.publish(
         AnalysisStatus(check_id=check_id, steps=progress, result=result)
@@ -113,12 +113,14 @@ def _step(code: str, status: str) -> AnalysisStep:
     return AnalysisStep.model_validate({"code": code, "status": status})
 
 
-def _outcome(before: CheckState, after: CheckState) -> str:
+def _outcome(code: str, before: CheckState, after: CheckState) -> str:
     # The code whose steps turned the check into a technical failure is "failed".
     def failed(state: CheckState) -> bool:
         return state.result is not None and state.result.status == "technical_failure"
 
-    return "failed" if failed(after) and not failed(before) else "done"
+    if failed(after) and not failed(before):
+        return "failed"
+    return "skipped" if code in after.skipped_steps else "done"
 
 
 def _bind(function: Step, deps: CheckDeps) -> StepRun:

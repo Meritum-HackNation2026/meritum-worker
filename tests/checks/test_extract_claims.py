@@ -3,7 +3,9 @@ from datetime import date
 
 from meritum_core.checks.contracts import ClaimResult
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
+from meritum_core.security.pii import NullPiiGate
 from meritum_core.shared.llm import (
+    LlmPort,
     LlmResult,
     LlmUsage,
     Prompt,
@@ -17,8 +19,19 @@ from meritum_worker.checks import (
     CheckState,
     ClaimExtraction,
     ExtractedClaim,
+    FakePageFetcher,
 )
 from meritum_worker.checks.steps import extract_claims, write_answer
+
+
+def _deps(llm: LlmPort) -> CheckDeps:
+    return CheckDeps(
+        llm=llm,
+        records=InMemoryCheckRecordRepository(),
+        pages=FakePageFetcher(),
+        pii=NullPiiGate(),
+    )
+
 
 USAGE = LlmUsage(
     provider="stub", model="stub", region="local", input_tokens=0, output_tokens=0
@@ -57,7 +70,7 @@ def _extract(
     state: CheckState, *claims: ExtractedClaim, out_of_scope: bool = False
 ) -> tuple[CheckState, _RecordingLlm]:
     llm = _RecordingLlm(ClaimExtraction(out_of_scope=out_of_scope, claims=[*claims]))
-    deps = CheckDeps(llm=llm, records=InMemoryCheckRecordRepository())
+    deps = _deps(llm)
     return asyncio.run(
         extract_claims(state.model_copy(update={"claims": []}), deps)
     ), llm
@@ -134,7 +147,7 @@ def test_user_text_goes_to_the_model_only_as_data(state: CheckState) -> None:
 
 
 def test_provider_failure_is_technical_failure(state: CheckState) -> None:
-    deps = CheckDeps(llm=_RecordingLlm(), records=InMemoryCheckRecordRepository())
+    deps = _deps(_RecordingLlm())
     out = asyncio.run(extract_claims(state, deps))
     assert out.result is not None
     assert out.result.status == "technical_failure"
@@ -144,7 +157,7 @@ def test_answer_with_other_count_than_facts_is_technical_failure(
     state: CheckState,
 ) -> None:
     llm = _RecordingLlm(AnswerDraft(claims=[], limitations=["Brak korpusu."]))
-    deps = CheckDeps(llm=llm, records=InMemoryCheckRecordRepository())
+    deps = _deps(llm)
     out = asyncio.run(write_answer(state, deps))
     assert out.result is not None
     assert out.result.status == "technical_failure"
@@ -153,7 +166,7 @@ def test_answer_with_other_count_than_facts_is_technical_failure(
 def test_write_answer_keeps_a_result_set_by_extraction(state: CheckState) -> None:
     done, _ = _extract(state)
     llm = _RecordingLlm()
-    deps = CheckDeps(llm=llm, records=InMemoryCheckRecordRepository())
+    deps = _deps(llm)
     out = asyncio.run(write_answer(done, deps))
     assert out.result == done.result
     assert llm.prompts == []
@@ -172,7 +185,7 @@ def test_only_opinions_are_done_with_model_limitations_even_if_it_judged_them(
         explanation="Ocena, a nie fakt do sprawdzenia.",
     )
     draft = AnswerDraft(claims=[judged], limitations=["Brak faktów do sprawdzenia."])
-    deps = CheckDeps(llm=_RecordingLlm(draft), records=InMemoryCheckRecordRepository())
+    deps = _deps(_RecordingLlm(draft))
     out = asyncio.run(write_answer(extracted, deps))
     assert out.result is not None
     assert out.result.status == "done"
