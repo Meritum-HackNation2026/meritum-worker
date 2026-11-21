@@ -38,6 +38,13 @@ if [ -n "$files_volume" ] && [ -n "$files_dir" ]; then
 else
   log "no MERITUM_FILES_VOLUME/MERITUM_FILES_DIR in $envfile: container starts without the files volume"
 fi
+# meritum-infra#28: WIF credential directories, space-separated host:container:ro entries.
+gcp_mounts=$(env_value MERITUM_GCP_MOUNTS)
+if [ -n "$gcp_mounts" ]; then
+  for mount in $gcp_mounts; do volume_args+=(-v "$mount"); done
+else
+  log "no MERITUM_GCP_MOUNTS in $envfile: container starts without GCP credentials"
+fi
 
 labels=(--label meritum.managed=true --label meritum.role=worker --label meritum.env="$env" --label meritum.sha="$sha")
 docker build -q --ssh default="${CORE_KEY_FILE:?}" -t "$image" "${labels[@]}" "$repo" >/dev/null
