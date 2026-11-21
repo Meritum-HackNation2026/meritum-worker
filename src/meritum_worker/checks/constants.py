@@ -15,8 +15,8 @@ RECORD_RETENTION: Final = timedelta(days=30)
 NO_CORPUS_VERSION: Final = "none"
 """Corpus version of a check that searched no corpus snapshot (the stub step)."""
 
-TECHNICAL_FAILURE_MESSAGE: Final = "status_hint.technical_failure"
-"""Copy key (design-system copy/pl.json) channels show for a technical failure."""
+TECHNICAL_FAILURE_MESSAGE: Final = "The worker could not produce a valid result."
+"""Diagnostic for a technical failure."""
 
 TECHNICAL_FAILURE_CODE: Final[FailureCode] = "provider_unavailable"
 """failure_code of a technical failure: the model call failed or broke the rules."""
@@ -54,11 +54,11 @@ EXTRACTION_INSTRUCTIONS: Final = (
 )
 """Instructions of the extract_claims model call; user text goes as data (ADR-12)."""
 
-NEEDS_CLARIFICATION_MESSAGE: Final = "status_hint.needs_clarification"
-"""Copy key (design-system copy/pl.json) shown when the input holds no claim."""
+NEEDS_CLARIFICATION_MESSAGE: Final = "Claim extraction found no claims."
+"""Diagnostic for an input with no claims."""
 
-OUT_OF_SCOPE_MESSAGE: Final = "status_hint.out_of_scope"
-"""Copy key (design-system copy/pl.json) shown for a request not about information."""
+OUT_OF_SCOPE_MESSAGE: Final = "Claim extraction classified the input as out of scope."
+"""Diagnostic for a request outside the scope of a check."""
 
 LIMITATION_MAX_CHARS: Final = 300
 """Longest limitation CheckResult accepts; a longer skipped claim is cut to fit."""
@@ -69,8 +69,10 @@ FETCH_URL_STEP: Final = "fetch_url"
 URL_UNAVAILABLE_CODE: Final[FailureCode] = "url_unavailable"
 """failure_code of a check whose link could not be fetched (contract v4)."""
 
-URL_UNAVAILABLE_MESSAGE: Final = "status_hint.technical_failure_url"
-"""Copy key (design-system copy/pl.json) asking the citizen to paste the text."""
+URL_UNAVAILABLE_MESSAGE: Final = (
+    "The link could not be fetched; the citizen should paste the text."
+)
+"""Diagnostic for a link that could not be fetched."""
 
 MAX_PAGE_TEXT_CHARS: Final = 4000
 """Longest page text checked: the limit of a pasted text and of question_masked."""

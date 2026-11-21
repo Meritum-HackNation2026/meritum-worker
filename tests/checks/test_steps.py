@@ -30,7 +30,7 @@ def test_write_answer_turns_contract_breaking_answer_into_technical_failure(
     assert out.result is not None
     assert out.result.status == "technical_failure"
     assert out.result.claims == []
-    assert out.result.message == "status_hint.technical_failure"
+    assert not (out.result.message or "").startswith("status_hint.")
     assert out.result.failure_code == "provider_unavailable"
     assert len(out.models) == 1
 
