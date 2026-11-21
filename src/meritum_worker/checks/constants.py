@@ -8,6 +8,7 @@ from datetime import timedelta
 from typing import Final
 
 from meritum_core.checks.contracts import FailureCode
+from meritum_core.checks.transcription import MAX_AUDIO_BYTES, MAX_AUDIO_SECONDS
 
 RECORD_RETENTION: Final = timedelta(days=30)
 """How long a CheckRecord is kept: retention_until = received_at + 30 days (ADR-13)."""
@@ -128,7 +129,8 @@ UNSUPPORTED_AUDIO_FORMAT_MESSAGE: Final = (
 """Diagnostic for a recording the transcription port does not accept."""
 
 AUDIO_TOO_LONG_MESSAGE: Final = (
-    "The recording is over 10 minutes or 20 MiB; send a shorter one or the text."
+    f"The recording is over {MAX_AUDIO_SECONDS // 60} minutes or "
+    f"{MAX_AUDIO_BYTES // 2**20} MiB; send a shorter one or the text."
 )
 """Diagnostic for a recording over the transcription limits."""
 

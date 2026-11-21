@@ -10,7 +10,14 @@ from meritum_core.checks.transcription import Transcript
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.shared.blobs import BlobKind
 
-from meritum_worker.checks import CheckDeps, CheckState, audio_ports, ogg_opus
+from meritum_worker.checks import (
+    CheckDeps,
+    CheckState,
+    InlineCheckRuntime,
+    audio_ports,
+    ogg_opus,
+    run_check,
+)
 from meritum_worker.checks.constants import (
     AUDIO_TOO_LONG_MESSAGE,
     TRANSCRIPTION_FAILED_CODE,
@@ -119,3 +126,21 @@ def test_notify_done_announces_only_a_long_recording_once(
     assert len(inbox) == sent
     assert all(n.kind == "check_done" and n.check_id == "check-1" for n in inbox)
     assert all(n.link == "/sprawdzenie/check-1" for n in inbox)
+
+
+def test_check_of_a_long_recording_masks_the_transcript_and_announces_the_end(
+    make_job: Callable[..., CheckInput],
+    make_deps: Callable[..., CheckDeps],
+    tmp_path: Path,
+) -> None:
+    deps = _deps(make_deps, tmp_path)
+    state = _state(make_job(), deps, ogg_opus(120))
+    output = asyncio.run(
+        run_check(
+            state.job.model_dump(mode="json"), "check-1", deps, InlineCheckRuntime()
+        )
+    )
+    assert output.result.transcript is not None
+    assert "600 700 800" not in output.result.transcript
+    inbox = asyncio.run(deps.notifications.list_for("session_id", "session-1"))
+    assert [(n.kind, n.check_id) for n in inbox] == [("check_done", "check-1")]
