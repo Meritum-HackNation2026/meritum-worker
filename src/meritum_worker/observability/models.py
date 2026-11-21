@@ -29,13 +29,19 @@ from meritum_worker.observability.constants import (
 )
 
 type Scenario = Literal["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+"""Scenario of the brief's sample questions, A-J."""
 type Origin = Literal["organizer", "own"]
+"""From the organiser's sample questions or written by us."""
 type Variant = Literal[
     "same_session", "other_channel", "same_material", "other_material"
 ]
+"""Repeat of another case (G, H) or same or other material (I)."""
 type Fault = Literal["fact_check_api", "web_search", "llm"]
+"""Provider failure forced in an evaluation run (scenario J)."""
 type CaseId = Annotated[str, Field(pattern=r"^[A-J]-[a-z0-9-]{1,60}$")]
+"""Case id: the scenario letter, a dash and a slug."""
 type Text = Annotated[str, Field(min_length=3)]
+"""Text of at least three characters."""
 
 
 class _Frozen(BaseModel):

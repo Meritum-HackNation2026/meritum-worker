@@ -1,5 +1,6 @@
 """The golden set in evals/golden/ validates and covers scenarios A-J (US-OBS-04)."""
 
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 
@@ -10,6 +11,9 @@ from meritum_worker.observability import GoldenCase, GoldenSet, load_golden_set
 
 GOLDEN = Path(__file__).resolve().parents[2] / "evals" / "golden" / "cases.json"
 SCENARIOS = "ABCDEFGHIJ"
+# Sample questions per scenario in the organiser's material, with its variants:
+# A has two questions, G a second channel, H two paraphrases, I and J two variants.
+ORGANIZER_CASES = Counter(A=2, B=1, C=1, D=1, E=1, F=1, G=2, H=3, I=2, J=2)
 
 
 @pytest.fixture(scope="module")
@@ -25,6 +29,11 @@ def test_every_scenario_has_organizer_and_own_cases(golden: GoldenSet) -> None:
     for origin in ("organizer", "own"):
         found = {case.scenario for case in golden.root if case.origin == origin}
         assert found == set(SCENARIOS), origin
+
+
+def test_every_organizer_sample_question_is_a_case(golden: GoldenSet) -> None:
+    found = Counter(case.scenario for case in golden.root if case.origin == "organizer")
+    assert found == ORGANIZER_CASES
 
 
 def test_sources_cite_fragments_with_publisher_and_title(golden: GoldenSet) -> None:
