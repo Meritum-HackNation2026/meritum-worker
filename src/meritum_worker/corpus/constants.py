@@ -1,7 +1,7 @@
-"""Settings of the EUvsDisinfo sync that are not secrets.
+"""Settings of the EUvsDisinfo sync (not secrets) and of corpus migrations.
 
 Features:
-    US-KOR-08, F-11
+    US-KOR-08, US-KOR-02, F-11, F-12
 """
 
 from typing import Final
@@ -61,3 +61,16 @@ CATALOG_LICENSE: Final = "unknown; short quotes with the source named"
 
 CATALOG_QUALIFIED_BECAUSE: Final = "EEAS registry of pro-Kremlin disinformation cases"
 """Why EUvsDisinfo is in the source catalogue."""
+
+MIGRATIONS_PACKAGE: Final = "meritum_core.corpus"
+"""Package of meritum-core whose ``migrations/`` holds the corpus schema's SQL files."""
+
+MIGRATIONS_DIRECTORY: Final = "migrations"
+"""Directory of ``MIGRATIONS_PACKAGE`` with the SQL files, applied in name order."""
+
+MIGRATION_SUFFIX: Final = ".sql"
+"""Suffix of a migration file; other files in the directory are ignored."""
+
+MIGRATIONS_LOCK: Final = 32_0001
+"""Advisory lock key (issue number + 0001, like core's 38_0001 for the app schema):
+two deploys migrating corpus at once run one after another."""
