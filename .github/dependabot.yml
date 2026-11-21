@@ -22,6 +22,9 @@ updates:
       # reads it over ssh to lock: the org grants Dependabot access to meritum-core
       # (Settings > Advanced Security > Global settings), no token here.
       - dependency-name: meritum-core
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
   - package-ecosystem: docker
     directory: /
     target-branch: develop
@@ -37,6 +40,12 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+      - dependency-name: python
+      - dependency-name: ghcr.io/astral-sh/uv
   - package-ecosystem: github-actions
     directory: /
     target-branch: develop
@@ -52,3 +61,7 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
