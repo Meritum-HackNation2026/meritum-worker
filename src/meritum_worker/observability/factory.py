@@ -1,17 +1,22 @@
-"""Builds the ports an evaluation run checks cases on.
+"""Builds the ports of an evaluation run and the probes of the readiness check.
 
 Features:
-    US-OBS-04, US-OBS-05, F-27, ADR-28
+    US-OBS-04, US-OBS-05, F-27, ADR-28, US-WDR-08, US-BEZ-03, F-30
 """
 
+from collections.abc import Mapping
 from dataclasses import replace
 
+from httpx2 import AsyncClient
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
+from meritum_worker import corpus
 from meritum_worker.checks import CheckDeps
 from meritum_worker.checks.factory import build_check_deps
+from meritum_worker.observability.constants import EUVSDISINFO_PROBE
 from meritum_worker.observability.models import GoldenCase
+from meritum_worker.observability.readiness import Probe
 from meritum_worker.observability.runner import DepsFor
 
 
@@ -42,3 +47,34 @@ def build_eval_deps(settings: LlmSettings) -> DepsFor:
         return broken if case.fault == "llm" else deps
 
     return deps_for
+
+
+def build_readiness_probes(
+    env: Mapping[str, str], http_client: AsyncClient
+) -> dict[str, Probe]:
+    """Probes of the providers whose variables are set; a free call each.
+
+    Fact Check API, web search and transcription get probes with their ports
+    (worker#43 and later); the model is checked by its variables only, since
+    every call to it is paid.
+
+    Args:
+        env: The worker's environment, usually ``os.environ``.
+        http_client: HTTP client of the probes; the caller closes it.
+
+    Returns:
+        Provider name to probe; without a token EUvsDisinfo has none, since
+        ``missing_env`` already names it.
+
+    Features:
+        US-WDR-08, US-BEZ-03, F-30
+    """
+    if corpus.missing_env(env):
+        return {}
+    client = corpus.build_euvsdisinfo_client(env, http_client)
+
+    async def euvsdisinfo() -> bool:
+        await client.cases(limit=1, offset=0)
+        return True
+
+    return {EUVSDISINFO_PROBE: euvsdisinfo}

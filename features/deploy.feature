@@ -16,3 +16,13 @@ Funkcja: Migracje w deployu workera
     Zakładając migrację app_dev, która kończy się błędem
     Gdy deploy workera "dev" startuje
     Wtedy stary kontener działa dalej, a deploy kończy się błędem z nazwą migracji "app_dev"
+
+  Scenariusz: brak tokenu EUvsDisinfo
+    Zakładając worker startuje bez zmiennej z tokenem EUvsDisinfo
+    Gdy kończy sprawdzanie gotowości
+    Wtedy raport wymienia nazwę brakującej zmiennej, a log startu ma tę samą listę bez wartości sekretów
+
+  Scenariusz: wszystko ustawione
+    Zakładając wszystkie wymagane zmienne i dostępni dostawcy
+    Gdy worker publikuje raport
+    Wtedy raport nie ma braków i ma czas sprawdzenia

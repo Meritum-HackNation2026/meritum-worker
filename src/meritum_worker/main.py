@@ -10,15 +10,18 @@ from datetime import UTC, datetime
 from functools import cache
 from typing import Any
 
+import httpx2
 import psycopg
 from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
 from meritum_core.corpus import CorpusSettings
+from meritum_core.jobs.constants import READINESS_KEY
 from meritum_core.jobs.contracts import (
     APPLICATION_NAME,
     CHECK,
     DEFAULT_QUEUE,
     DELETE_SUBJECT,
     PING,
+    READINESS,
 )
 from meritum_core.shared.blobs import BlobSettings
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
@@ -26,7 +29,7 @@ from meritum_core.shared.database.adapters import apply_migrations
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings
 
-from meritum_worker import checks, corpus, jobs, security
+from meritum_worker import checks, corpus, jobs, observability, security
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
 from meritum_worker.corpus.adapters import apply_corpus_migrations
 
@@ -136,6 +139,48 @@ def euvsdisinfo_sync_step() -> dict[str, Any]:
     return report.model_dump(mode="json")
 
 
+async def readiness_report() -> dict[str, Any]:
+    """Check this process's variables and providers (`observability.check_readiness`).
+
+    Returns:
+        The `ReadinessReport` JSON object; never raises for a missing key.
+
+    Features:
+        US-WDR-08, US-BEZ-03, F-30
+    """
+    async with httpx2.AsyncClient() as http:
+        probes = observability.build_readiness_probes(os.environ, http)
+        report = await observability.check_readiness(
+            os.environ, probes, datetime.now(UTC)
+        )
+    return report.model_dump(mode="json")
+
+
+@DBOS.workflow(
+    name=READINESS.name, serialization_type=WorkflowSerializationFormat.PORTABLE
+)
+async def readiness_workflow(payload: dict[str, Any]) -> dict[str, Any]:
+    """Report missing variables and providers; also the READINESS_KEY event.
+
+    Args:
+        payload: the `ReadinessInput` JSON object.
+
+    Returns:
+        The `ReadinessReport` JSON object.
+
+    Features:
+        US-WDR-08, US-BEZ-03, F-30, ADR-03
+    """
+    READINESS.input.model_validate(payload)
+    report = await DBOS.run_step_async({"retries_allowed": False}, readiness_report)
+    await DBOS.set_event_async(
+        READINESS_KEY,
+        report,
+        serialization_type=WorkflowSerializationFormat.PORTABLE,
+    )
+    return report
+
+
 def _retention_deps() -> security.RetentionDeps:
     blobs = BlobSettings() if security.BLOB_PROVIDER_ENV in os.environ else None
     return security.build_retention_deps(DatabaseSettings(), blobs)
@@ -228,6 +273,8 @@ def main() -> None:
             }
         ]
     )
+    report = asyncio.run(readiness_report())
+    observability.log_readiness(READINESS.output.model_validate(report), DBOS.logger)
     stop = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
     signal.signal(signal.SIGINT, lambda *_: stop.set())
