@@ -11,7 +11,7 @@ import asyncio
 from collections.abc import Iterable
 from operator import itemgetter
 
-from httpx2 import AsyncClient, TransportError, codes
+from httpx2 import AsyncClient, RequestError, TransportError, codes
 from meritum_core.corpus.models import Passage
 from meritum_core.corpus.rerank import RankedPassage
 from meritum_core.shared.llm import ProviderUnavailableError
@@ -79,6 +79,9 @@ async def post_json[T: BaseModel](  # ruff: ignore[too-many-arguments]  # one ca
         except TransportError as exc:
             last = f"{type(exc).__name__} on attempt {attempt + 1}"
             continue
+        except RequestError as exc:  # undecodable body, redirects: not transient
+            last = f"{type(exc).__name__} on attempt {attempt + 1}"
+            break
         last = f"HTTP {response.status_code} on attempt {attempt + 1}"
         if response.is_success:
             try:

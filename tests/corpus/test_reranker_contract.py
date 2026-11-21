@@ -85,11 +85,12 @@ def test_transient_error_is_retried(provider: Provider) -> None:
     ("reply", "calls"),
     [
         (httpx2.ConnectError("no reply"), 2),
+        (httpx2.DecodingError("broken gzip"), 1),
         ((503, "malformed.json"), 2),
         ((403, "malformed.json"), 1),
         ((200, "malformed.json"), 1),
     ],
-    ids=["no-reply", "unavailable", "refused", "malformed"],
+    ids=["no-reply", "undecodable", "unavailable", "refused", "malformed"],
 )
 def test_failure_raises_provider_unavailable(
     provider: Provider, reply: tuple[int, str] | Exception, calls: int
