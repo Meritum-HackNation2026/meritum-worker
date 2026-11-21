@@ -26,6 +26,7 @@ from meritum_worker.checks import (
     FakePageFetcher,
     InlineCheckRuntime,
     audio_ports,
+    corpus_ports,
     ogg_opus,
     run_check,
     web_ports,
@@ -54,6 +55,7 @@ def _given_audio(context: Context, data: bytes, transcript: str | None) -> None:
         pii=NullPiiGate(),
         **ports,
         **web_ports(),
+        **corpus_ports(),
     )
     blobs = ports["blobs"]
     ref = asyncio.run(

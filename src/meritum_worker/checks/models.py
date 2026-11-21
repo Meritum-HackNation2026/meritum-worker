@@ -13,11 +13,11 @@ from meritum_core.checks.constants import MIN_TEXT_CHARS
 from meritum_core.checks.contracts import (
     CatalogEntry,
     ClaimDateSource,
-    ClaimResult,
     FailureCode,
     ModelUsage,
 )
 from meritum_core.checks.transcription import TranscriptionPort
+from meritum_core.corpus import CorpusSearchPort, RankedPassage, RerankerPort
 from meritum_core.corpus.fetching import PageFetcherPort
 from meritum_core.corpus.web_search import WebSearchPort
 from meritum_core.evidence.models import SourceDocument
@@ -98,10 +98,13 @@ class CheckDeps:
         web_search: live web search, limited to catalogue domains.
         injection: the detector pages found by web search are scanned with.
         catalog: the loaded source catalogue.
+        corpus: hybrid search of the corpus snapshots, called in process (ADR-32).
+        reranker: the gate passages pass before stance assessment (ADR-35).
+        corpus_version: the snapshot checks search; NO_CORPUS_VERSION skips it.
 
     Features:
-        US-SPR-01, US-SPR-07, US-SPR-11, US-OBS-01, US-POW-01, US-KOR-04, F-06,
-        F-08, F-13, F-22
+        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-POW-01,
+        US-KOR-04, F-06, F-08, F-09, F-12, F-13, F-22
     """
 
     llm: LlmPort
@@ -114,6 +117,9 @@ class CheckDeps:
     web_search: WebSearchPort
     injection: InjectionDetectorPort
     catalog: tuple[CatalogEntry, ...]
+    corpus: CorpusSearchPort
+    reranker: RerankerPort
+    corpus_version: str
 
 
 class CheckState(BaseModel):
@@ -136,6 +142,7 @@ class CheckState(BaseModel):
         skipped_steps: step codes that had nothing to do for this input.
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
         evidence: source documents found for the claims, each past quarantine.
+        passages: reranked corpus passages per fact, keyed by the claim text.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
 
@@ -159,6 +166,7 @@ class CheckState(BaseModel):
     skipped_steps: list[str] = []
     claims: list[ExtractedClaim] = []
     evidence: list[SourceDocument] = []
+    passages: dict[str, list[RankedPassage]] = {}
     limitations: list[str] = []
     result: CheckResult | None = None
 
@@ -225,18 +233,3 @@ class CheckState(BaseModel):
         """
         result = self.result or self.technical_failure()
         return result.model_copy(update={"transcript": self.transcript})
-
-
-class AnswerDraft(BaseModel):
-    """What the model answers in write_answer, before the CheckResult rules apply.
-
-    Attributes:
-        claims: one result per claim.
-        limitations: what the check could not cover.
-
-    Features:
-        US-SPR-01, F-22
-    """
-
-    claims: list[ClaimResult]
-    limitations: list[str]

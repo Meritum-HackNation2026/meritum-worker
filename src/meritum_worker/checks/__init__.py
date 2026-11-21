@@ -4,6 +4,12 @@ Features:
     US-SPR-01, US-OBS-01, F-22
 """
 
+from meritum_worker.checks._corpus_fakes import (
+    CorpusPorts,
+    FakeCorpusSearch,
+    corpus_ports,
+)
+from meritum_worker.checks.answers import AnswerDraft
 from meritum_worker.checks.fakes import (
     AudioPorts,
     FailingCheckRuntime,
@@ -14,7 +20,6 @@ from meritum_worker.checks.fakes import (
     web_ports,
 )
 from meritum_worker.checks.models import (
-    AnswerDraft,
     CheckDeps,
     CheckState,
     ClaimExtraction,
@@ -31,11 +36,14 @@ __all__ = [
     "CheckRuntime",
     "CheckState",
     "ClaimExtraction",
+    "CorpusPorts",
     "ExtractedClaim",
     "FailingCheckRuntime",
+    "FakeCorpusSearch",
     "FakePageFetcher",
     "InlineCheckRuntime",
     "audio_ports",
+    "corpus_ports",
     "ogg_opus",
     "pipeline",
     "run_check",

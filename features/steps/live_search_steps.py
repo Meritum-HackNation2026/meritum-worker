@@ -32,6 +32,7 @@ from meritum_worker.checks import (
     FakePageFetcher,
     InlineCheckRuntime,
     audio_ports,
+    corpus_ports,
     run_check,
 )
 from meritum_worker.corpus import FakeWebSearch
@@ -71,6 +72,7 @@ def _deps(
         injection=build_injection_detector(llm=llm, gate=NullInjectionGate()),
         catalog=catalog,
         **audio_ports(),
+        **corpus_ports(),
     )
 
 

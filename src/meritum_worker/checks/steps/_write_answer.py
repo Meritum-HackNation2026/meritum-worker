@@ -11,13 +11,9 @@ from meritum_core.checks.contracts import ClaimResult, ModelUsage, ai_marker_for
 from meritum_core.shared.llm import Prompt
 from pydantic import ValidationError
 
+from meritum_worker.checks.answers import AnswerDraft
 from meritum_worker.checks.constants import ANSWER_INSTRUCTIONS
-from meritum_worker.checks.models import (
-    AnswerDraft,
-    CheckDeps,
-    CheckState,
-    ExtractedClaim,
-)
+from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
 from meritum_worker.checks.usage import model_usage
 
 

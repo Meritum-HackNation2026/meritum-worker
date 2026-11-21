@@ -52,13 +52,16 @@ def test_check_publishes_each_step_active_then_done_and_ends_with_result(
     for index, status in enumerate(statuses[:-1]):
         before = [code for stage in stages[:index] for code in stage]
         active = stages[index]
+        # A text has no link and no audio, and no corpus snapshot is pinned.
+        skipped = {"fetch_url", "transcribe_audio", "search_corpus"}
         expected = [
-            "done" if code in before else "active" if code in active else "pending"
+            ("skipped" if code in skipped else "done")
+            if code in before
+            else "active"
+            if code in active
+            else "pending"
             for code in STEP_CODES
         ]
-        # A text has no link and no audio: the second and third codes are skipped.
-        for skipped in (1, 2)[: max(index - 1, 0)]:
-            expected[skipped] = "skipped"
         assert [step.status for step in status.steps] == expected
         assert status.result is None
     final = statuses[-1]

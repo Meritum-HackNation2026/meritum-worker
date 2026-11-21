@@ -16,6 +16,7 @@ from meritum_worker.checks import (
     FakePageFetcher,
     InlineCheckRuntime,
     audio_ports,
+    corpus_ports,
     run_check,
     web_ports,
 )
@@ -35,6 +36,7 @@ def deps(fixture: str, pages: FakePageFetcher | None = None) -> CheckDeps:
         pii=NullPiiGate(),
         **audio_ports(),
         **web_ports(),
+        **corpus_ports(),
     )
 
 
