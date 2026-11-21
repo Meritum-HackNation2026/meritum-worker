@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+from meritum_core.checks.contracts import CheckRecord
 from meritum_core.shared.blobs import BlobSettings
 from meritum_core.shared.database import DatabaseSettings
 
@@ -22,6 +23,7 @@ from meritum_worker.security import (
 
 NOW = datetime(2026, 11, 21, 3, 0, tzinfo=UTC)
 AUDIO = "audio_" + "a" * 32
+HASH = "c" * 64
 
 
 def _deps(store: InMemoryWorkflowStore, directory: Path | None = None) -> RetentionDeps:
@@ -127,3 +129,48 @@ def test_erasure_rejects_another_contract_version() -> None:
     payload = {"kind": "session_id", "value": "s_12345678", "contract_version": 99}
     with pytest.raises(ValueError, match="contract_version"):
         asyncio.run(erase_subject(payload, _deps(InMemoryWorkflowStore())))
+
+
+def _record(check_id: str, channel_user_hash: str) -> CheckRecord:
+    return CheckRecord(
+        check_id=check_id,
+        session_id=channel_user_hash,
+        channel="discord",
+        received_at=NOW,
+        answered_at=NOW,
+        question_masked="Płaca minimalna wynosi 4806 zł",
+        status="done",
+        verdicts=["confirmed"],
+        source_ids=[],
+        corpus_version="c1",
+        models=[],
+        retention_until=NOW + timedelta(days=30),
+        channel_user_hash=channel_user_hash,
+    )
+
+
+def test_second_erasure_pass_deletes_a_record_saved_after_the_first() -> None:
+    deps = _deps(InMemoryWorkflowStore())
+    payload = {"kind": "channel_user_hash", "value": HASH}
+    asyncio.run(erase_subject(payload, deps))
+    # A cancelled check whose save step was already running lands its record late.
+    asyncio.run(deps.app.records.save(_record("chk_late", HASH)))
+    asyncio.run(deps.app.records.save(_record("chk_other", "d" * 64)))
+    output = asyncio.run(erase_subject(payload, deps))
+    assert asyncio.run(deps.app.records.list_for("channel_user_hash", HASH)) == []
+    assert asyncio.run(deps.app.records.get("chk_other")) is not None
+    assert output.deleted == 1
+
+
+def test_erasure_by_channel_user_hash_drops_their_checks_and_audio(
+    tmp_path: Path,
+) -> None:
+    store = InMemoryWorkflowStore()
+    audio = _file(tmp_path, AUDIO, timedelta(hours=1))
+    request = {"request": {"audio_id": AUDIO}, "channel_user_hash": HASH}
+    store.add("chk_1", "check", request, created_at=NOW)
+    store.add("chk_2", "check", {"channel_user_hash": "d" * 64}, created_at=NOW)
+    payload = {"kind": "channel_user_hash", "value": HASH}
+    asyncio.run(erase_subject(payload, _deps(store, tmp_path)))
+    assert store.ids() == {"chk_2"}
+    assert not audio.exists()

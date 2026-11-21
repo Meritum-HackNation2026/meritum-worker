@@ -41,7 +41,7 @@ class WorkflowStore(Protocol):
         name: str | None = None,
         finished_only: bool = False,
     ) -> list[str]:
-        """Select workflows started before ``created_before``, in any status.
+        """Select workflows started before ``created_before``.
 
         Args:
             limit: the most ids to return.
@@ -79,7 +79,8 @@ class BlobCleaner(Protocol):
             blob_ids: ids as ``CheckRequest.audio_id`` carries them.
 
         Returns:
-            How many well-formed ids were deleted or already gone.
+            How many well-formed ids the store took; a file already gone counts,
+            since ``BlobStore.delete`` ignores a missing file.
         """
         ...
 

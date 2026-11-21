@@ -67,6 +67,10 @@ ERASURE_RESULT_KEPT: Final = timedelta(hours=1)
 its result; its input names the person, so the next hourly retention run after
 that deletes it (at most two hours after the erasure)."""
 
+ERASURE_SETTLE: Final = timedelta(minutes=1)
+"""Wait between the two passes of ``delete_subject``: longer than a step that
+was already saving a record when its check was cancelled."""
+
 RETENTION_BATCH: Final = 500
 """Most expired check records deleted in one round of the retention run."""
 
@@ -83,7 +87,7 @@ FINISHED_STATUSES: Final = (
 goes after an hour only in one of these."""
 
 RETENTION_WORKFLOW: Final = "retention"
-"""DBOS name of the daily retention workflow; its schedule starts it, never the API."""
+"""DBOS name of the retention workflow; its schedule starts it, never the API."""
 
 RETENTION_SCHEDULE_NAME: Final = "retention_hourly"
 """Name of the DBOS schedule that starts the retention workflow."""

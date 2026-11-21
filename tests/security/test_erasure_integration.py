@@ -75,17 +75,21 @@ async def _check(session: str) -> str:
     return handle.workflow_id
 
 
-async def _erase_then_retain() -> None:
+async def _erase() -> str:
     payload = {"kind": "session_id", "value": SESSION}
     handle = await DBOS.start_workflow_async(main.delete_subject_workflow, payload)
     assert (await handle.get_result())["deleted"] > 0
+    return handle.workflow_id
+
+
+async def _retain() -> None:
     # The erasure run keeps its input for an hour; the next retention run drops it.
     deps = security.build_retention_deps(DatabaseSettings(), None)
     await security.run_retention(deps, datetime.now(UTC) + timedelta(hours=2))
 
 
-def _rows_naming(value: str, skip: str = "") -> int:
-    """Count rows of every app and DBOS table but ``skip`` that mention ``value``."""
+def _rows_naming(value: str, skip: str = "", unless: str = "never-in-a-row") -> int:
+    """Count rows of all tables but ``skip`` naming ``value`` and not ``unless``."""
     found = 0
     with psycopg.connect(URL) as conn:
         tables = conn.execute(
@@ -96,20 +100,31 @@ def _rows_naming(value: str, skip: str = "") -> int:
         ).fetchall()
         for schema, table in tables:
             name = sql.Identifier(schema, table)
-            query = sql.SQL("SELECT count(*) FROM {} t WHERE t::text LIKE %s")
-            row = conn.execute(query.format(name), (f"%{value}%",)).fetchone()
+            query = sql.SQL(
+                "SELECT count(*) FROM {} t"
+                " WHERE t::text LIKE %s AND t::text NOT LIKE %s"
+            )
+            patterns = (f"%{value}%", f"%{unless}%")
+            row = conn.execute(query.format(name), patterns).fetchone()
             found += 0 if row is None else int(row[0])
     return found
 
 
 @pytest.mark.integration
 @pytest.mark.skipif(not URL, reason="set MERITUM_TEST_DATABASE_URL")
-def test_no_row_names_the_session_after_erasure(app_url: str) -> None:
+def test_no_row_names_the_session_after_erasure(
+    app_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     assert app_url
+    monkeypatch.setattr(security, "ERASURE_SETTLE", timedelta(seconds=1))
     erased = asyncio.run(_check(SESSION))
     kept = asyncio.run(_check(OTHER))
     assert _rows_naming(SESSION) > 0
-    asyncio.run(_erase_then_retain())
+    run = asyncio.run(_erase())
+    # Right after the erasure only the erasure run itself names the session.
+    assert _rows_naming(SESSION, unless=run) == 0
+    assert _rows_naming(SESSION) > 0
+    asyncio.run(_retain())
     assert _rows_naming(SESSION) == 0
     # Only the bare id stays, so a stale case save cannot bring it back (core#74).
     assert _rows_naming(erased, skip="removed_case_checks") == 0

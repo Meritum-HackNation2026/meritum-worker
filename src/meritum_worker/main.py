@@ -140,15 +140,19 @@ def _retention_deps() -> security.RetentionDeps:
     return security.build_retention_deps(DatabaseSettings(), blobs)
 
 
-async def _erase(payload: dict[str, Any]) -> dict[str, Any]:
-    return (await security.erase_subject(payload, _retention_deps())).model_dump()
+async def _erase(payload: dict[str, object]) -> int:
+    return (await security.erase_subject(payload, _retention_deps())).deleted
 
 
 @DBOS.workflow(
     name=DELETE_SUBJECT.name, serialization_type=WorkflowSerializationFormat.PORTABLE
 )
 async def delete_subject_workflow(payload: dict[str, Any]) -> dict[str, Any]:
-    """Erase one person (DELETE_SUBJECT); one step keeps what it reads out of history.
+    """Erase one person (DELETE_SUBJECT); steps keep what they read out of history.
+
+    A cancelled check stops at its next step, so a step saving its record may
+    still finish after the first pass; the second pass, after ERASURE_SETTLE,
+    deletes that record.
 
     Args:
         payload: the `DeleteSubjectInput` JSON object.
@@ -159,7 +163,10 @@ async def delete_subject_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     Features:
         US-BEZ-05, F-20, ADR-03
     """
-    return await DBOS.run_step_async({"retries_allowed": True}, _erase, payload)
+    deleted = await DBOS.run_step_async({"retries_allowed": True}, _erase, payload)
+    await DBOS.sleep_async(security.ERASURE_SETTLE.total_seconds())
+    deleted += await DBOS.run_step_async({"retries_allowed": True}, _erase, payload)
+    return DELETE_SUBJECT.output(deleted=deleted).model_dump()
 
 
 @DBOS.workflow(name=security.RETENTION_WORKFLOW)

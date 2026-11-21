@@ -1,4 +1,4 @@
-"""The daily retention run: deletes user data older than 30 days.
+"""The retention run, started hourly: deletes user data older than 30 days.
 
 Features:
     US-BEZ-05, US-POW-04, F-20, ADR-13
