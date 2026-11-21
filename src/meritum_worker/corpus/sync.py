@@ -22,6 +22,7 @@ from meritum_worker.corpus.constants import (
     CASE_KEY_PREFIX,
     CATALOG_LICENSE,
     CATALOG_QUALIFIED_BECAUSE,
+    MAX_PAGES,
     PAGE_SIZE,
     PUBLISHER_ID,
     PUBLISHER_NAME,
@@ -31,6 +32,7 @@ from meritum_worker.corpus.constants import (
     SOURCE_TITLE_MIN,
     TOKEN_ENV,
 )
+from meritum_worker.corpus.errors import EuvsDisinfoUnavailableError
 from meritum_worker.corpus.models import (
     Entry,
     EuvsArticle,
@@ -87,10 +89,9 @@ async def sync_euvsdisinfo(
     """Read every case and article and write the difference to the local copy.
 
     Every page is read and embedded before the first write, so a failure of
-    the server (``EuvsDisinfoUnavailableError``) or of the embeddings leaves the
-    copy as it was. An entry seen twice (pages shift while the source grows)
-    counts once; one missed because the source shrank mid-scan is marked
-    deleted and comes back on the next run.
+    the server or of the embeddings leaves the copy as it was. An entry seen
+    twice (pages shift while the source grows) counts once; one missed because
+    the source shrank mid-scan is marked deleted and comes back next run.
 
     Args:
         client: The EUvsDisinfo MCP client.
@@ -101,6 +102,10 @@ async def sync_euvsdisinfo(
     Returns:
         How many entries were added, updated and marked deleted.
 
+    Raises:
+        EuvsDisinfoUnavailableError: The scan returned nothing, so the copy is
+            kept instead of marking every entry deleted.
+
     Features:
         US-KOR-08, F-11, ADR-26
     """
@@ -108,6 +113,9 @@ async def sync_euvsdisinfo(
     articles = await _all_pages(client.articles)
     entries = [_case_entry(c) for c in cases] + [_article_entry(a) for a in articles]
     fetched = list({e.key: e for e in entries}.values())
+    if not fetched:
+        msg = "EUvsDisinfo returned nothing; the copy is left as it was"
+        raise EuvsDisinfoUnavailableError(msg)
     stored = {s.entry.key: s for s in await store.entries()}
     fresh = [e for e in fetched if _is_fresh(e, stored.get(e.key))]
     keys = {e.key for e in fetched}
@@ -121,11 +129,13 @@ async def sync_euvsdisinfo(
 
 async def _all_pages[T](page: Callable[..., Awaitable[list[T]]]) -> list[T]:
     items: list[T] = []
-    while True:
+    for _ in range(MAX_PAGES):
         batch = await page(limit=PAGE_SIZE, offset=len(items))
         items += batch
         if len(batch) < PAGE_SIZE:
             return items
+    msg = f"more than {MAX_PAGES} pages; the server may ignore offset"
+    raise EuvsDisinfoUnavailableError(msg)
 
 
 def _is_fresh(entry: Entry, stored: StoredEntry | None) -> bool:
@@ -133,7 +143,10 @@ def _is_fresh(entry: Entry, stored: StoredEntry | None) -> bool:
 
 
 def _domain(link: str) -> str | None:
-    host = urlsplit(link).hostname
+    try:
+        host = urlsplit(link).hostname
+    except ValueError:  # a malformed link from the source flags no domain
+        return None
     return None if host is None else host.removeprefix("www.")
 
 
@@ -144,7 +157,7 @@ def _case_entry(case: EuvsCase) -> Entry:
         kind="case",
         title=case.title,
         url=case.url,
-        published_at=datetime.fromtimestamp(case.date, UTC),
+        published_at=case.date,
         description=case.claim,
         fact=case.fact,
         domains=tuple(sorted(domains)),

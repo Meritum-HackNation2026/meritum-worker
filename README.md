@@ -64,7 +64,7 @@ Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration test
 
 ## Lokalna kopia EUvsDisinfo
 
-Workflow `euvsdisinfo_sync` (`src/meritum_worker/corpus/`) czyta wszystkie przypadki i artykuły EUvsDisinfo przez serwer MCP, stronami po 100, i zapisuje różnicę: nowe wpisy dodaje, zmienione podmienia, a zniknięte ze źródła oznacza jako usunięte. Opisy przypadków i teksty fact dostają embeddingi z portu core, a teksty fact trafiają do kopii jako `Source` z `via = mcp`. Domeny z `linksToDisinformation` idą do ostrzeżenia o domenie. Bez `EUVSDISINFO_MCP_API_KEY` workflow nic nie pobiera i zwraca `missing_env`; tę samą listę daje `corpus.missing_env()` dla raportu gotowości.
+Workflow `euvsdisinfo_sync` (`src/meritum_worker/corpus/`) czyta wszystkie przypadki i artykuły EUvsDisinfo przez serwer MCP, stronami po 100, i zapisuje różnicę: nowe wpisy dodaje, zmienione podmienia, a zniknięte ze źródła oznacza jako usunięte. Opisy przypadków i teksty fact dostają embeddingi z portu core, a teksty fact trafiają do kopii jako `Source` z `via = mcp`. Domeny z `linksToDisinformation` są zapisane w kopii (`flagged_domains()`) i czekają na ostrzeżenie o domenie z [worker#42](https://github.com/Meritum-HackNation2026/meritum-worker/issues/42). Bez `EUVSDISINFO_MCP_API_KEY` workflow nic nie pobiera i zwraca `missing_env`; tę samą listę daje `corpus.missing_env()` dla raportu gotowości.
 
 Synchronizację z prawdziwym serwerem uruchamiamy ręcznie, poza CI, w środowisku z prawem zapisu do schematu `corpus`:
 
@@ -81,7 +81,7 @@ client.enqueue(
 )
 ```
 
-Na razie kopia żyje w pamięci procesu workera. Trwały zapis w PostgreSQL czeka na tabele w schemacie `corpus`.
+Na razie kopia żyje w pamięci procesu workera i znika przy każdym restarcie i deployu. Trwały zapis w PostgreSQL to [worker#59](https://github.com/Meritum-HackNation2026/meritum-worker/issues/59). Do tego czasu nie uruchamiaj synchronizacji na dev ani prd z `MERITUM_EMBEDDINGS_PROVIDER=vertex`: każdy przebieg embedduje całą bazę od nowa.
 
 ## CI/CD
 

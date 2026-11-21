@@ -21,6 +21,10 @@ SSE_DATA_PREFIX: Final = "data:"
 PAGE_SIZE: Final = 100
 """Items per ``cases`` / ``articles`` call; the server's maximum."""
 
+MAX_PAGES: Final = 1000
+"""Most pages per tool in one sync (100 000 items, about five times the database
+in 2026); a server that ignores ``offset`` fails the sync instead of looping."""
+
 REQUEST_TIMEOUT_SECONDS: Final = 60.0
 """Timeout of one MCP call; a page of 100 cases is a few hundred kilobytes."""
 

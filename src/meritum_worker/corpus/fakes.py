@@ -32,6 +32,7 @@ class FakeEuvsDisinfoServer:
         self._split_data = split_data
         self._late_cases = 0
         self._dropped: set[str] = set()
+        self._ignore_offset = False
         self._items: dict[str, list[dict[str, object]]] = {"cases": [], "articles": []}
         self._next_id = 1
         self._failing_offset: int | None = None
@@ -87,7 +88,8 @@ class FakeEuvsDisinfoServer:
         Returns:
             The withdrawn cases, for ``restore_cases``.
         """
-        window = slice(-count - keep_oldest, -keep_oldest)
+        end = len(self._items["cases"]) - keep_oldest
+        window = slice(end - count, end)
         removed = self._items["cases"][window]
         del self._items["cases"][window]
         return removed
@@ -99,6 +101,19 @@ class FakeEuvsDisinfoServer:
             count: How many; they shift later pages, so some cases repeat.
         """
         self._late_cases = count
+
+    def patch_cases(self, **fields: object) -> None:
+        """Overwrite fields of every case, e.g. with malformed values.
+
+        Args:
+            **fields: Field names and their new values.
+        """
+        for case in self._items["cases"]:
+            case.update(fields)
+
+    def ignore_offset(self) -> None:
+        """Serve the first page for every offset, like a broken cache."""
+        self._ignore_offset = True
 
     def drop_field(self, name: str) -> None:
         """Leave a field out of every served item.
@@ -135,6 +150,7 @@ class FakeEuvsDisinfoServer:
         tool = call["params"]["name"]
         limit, offset = (call["params"]["arguments"][k] for k in ("limit", "offset"))
         self.calls.append((tool, limit, offset))
+        offset = 0 if self._ignore_offset else offset
         if offset == self._failing_offset:
             return Response(500, json={"jsonrpc": "2.0", "error": {"code": -32603}})
         page = [

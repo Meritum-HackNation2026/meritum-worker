@@ -20,7 +20,7 @@ class EuvsCase(BaseModel):
         title: Case title.
         claim: The disinformation as summarised by EUvsDisinfo (source text: data).
         fact: The disproof ("fact") text.
-        date: Case date as a Unix timestamp.
+        date: Case date; the server sends a Unix timestamp.
         links: Links to the disinformation (``linksToDisinformation``).
         url: Case page on euvsdisinfo.eu.
 
@@ -34,7 +34,7 @@ class EuvsCase(BaseModel):
     title: str
     claim: str
     fact: str
-    date: int
+    date: AwareDatetime
     links: list[str] = Field(default=[], alias="linksToDisinformation")
     url: str
 

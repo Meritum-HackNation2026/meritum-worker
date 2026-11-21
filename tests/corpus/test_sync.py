@@ -149,3 +149,38 @@ def test_case_without_id_is_unavailable() -> None:
     server.drop_field("id")
     with pytest.raises(corpus.EuvsDisinfoUnavailableError):
         sync(server, corpus.build_euvsdisinfo_copy())
+
+
+def test_malformed_link_flags_no_domain() -> None:
+    server, store = FakeEuvsDisinfoServer(TOKEN), corpus.build_euvsdisinfo_copy()
+    server.seed(cases=1, articles=0)
+    server.patch_cases(linksToDisinformation=["http://[::1", "https://ok.example/a"])
+    assert sync(server, store) == corpus.SyncReport(added=1)
+    assert asyncio.run(store.flagged_domains()) == {"ok.example": ("case:1",)}
+
+
+def test_case_date_out_of_range_is_unavailable() -> None:
+    server = FakeEuvsDisinfoServer(TOKEN)
+    server.seed(cases=1, articles=0)
+    server.patch_cases(date=10**20)
+    with pytest.raises(corpus.EuvsDisinfoUnavailableError):
+        sync(server, corpus.build_euvsdisinfo_copy())
+
+
+def test_server_ignoring_offset_stops_after_max_pages() -> None:
+    server = FakeEuvsDisinfoServer(TOKEN)
+    server.seed(cases=100, articles=0)
+    server.ignore_offset()
+    with pytest.raises(corpus.EuvsDisinfoUnavailableError):
+        sync(server, corpus.build_euvsdisinfo_copy())
+    assert len(server.calls) == 1000
+
+
+def test_empty_scan_leaves_the_copy() -> None:
+    server, store = FakeEuvsDisinfoServer(TOKEN), corpus.build_euvsdisinfo_copy()
+    server.seed(cases=12, articles=0)
+    sync(server, store)
+    server.remove_cases(12, keep_oldest=0)
+    with pytest.raises(corpus.EuvsDisinfoUnavailableError):
+        sync(server, store)
+    assert all(s.deleted_at is None for s in asyncio.run(store.entries()))

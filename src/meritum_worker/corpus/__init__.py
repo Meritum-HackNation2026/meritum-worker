@@ -6,6 +6,7 @@ Features:
     US-KOR-08, F-11, ADR-26, ADR-32
 """
 
+from meritum_worker.corpus.constants import SYNC_WORKFLOW
 from meritum_worker.corpus.errors import EuvsDisinfoUnavailableError, MissingTokenError
 from meritum_worker.corpus.factory import (
     build_euvsdisinfo_client,
@@ -23,6 +24,7 @@ from meritum_worker.corpus.ports import EuvsCopyPort, EuvsDisinfoPort
 from meritum_worker.corpus.sync import catalog_entry, missing_env, sync_euvsdisinfo
 
 __all__ = [
+    "SYNC_WORKFLOW",
     "Entry",
     "EuvsArticle",
     "EuvsCase",
