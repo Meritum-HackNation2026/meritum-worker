@@ -12,7 +12,7 @@ Worker wykonuje tylko zadania zlecone z jego `application_version`, więc dev i 
 ## Nowy workflow
 
 1. W meritum-core dodaj modele wejścia i wyjścia oraz `WorkflowSpec` do `WORKFLOWS`.
-2. Tutaj: logika jako zwykła funkcja w `src/meritum_worker/jobs.py` (testy bez DBOS), workflow w `main.py` z `name=spec.name` i `serialization_type=WorkflowSerializationFormat.PORTABLE`.
+2. Tutaj: logika jako zwykła funkcja w wycinku swojej domeny, `src/meritum_worker/<domena>/` (np. `checks/`), z publicznym API w `__init__.py` i testami bez DBOS. `jobs.py` trzyma tylko smoke test `ping`. W `main.py` zostaje sama rejestracja: workflow z `name=spec.name` i `serialization_type=WorkflowSerializationFormat.PORTABLE`, który woła funkcję z wycinka. DBOS importuje tylko `main.py` i adaptery (`tests/architecture/`).
 3. Nowa kolejka: `DBOS.register_queue(...)` w `main()` po `DBOS.launch()`.
 
 ## Praca lokalna
@@ -22,8 +22,12 @@ Baza z `docker compose up -d --wait db` w repo backendu.
 ```bash
 uv sync
 uv run meritum-worker        # MERITUM_ENV=local, schemat worker_local
-uv run ruff check . && uv run ruff format --check . && uv run ty check && uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run ty check
+uv run python scripts/check_conventions.py && uv run vulture && uv run bandit -c pyproject.toml -r src scripts
+uv run pytest            # z testami architektury (tests/architecture/)
 ```
+
+Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architecture.md).
 
 ## CI/CD
 

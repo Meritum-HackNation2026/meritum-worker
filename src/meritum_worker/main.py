@@ -10,17 +10,33 @@ from meritum_core.jobs.contracts import APPLICATION_NAME, DEFAULT_QUEUE, PING
 
 from meritum_worker import jobs
 
-ENV = os.environ.get("MERITUM_ENV", "local")
+
+def env() -> str:
+    """The environment name (MERITUM_ENV): local, dev or prd.
+
+    Returns:
+        The name; the worker runs only jobs enqueued with it.
+
+    Features:
+        none (infrastructure)
+    """
+    return os.environ.get("MERITUM_ENV", "local")
 
 
 @DBOS.workflow(name=PING.name, serialization_type=WorkflowSerializationFormat.PORTABLE)
 def ping_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     """Smoke-test workflow (see meritum_core.jobs.contracts.PING).
 
+    Args:
+        payload: the `PingInput` JSON object.
+
     Returns:
         The `PingOutput` JSON object.
+
+    Features:
+        ADR-03
     """
-    return jobs.ping(payload, ENV)
+    return jobs.ping(payload, env())
 
 
 def config() -> DBOSConfig:
@@ -28,6 +44,9 @@ def config() -> DBOSConfig:
 
     Returns:
         The config; the schema holds the DBOS system tables of this env.
+
+    Features:
+        none (infrastructure)
     """
     return {
         "name": APPLICATION_NAME,
@@ -36,19 +55,23 @@ def config() -> DBOSConfig:
         ),
         "dbos_system_schema": os.environ.get("MERITUM_DBOS_SCHEMA", "worker_local"),
         # The backend enqueues with app_version=<env>; only this env's jobs run here.
-        "application_version": ENV,
+        "application_version": env(),
     }
 
 
 def main() -> None:
-    """Run the worker until SIGTERM or SIGINT."""
+    """Run the worker until SIGTERM or SIGINT.
+
+    Features:
+        ADR-03
+    """
     DBOS(config=config())
     DBOS.launch()
     DBOS.register_queue(DEFAULT_QUEUE)
     stop = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stop.set())
     signal.signal(signal.SIGINT, lambda *_: stop.set())
-    DBOS.logger.info("meritum-worker ready (env=%s)", ENV)
+    DBOS.logger.info("meritum-worker ready (env=%s)", env())
     stop.wait()
     DBOS.destroy()
 
