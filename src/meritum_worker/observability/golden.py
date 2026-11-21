@@ -16,10 +16,13 @@ def load_golden_set(path: Path) -> GoldenSet:
         path: The JSON file, a list of cases.
 
     Returns:
-        The validated cases; pydantic's ValidationError names any invalid case
-        or reference between cases.
+        The validated cases.
+
+    Raises:
+        OSError: The file cannot be read.
+        pydantic.ValidationError: A case or a reference between cases is invalid.
 
     Features:
         US-OBS-04, F-27
-    """
+    """  # ruff: ignore[docstring-extraneous-exception]  # raised by read_text and model_validate_json
     return GoldenSet.model_validate_json(path.read_text(encoding="utf-8"))

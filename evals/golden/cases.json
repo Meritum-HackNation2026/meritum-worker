@@ -77,7 +77,7 @@
     "main_claim": "Film udostępniony na Facebooku w marcu 2022 r. pokazuje ówczesny antywojenny protest w Moskwie.",
     "expected_status": "done",
     "expected_verdict": "misleading",
-    "expected_behavior": "Nie. Według Demagoga nagranie pokazuje demonstrację poparcia dla Aleksieja Nawalnego ze stycznia 2021 r. w Petersburgu, a nie antywojenny protest w Moskwie z 2022 r. To stare nagranie, nie relacja z 2022 r.; technika: wyrwanie z kontekstu. Link do posta pomijamy, bo prowadzi do profilu osoby prywatnej.",
+    "expected_behavior": "Nie. Według Demagoga nagranie pokazuje demonstrację poparcia dla Aleksieja Nawalnego ze stycznia 2021 r. w Petersburgu, a nie antywojenny protest w Moskwie z 2022 r. To stare nagranie, nie relacja z 2022 r.; technika: wyrwanie z kontekstu.",
     "sources": [
       {
         "url": "https://demagog.org.pl/fake_news/to-nie-jest-nagranie-z-protestow-antywojennych/",
@@ -563,20 +563,6 @@
     "related_case": "H-org-diesle"
   },
   {
-    "id": "H-own-parkowanie-sesja",
-    "scenario": "H",
-    "origin": "own",
-    "channel": "sms",
-    "text": "Pcim ma już płatne parkowanie?",
-    "session": "h-own-1",
-    "main_claim": "W Pcimiu od tego miesiąca obowiązuje strefa płatnego parkowania.",
-    "expected_status": "done",
-    "expected_verdict": "insufficient_evidence",
-    "expected_behavior": "Drugie pytanie w tej samej sprawie tworzy sprawę dla moderatora albo dołącza do istniejącej.",
-    "variant": "same_session",
-    "related_case": "H-own-parkowanie"
-  },
-  {
     "id": "H-own-parkowanie",
     "scenario": "H",
     "origin": "own",
@@ -587,6 +573,20 @@
     "expected_status": "done",
     "expected_verdict": "insufficient_evidence",
     "expected_behavior": "Mówi, że nie udało się tego potwierdzić, i nazywa brakujące źródło: uchwała rady gminy o strefie płatnego parkowania. Dodaje, że brak wyniku w naszych źródłach nie oznacza, że zmiany nie było."
+  },
+  {
+    "id": "H-own-parkowanie-sesja",
+    "scenario": "H",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Pcim ma już płatne parkowanie?",
+    "session": "h-own-1",
+    "main_claim": "W Pcimiu od tego miesiąca obowiązuje strefa płatnego parkowania.",
+    "expected_status": "done",
+    "expected_verdict": "insufficient_evidence",
+    "expected_behavior": "Parafraza w tej samej sesji trafia do tej samej sprawy co pierwsze pytanie; o zapisie sprawy mówi tylko wtedy, gdy system go potwierdził.",
+    "variant": "same_session",
+    "related_case": "H-own-parkowanie"
   },
   {
     "id": "H-own-parkowanie-kanal",

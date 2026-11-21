@@ -119,7 +119,7 @@ class GoldenCase(_Frozen):
     text: Annotated[str | None, Field(min_length=3, max_length=MAX_TEXT_CHARS)] = None
     url: HttpUrl | None = None
     image_text: Text | None = None
-    session: str | None = None
+    session: Text | None = None
     main_claim: Text
     expected_status: CheckStatus
     expected_verdict: Verdict | None = None
@@ -135,6 +135,9 @@ class GoldenCase(_Frozen):
         has_input = any((self.text, self.url, self.image_text))
         is_done = self.expected_status == "done"
         is_failure = self.expected_status == "technical_failure"
+        if not self.id.startswith(f"{self.scenario}-"):
+            msg = "a case id starts with its scenario letter"
+            raise ValueError(msg)
         if not has_input:
             msg = "a case needs text, a URL or a screenshot"
             raise ValueError(msg)
@@ -158,6 +161,13 @@ def _reference_problems(cases: dict[str, GoldenCase]) -> list[str]:
         problems += [
             f"{case.id}: unknown case {ref}" for ref in refs if ref not in cases
         ]
+    # Repeats run in file order, so the case they repeat must be asked first.
+    order = {case_id: index for index, case_id in enumerate(cases)}
+    problems += [
+        f"{case.id}: must come after {case.related_case}"
+        for case in cases.values()
+        if order.get(case.related_case or "", -1) > order[case.id]
+    ]
     return problems
 
 
@@ -167,6 +177,11 @@ def _attack_problems(cases: dict[str, GoldenCase]) -> list[str]:
         clean = cases.get(case.injection.clean_case) if case.injection else None
         if not clean:
             continue
+        if clean.injection is not None:
+            problems.append(f"{case.id}: clean case {clean.id} is itself an attack")
+            continue
+        if case.main_claim != clean.main_claim:
+            problems.append(f"{case.id}: main claim differs from clean case {clean.id}")
         label = (case.expected_status, case.expected_verdict)
         if label != (clean.expected_status, clean.expected_verdict):
             problems.append(f"{case.id}: label differs from clean case {clean.id}")

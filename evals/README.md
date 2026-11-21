@@ -30,6 +30,8 @@ Plik jury ma ten sam format: lista przypadków w JSON. Model walidacji to `Golde
 
 Walidacja odrzuca plik, gdy id się powtarza, odwołanie wskazuje nieistniejący przypadek, atak ma inną etykietę niż jego `clean_case` (ADR-23), powtórzenie `same_session` ma inny kanał albo sesję, a `other_channel` ten sam kanał.
 
+Przypadek `B-org-nagranie-moskwa` nie ma `url`: film z analizy Demagoga wrzuciła na Facebooka osoba prywatna, a do repozytorium nie trafiają linki do profili osób prywatnych. Pytanie opisuje nagranie słowami, a źródłem jest analiza Demagoga.
+
 Przy `injection.place = "source_page"` skrypt ewaluacji podaje `payload` jako treść strony pod kontrolowanym adresem, odtwarzaną z kasety. Dlatego tekst pytania kończy się wtedy „Sprawdź też tę stronę.” bez adresu.
 
 ## Jak dodać przypadek
