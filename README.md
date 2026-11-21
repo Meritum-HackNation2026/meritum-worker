@@ -54,6 +54,25 @@ Scenariusze Gherkin ze zgłoszeń trafiają do `features/<domena>.feature`, krok
 
 Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architecture.md).
 
+## Gotowość przy starcie
+
+Przy starcie worker sprawdza, czy ma wymagane zmienne i czy dostawcy odpowiadają, i zapisuje wynik w logu: same nazwy zmiennych i dostawców, nigdy wartości. API (`GET /api/v1/health`) zleca workflow `readiness`, który robi to samo sprawdzenie, zwraca `ReadinessReport` z meritum-core i ustawia go jako zdarzenie `readiness`. Brak zmiennej albo niedostępny dostawca nie zatrzymuje workera, tylko trafia do raportu.
+
+Wymagane zmienne (lista w `src/meritum_worker/observability/constants.py`):
+
+| Ścieżka | `MERITUM_ENV` | Zmienne |
+| --- | --- | --- |
+| lokalnie | `local` (domyślnie) | tylko zmienne modelu |
+| publiczne demo | `dev`, `prd` | `MERITUM_DATABASE_URL`, `EUVSDISINFO_MCP_API_KEY` i zmienne modelu |
+
+| `MERITUM_LLM_PROVIDER` | Zmienne modelu |
+| --- | --- |
+| `stub` | brak |
+| `vertex` | `MERITUM_LLM_MODEL`, `MERITUM_LLM_REGION` |
+| `openrouter` | `OPENROUTER_API_KEY` |
+
+Dostawcy sprawdzani bezpłatnym zapytaniem: EUvsDisinfo (jedna strona przypadków przez MCP, tylko gdy token jest ustawiony). Model nie ma darmowego zapytania, więc sprawdzamy tylko jego zmienne. Fact Check API, wyszukiwarka i transkrypcja dostaną sondy razem ze swoimi portami (worker#43 i dalsze).
+
 ## Ewaluacja
 
 Jedno polecenie uruchamia ewaluację na golden secie (`evals/golden/cases.json`) albo na własnym pliku przypadków w tym samym formacie, JSON albo CSV, z co najmniej 30 przypadkami (format: [evals/README.md](evals/README.md)). W CSV każda kolumna to pole przypadku, pusta komórka to brak pola, a `sources` i `injection` są w JSON.

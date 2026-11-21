@@ -66,3 +66,28 @@ NO_CORPUS_VERSION: Final = "none"
 
 OUT_OF_SCOPE_MESSAGE: Final = "A screenshot without text cannot be read without OCR."
 """Diagnostic of a screenshot-only case; never shown to citizens (#70)."""
+
+ENV_NAME_VAR: Final = "MERITUM_ENV"
+"""Environment variable naming the worker's env; ``local`` picks the local path."""
+
+LOCAL_ENV: Final = "local"
+"""MERITUM_ENV of a worker run on a laptop; every other value is the public demo."""
+
+REQUIRED_ENV: Final = {
+    "local": (),
+    "demo": ("MERITUM_DATABASE_URL", "EUVSDISINFO_MCP_API_KEY"),
+}
+"""Variables each path needs, before the model's; README lists the same."""
+
+LLM_PROVIDER_VAR: Final = "MERITUM_LLM_PROVIDER"
+"""Variable choosing the model adapter; unset means meritum-core's default."""
+
+LLM_REQUIRED_ENV: Final = {
+    "stub": (),
+    "vertex": ("MERITUM_LLM_MODEL", "MERITUM_LLM_REGION"),
+    "openrouter": ("OPENROUTER_API_KEY",),
+}
+"""Variables each model provider needs on top of its path (core#97: openrouter)."""
+
+EUVSDISINFO_PROBE: Final = "euvsdisinfo"
+"""Provider name of the EUvsDisinfo MCP server in the readiness report."""
