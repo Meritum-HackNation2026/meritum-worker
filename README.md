@@ -52,6 +52,40 @@ Scenariusze Gherkin ze zgłoszeń trafiają do `features/<domena>.feature`, krok
 
 Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architecture.md).
 
+## Ewaluacja
+
+Jedno polecenie uruchamia ewaluację na golden secie (`evals/golden/cases.json`) albo na własnym pliku przypadków w tym samym formacie, JSON albo CSV, z co najmniej 30 przypadkami (format: [evals/README.md](evals/README.md)). W CSV każda kolumna to pole przypadku, pusta komórka to brak pola, a `sources` i `injection` są w JSON.
+
+```bash
+uv run meritum-eval                                  # golden set, raport JSON na stdout
+uv run meritum-eval --cases jury.csv --output raport.json --max-concurrency 4
+```
+
+Model wybiera konfiguracja `MERITUM_LLM_*` (tabela wyżej), więc jeden przebieg na model daje porównywalny raport. Na stubie (`MERITUM_LLM_PROVIDER=stub`) wystarczy `MERITUM_LLM_STUB_FIXTURES`; Vertex AI potrzebuje `MERITUM_LLM_MODEL`, `MERITUM_LLM_REGION` (region UE) i poświadczeń ADC (`gcloud auth application-default login`). Zapisy przebiegu zostają w pamięci procesu, więc ewaluacja nic nie pisze do bazy aplikacji. Pełny przebieg woła model, dlatego nie jest krokiem CI (ADR-28); w CI biegną tylko testy mierników i scenariusze behave na stubie.
+
+Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
+
+| Pole | Co liczy |
+| --- | --- |
+| `macro_f1` | werdykt głównego twierdzenia; każdy stan niebędący werdyktem to jedna osobna klasa błędu |
+| `citation_coverage`, `citation_correctness` | twierdzenia z werdyktem rozstrzygającym, które mają cytat; cytaty, których host jest wśród `sources` przypadku |
+| `abstention` | przypadki z oczekiwanym `insufficient_evidence` albo `not_verifiable`, które dostały ten werdykt |
+| `robustness` | przypadki z `injection` z poprawnym wynikiem |
+| `median_seconds`, `p95_seconds`, `max_seconds` | czas z CheckRecord (`received_at` → `answered_at`), z nieudanymi przypadkami |
+| `input_tokens_per_check`, `output_tokens_per_check`, `cost_per_check_usd`, `cost_100_checks_usd` | tokeny i koszt modeli z CheckRecord; koszt jest zerowy, dopóki krok kosztu nie wycenia wywołań (worker#26) |
+| `channel_consistency` | powtórzenia `other_channel`, których JSON z CheckResult (bez `check_id`) równa się wynikowi pierwszego przypadku |
+| `information_loop` | odpowiedzi `insufficient_evidence` przekazane moderatorowi (`escalation`) |
+| `scenarios`, `outcomes` | trafność per scenariusz A–J i wynik każdego przypadku |
+
+Wynik przypadku liczy się według głównego twierdzenia. Gdy pasuje kilka twierdzeń, zostaje najgorszy wynik w kolejności: błędny werdykt rozstrzygający, stan niebędący werdyktem, błędne wstrzymanie się, wynik poprawny. Wyjątek w sprawdzeniu kończy przypadek stanem `technical_failure`, a przypadek zostaje w medianie czasu.
+
+Czego przebieg jeszcze nie obsługuje:
+
+- obrazy i zrzuty ekranu: bez OCR system odpowiada na nie `out_of_scope`, a przebieg wysyła tylko tekst przypadku, bez `image_text`;
+- atak z `injection.place = "source_page"`: strona z poleceniem czeka na kasety (ADR-27), więc przypadek biegnie na samym tekście;
+- wymuszone awarie `fact_check_api` i `web_search`: kroki wyszukiwania są jeszcze zaślepkami; działa tylko `fault: llm` (model bez odpowiedzi);
+- `max_concurrency` większe niż 1 nie gwarantuje, że powtórzenie (`same_session`, `other_channel`) przyjdzie po przypadku, który powtarza.
+
 ## Bramka klasyfikatora wstrzyknięć
 
 Detektor wstrzyknięć z meritum-core (wzorce PL/EN, bramka, izolowany klasyfikator LLM) dostaje bramkę z `meritum_worker.security.build_detector`. Dostawcę wybiera `MERITUM_INJECTION_GATE_PROVIDER`; bez niego działa pusta bramka (`NullInjectionGate`), która nic nie oznacza i loguje pominięcie. Awaria dostawcy (brak odpowiedzi, błąd HTTP po ponowieniach, odrzucone poświadczenia, nieczytelna odpowiedź) też tylko pomija bramkę z wpisem w logu, bez treści tekstu; wzorce i klasyfikator LLM działają dalej. Który dostawca zostaje, rozstrzyga ewaluacja na golden secie ([worker#41](https://github.com/Meritum-HackNation2026/meritum-worker/issues/41)).

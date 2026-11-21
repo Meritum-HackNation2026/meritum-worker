@@ -49,4 +49,4 @@ Przy `injection.place = "source_page"` skrypt ewaluacji podaje `payload` jako tr
 5. Nie wpisuj danych osobowych osób prywatnych ani linków do ich profili.
 6. Sprawdź plik: `uv run pytest tests/observability && uv run behave features/observability.feature`.
 
-Ewaluacja nie biegnie w CI (ADR-28). CI waliduje tylko sam plik przypadków.
+Przebieg uruchamia `uv run meritum-eval` (README repozytorium, sekcja „Ewaluacja”). Ewaluacja nie biegnie w CI (ADR-28). CI waliduje tylko sam plik przypadków i testuje mierniki.
