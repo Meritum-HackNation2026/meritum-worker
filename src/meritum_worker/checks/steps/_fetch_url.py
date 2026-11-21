@@ -21,8 +21,9 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
 
     The page text is masked like the input and cut to the length of a pasted
     text; it stays data for every later prompt (ADR-12). Any fetch failure (an
-    internal address, the network, a login wall or a paywall) ends the check as
-    technical_failure with code url_unavailable and a request to paste the text.
+    internal address, the network, a login wall or a paywall) or an empty page
+    ends the check as technical_failure with code url_unavailable and a request
+    to paste the text.
 
     Args:
         state: the check so far.
@@ -44,6 +45,9 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     try:
         page = await deps.pages.fetch(str(url), purpose=FetchPurpose.USER_LINK)
     except PageFetchError:
+        page = None
+    # An empty plain-text page has nothing to check, like a page we could not open.
+    if page is None or not page.untrusted_text.strip():
         failure = state.technical_failure(URL_UNAVAILABLE_CODE, URL_UNAVAILABLE_MESSAGE)
         return state.model_copy(update={"result": failure})
     masked = await mask_personal_data(

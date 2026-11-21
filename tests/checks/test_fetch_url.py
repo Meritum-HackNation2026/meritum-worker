@@ -70,6 +70,9 @@ def test_fetch_url_cuts_a_long_page_to_the_length_of_a_pasted_text(
         PageFetchError(FetchFailureReason.TIMEOUT),
         PageFetchError(FetchFailureReason.HTTP_ERROR),
         PageFetchError(FetchFailureReason.UNSUPPORTED_URL),
+        PageFetchError(FetchFailureReason.TOO_MANY_REDIRECTS),
+        PageFetchError(FetchFailureReason.UNSUPPORTED_CONTENT),
+        PageFetchError(FetchFailureReason.TOO_LARGE),
     ],
     ids=str,
 )
@@ -153,3 +156,27 @@ def test_fetch_url_reads_the_link_when_the_text_next_to_it_is_only_spaces(
     out = asyncio.run(fetch_url(state, make_deps(pages=pages)))
     assert pages.calls == [(LINK, FetchPurpose.USER_LINK)]
     assert out.question.startswith("Inflacja w październiku wyniosła 2,8%.")
+
+
+def test_check_of_a_public_link_checks_the_page_text_and_ends_fetch_url_done(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    deps = make_deps(pages=FakePageFetcher(_page()))
+    job = _url_state(make_job).job
+    runtime = InlineCheckRuntime()
+    output = asyncio.run(run_check(job.model_dump(mode="json"), "c-1", deps, runtime))
+    statuses = {s.code: s.status for s in runtime.published[-1].steps}
+    assert statuses["fetch_url"] == "done"
+    assert output.result.status == "done"
+    record = asyncio.run(deps.records.get("c-1"))
+    assert record is not None
+    assert record.question_masked.startswith("Inflacja w październiku wyniosła 2,8%.")
+
+
+def test_fetch_url_treats_an_empty_page_as_unavailable(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    pages = FakePageFetcher(_page("  \n "))
+    out = asyncio.run(fetch_url(_url_state(make_job), make_deps(pages=pages)))
+    assert out.result is not None
+    assert out.result.failure_code == "url_unavailable"
