@@ -73,7 +73,7 @@ def test_web_search_timeout_ends_as_technical_failure_and_is_recorded(
             ProviderUnavailableError(MISSING_KEY),
             "provider_unavailable",
         ),
-        ("search_web", ProviderUnavailableError(RATE_LIMIT), "provider_unavailable"),
+        ("search_web", ProviderUnavailableError(RATE_LIMIT), "web_search_unavailable"),
         (
             "transcribe_audio",
             TranscriptionUnavailableError(RATE_LIMIT),

@@ -12,7 +12,6 @@ from meritum_worker.checks.constants import (
     STEP_FAILURE_CODES,
     TECHNICAL_FAILURE_CODE,
     TIMEOUT_REASON,
-    TRANSCRIPTION_FAILED_CODE,
 )
 
 
@@ -50,16 +49,12 @@ def provider_failure(step: str, error: Exception) -> ProviderFailureError | None
     Features:
         US-BEZ-03, US-SPR-04, US-SPR-06, F-18
     """
-    match error:
-        case ProviderFailureError():
-            return error
-        case TimeoutError():
-            code = STEP_FAILURE_CODES.get(step, TECHNICAL_FAILURE_CODE)
-            return ProviderFailureError(code, f"{step}: {TIMEOUT_REASON}")
-        case TranscriptionUnavailableError():
-            code = TRANSCRIPTION_FAILED_CODE
-        case ProviderUnavailableError():
-            code = TECHNICAL_FAILURE_CODE
-        case _:
-            return None
-    return ProviderFailureError(code, f"{step}: {code}")
+    if isinstance(error, ProviderFailureError):
+        return error
+    if not isinstance(
+        error, ProviderUnavailableError | TranscriptionUnavailableError | TimeoutError
+    ):
+        return None
+    code = STEP_FAILURE_CODES.get(step, TECHNICAL_FAILURE_CODE)
+    what = TIMEOUT_REASON if isinstance(error, TimeoutError) else code
+    return ProviderFailureError(code, f"{step}: {what}")

@@ -109,4 +109,4 @@ STEP_FAILURE_CODES: Final[dict[str, FailureCode]] = {
     "transcribe_audio": TRANSCRIPTION_FAILED_CODE,
     "search_web": WEB_SEARCH_UNAVAILABLE_CODE,
 }
-"""failure_code of a step code that timed out; any other code: provider_unavailable."""
+"""failure_code of a failed or timed-out step code; any other: provider_unavailable."""
