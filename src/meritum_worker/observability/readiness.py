@@ -20,6 +20,8 @@ from meritum_worker.observability.constants import (
     REQUIRED_ENV,
 )
 
+_log = logging.getLogger(__name__)
+
 type Probe = Callable[[], Awaitable[bool]]
 """Says whether one provider answers; a free call where the provider has one."""
 
@@ -77,7 +79,9 @@ async def check_readiness(
 async def _answers(probe: Probe) -> bool:
     try:
         return await probe()
-    except Exception:  # ruff: ignore[blind-except]  # a broken provider is reported, never crashes
+    except Exception as error:  # ruff: ignore[blind-except]  # a broken provider is reported, never crashes
+        # The type only: a message could quote the token.
+        _log.warning("readiness probe failed: %s", type(error).__name__)
         return False
 
 

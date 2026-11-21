@@ -53,7 +53,7 @@ def readiness_runs(context: Context) -> None:
 )
 def report_names_the_token(context: Context) -> None:
     assert context.report.missing_env == ["EUVSDISINFO_MCP_API_KEY"]
-    assert "EUVSDISINFO_MCP_API_KEY" in context.log
+    assert str(context.report.missing_env) in context.log
     assert "postgresql://db/app" not in context.log
 
 
