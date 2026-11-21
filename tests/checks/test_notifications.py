@@ -70,7 +70,9 @@ def test_the_same_key_replaces_the_entry_on_a_retried_step() -> None:
     assert len(asyncio.run(inbox.list_for("session_id", "session-1"))) == 1
 
 
-@pytest.mark.parametrize("user_id", ["1234567890", "google:", ":1234567890"])
+@pytest.mark.parametrize(
+    "user_id", ["1234567890", "google:", ":1234567890", "google:12 34"]
+)
 def test_a_user_id_outside_provider_subject_is_refused(user_id: str) -> None:
     with pytest.raises(ValueError, match="provider"):
         asyncio.run(
