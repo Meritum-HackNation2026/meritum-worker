@@ -33,7 +33,11 @@ log() { printf '[meritum-worker] %s\n' "$*" >&2; }
 volume_args=()
 files_volume=$(env_value MERITUM_FILES_VOLUME)
 files_dir=$(env_value MERITUM_FILES_DIR)
-if [ -n "$files_volume" ] && [ -n "$files_dir" ]; then volume_args=(-v "$files_volume:$files_dir"); fi
+if [ -n "$files_volume" ] && [ -n "$files_dir" ]; then
+  volume_args=(-v "$files_volume:$files_dir")
+else
+  log "no MERITUM_FILES_VOLUME/MERITUM_FILES_DIR in $envfile: container starts without the files volume"
+fi
 
 labels=(--label meritum.managed=true --label meritum.role=worker --label meritum.env="$env" --label meritum.sha="$sha")
 docker build -q --ssh default="${CORE_KEY_FILE:?}" -t "$image" "${labels[@]}" "$repo" >/dev/null

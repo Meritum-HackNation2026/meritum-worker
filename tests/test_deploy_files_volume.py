@@ -14,5 +14,6 @@ def test_files_volume_is_mounted_under_files_dir(tmp_path: Path) -> None:
 
 
 def test_no_mount_without_files_volume_in_env_file(tmp_path: Path) -> None:
-    calls, _ = deploy(tmp_path, {})
+    calls, log = deploy(tmp_path, {})
     assert " -v " not in started(calls)
+    assert "without the files volume" in log
