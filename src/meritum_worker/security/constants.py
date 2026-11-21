@@ -29,6 +29,10 @@ MODEL_ARMOR_ENDPOINT: Final = (
 MODEL_ARMOR_SCOPES: Final = ("https://www.googleapis.com/auth/cloud-platform",)
 """OAuth scope Model Armor accepts for Application Default Credentials."""
 
+MODEL_ARMOR_EXECUTED: Final = "EXECUTION_SUCCESS"
+"""``executionState`` of a filter that ran; any other state means it was skipped,
+e.g. for a language or size it does not support."""
+
 MODEL_ARMOR_MATCH: Final = "MATCH_FOUND"
 """``matchState`` of a filter that flagged the text."""
 

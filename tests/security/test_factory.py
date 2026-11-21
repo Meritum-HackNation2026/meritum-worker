@@ -42,3 +42,13 @@ def test_provider_without_its_settings_is_rejected(
 ) -> None:
     with pytest.raises(ValidationError, match=missing):
         InjectionGateSettings(provider=provider, project="p", account_id="a", model="m")
+
+
+def test_empty_api_token_is_rejected() -> None:
+    with pytest.raises(ValidationError, match="api_token"):
+        InjectionGateSettings(
+            provider=InjectionGateProvider.WORKERS_AI,
+            account_id="a",
+            api_token="",
+            model="m",
+        )

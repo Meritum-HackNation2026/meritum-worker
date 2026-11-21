@@ -1,0 +1,14 @@
+{
+  "sanitizationResult": {
+    "filterMatchState": "NO_MATCH_FOUND",
+    "invocationResult": "PARTIAL",
+    "filterResults": {
+      "pi_and_jailbreak": {
+        "piAndJailbreakFilterResult": {
+          "executionState": "EXECUTION_SKIPPED",
+          "matchState": "MATCH_STATE_UNSPECIFIED"
+        }
+      }
+    }
+  }
+}

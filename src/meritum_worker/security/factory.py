@@ -40,7 +40,7 @@ def build_injection_gate(
         Model Armor, Workers AI, or the null gate when no provider is set.
 
     Features:
-        US-BEZ-01, F-19, ADR-35
+        US-BEZ-01, F-19, ADR-12, ADR-35
     """
     match settings.provider:
         case InjectionGateProvider.MODEL_ARMOR:

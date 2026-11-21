@@ -17,7 +17,7 @@ class InjectionGateProvider(StrEnum):
     """Which classifier gate ``build_injection_gate`` builds.
 
     Features:
-        US-BEZ-01, F-19, ADR-35
+        US-BEZ-01, F-19, ADR-12, ADR-35
     """
 
     NONE = "none"
@@ -58,7 +58,7 @@ class InjectionGateSettings(BaseSettings):
     project: str | None = Field(default=None, min_length=1)
     template: str | None = Field(default=None, min_length=1)
     account_id: str | None = Field(default=None, min_length=1)
-    api_token: SecretStr | None = None
+    api_token: SecretStr | None = Field(default=None, min_length=1)
     model: str | None = Field(default=None, min_length=1)
     retries: int = Field(default=DEFAULT_RETRIES, ge=1)
 

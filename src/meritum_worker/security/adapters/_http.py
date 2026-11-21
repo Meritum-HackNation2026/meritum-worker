@@ -11,11 +11,12 @@ from httpx2 import AsyncClient, TransportError, codes
 from pydantic import BaseModel, JsonValue, ValidationError
 
 from meritum_worker.security.constants import RETRY_BACKOFF_SECONDS
+from meritum_worker.security.settings import InjectionGateProvider
 
 _log = logging.getLogger(__name__)
 
 
-def skipped(provider: str, reason: str) -> None:
+def skipped(provider: InjectionGateProvider, reason: str) -> None:
     """Log that the gate was skipped; never with the screened text.
 
     Args:
@@ -23,7 +24,7 @@ def skipped(provider: str, reason: str) -> None:
         reason: Why, without user or page text.
 
     Features:
-        US-BEZ-01, F-19, ADR-35
+        US-BEZ-01, F-19, ADR-12, ADR-35
     """
     _log.warning("%s injection gate unavailable (%s); skipped", provider, reason)
 
@@ -40,7 +41,7 @@ async def post_reply[T: BaseModel](  # ruff: ignore[too-many-arguments]  # one c
     headers: dict[str, str],
     retries: int,
     reply: type[T],
-    provider: str,
+    provider: InjectionGateProvider,
 ) -> T | None:
     """POST ``body`` and parse the first successful reply, retrying transient errors.
 
@@ -58,7 +59,7 @@ async def post_reply[T: BaseModel](  # ruff: ignore[too-many-arguments]  # one c
         the provider refused the request or the reply did not parse.
 
     Features:
-        US-BEZ-01, F-19, ADR-35
+        US-BEZ-01, F-19, ADR-12, ADR-35
     """
     last = "no reply"
     for attempt in range(retries):

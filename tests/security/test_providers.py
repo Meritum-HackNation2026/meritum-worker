@@ -42,7 +42,16 @@ def test_model_armor_template_without_injection_filter_skips_the_gate(
     gate, _ = model_armor([(200, "model-armor-no-pi-filter.json")])
     with caplog.at_level(logging.WARNING):
         assert asyncio.run(gate.screen(PAGE)) == ()
-    assert "no prompt injection filter" in caplog.text
+    assert "no injection filter" in caplog.text
+
+
+def test_model_armor_filter_that_did_not_run_skips_the_gate(
+    model_armor: GateFactory, caplog: pytest.LogCaptureFixture
+) -> None:
+    gate, _ = model_armor([(200, "model-armor-skipped.json")])
+    with caplog.at_level(logging.WARNING):
+        assert asyncio.run(gate.screen(PAGE)) == ()
+    assert "filter did not run" in caplog.text
 
 
 def test_model_armor_refused_credentials_skip_the_gate(

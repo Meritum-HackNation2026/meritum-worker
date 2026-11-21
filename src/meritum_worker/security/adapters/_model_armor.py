@@ -18,6 +18,7 @@ from meritum_worker.security.adapters._http import post_reply, skipped
 from meritum_worker.security.constants import (
     HTTP_TIMEOUT_SECONDS,
     MODEL_ARMOR_ENDPOINT,
+    MODEL_ARMOR_EXECUTED,
     MODEL_ARMOR_LOCATION,
     MODEL_ARMOR_MATCH,
     MODEL_ARMOR_SCOPES,
@@ -29,6 +30,7 @@ from meritum_worker.security.settings import (
 
 
 class _PiResult(BaseModel):
+    execution_state: str = Field(default="", alias="executionState")
     match_state: str = Field(default="", alias="matchState")
 
 
@@ -111,18 +113,8 @@ class ModelArmorGate:
             reply=_Reply,
             provider=InjectionGateProvider.MODEL_ARMOR,
         )
-        if reply is None:
-            return ()
-        pi_filter = reply.sanitization_result.filter_results.pi_and_jailbreak
-        if pi_filter is None:
-            skipped(
-                InjectionGateProvider.MODEL_ARMOR,
-                "template has no prompt injection filter",
-            )
-            return ()
-        if pi_filter.result.match_state != MODEL_ARMOR_MATCH:
-            return ()
-        return (TextRange(0, len(text)),)
+        flagged = reply is not None and _matched(reply)
+        return (TextRange(0, len(text)),) if flagged else ()
 
     async def _token(self) -> str | None:
         try:
@@ -137,3 +129,15 @@ class ModelArmorGate:
             skipped(InjectionGateProvider.MODEL_ARMOR, "credentials were refused")
             return None
         return str(credentials.token)
+
+
+def _matched(reply: _Reply) -> bool:
+    # A filter that is missing or did not run is a skip, not a clean result.
+    pi_filter = reply.sanitization_result.filter_results.pi_and_jailbreak
+    if pi_filter is None:
+        skipped(InjectionGateProvider.MODEL_ARMOR, "template has no injection filter")
+        return False
+    if pi_filter.result.execution_state != MODEL_ARMOR_EXECUTED:
+        skipped(InjectionGateProvider.MODEL_ARMOR, "filter did not run")
+        return False
+    return pi_filter.result.match_state == MODEL_ARMOR_MATCH
