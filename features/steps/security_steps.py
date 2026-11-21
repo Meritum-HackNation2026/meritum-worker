@@ -12,7 +12,7 @@ from behave import given, then, when
 from behave.runner import Context
 from google.oauth2.credentials import Credentials
 from meritum_core.security.injection import DetectionLayer, InjectionClassification
-from meritum_core.shared.llm import LlmSettings, build_llm
+from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
 from meritum_worker.security import (
     InjectionGateProvider,
@@ -45,7 +45,9 @@ class _Captured(logging.Handler):
 
 
 def _scan(context: Context, transport: httpx2.AsyncBaseTransport) -> None:
-    llm = build_llm(LlmSettings(stub_fixtures=context.llm_fixtures))
+    llm = build_llm(
+        LlmSettings(provider=LlmProvider.STUB, stub_fixtures=context.llm_fixtures)
+    )
     detector = build_detector(
         llm,
         SETTINGS,

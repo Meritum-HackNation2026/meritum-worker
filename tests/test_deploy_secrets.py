@@ -58,9 +58,10 @@ def started(calls: str) -> str:
     return next(c for c in calls.splitlines() if c.startswith("run -d "))
 
 
-def test_secret_is_passed_by_name_only(tmp_path: Path) -> None:
-    calls, log = deploy(tmp_path, {SECRET: VALUE})
-    assert f"-e {SECRET} " in started(calls)
+@pytest.mark.parametrize("name", secret_names())
+def test_secret_is_passed_by_name_only(tmp_path: Path, name: str) -> None:
+    calls, log = deploy(tmp_path, {name: VALUE})
+    assert f"-e {name} " in started(calls)
     assert VALUE not in calls
     assert VALUE not in log
     assert [
@@ -75,6 +76,25 @@ def test_missing_secret_still_starts_the_container(tmp_path: Path) -> None:
     assert f"-e {SECRET} " in started(calls)
 
 
+PER_ENV = (
+    "${{{{ secrets[format('{0}_{{0}}',"
+    " github.ref_name == 'main' && 'PRD' || 'DEV')] }}}}"
+)
+
+
 @pytest.mark.parametrize("name", secret_names())
 def test_ci_deploy_step_maps_every_listed_secret(name: str) -> None:
-    assert f"{name}: ${{{{ secrets.{name} }}}}" in CI.read_text()
+    # One shared secret, or one per env: <name>_PRD from main, <name>_DEV from develop.
+    ci = CI.read_text()
+    assert (
+        f"{name}: ${{{{ secrets.{name} }}}}" in ci
+        or f"{name}: {PER_ENV.format(name)}" in ci
+    )
+
+
+def test_worker_gets_its_own_openrouter_key_per_env() -> None:
+    # D9 (core#97): Claude Haiku 5.5 via OpenRouter, with the key of the deployed env.
+    assert "OPENROUTER_API_KEY" in secret_names()
+    assert (
+        f"OPENROUTER_API_KEY: {PER_ENV.format('OPENROUTER_API_KEY')}" in CI.read_text()
+    )
