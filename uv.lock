@@ -118,7 +118,7 @@ wheels = [
 [[package]]
 name = "meritum-core"
 version = "0.1.0"
-source = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?branch=main#d7827c7fa66fa3e745469969ceb3e8b0070cb54d" }
+source = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=d77224b4dcb068c58b7ff4969a189ba50a81c968#d77224b4dcb068c58b7ff4969a189ba50a81c968" }
 dependencies = [
     { name = "dbos" },
     { name = "pydantic" },
@@ -144,7 +144,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "dbos", specifier = ">=3.6.0" },
-    { name = "meritum-core", git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?branch=main" },
+    { name = "meritum-core", git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=d77224b4dcb068c58b7ff4969a189ba50a81c968" },
     { name = "pydantic", specifier = ">=2.14.4" },
 ]
 
