@@ -62,6 +62,21 @@ Obaj dostawcy nie podają, gdzie w tekście jest polecenie. Bramka wysyła więc
 
 Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration tests/security`.
 
+## Lokalna kopia EUvsDisinfo
+
+Workflow `euvsdisinfo_sync` (`src/meritum_worker/corpus/`) czyta wszystkie przypadki i artykuły EUvsDisinfo przez serwer MCP, stronami po 100, i zapisuje różnicę: nowe wpisy dodaje, zmienione podmienia, a zniknięte ze źródła oznacza jako usunięte. Opisy przypadków i teksty fact dostają embeddingi z portu core, a teksty fact trafiają do kopii jako `Source` z `via = mcp`. Domeny z `linksToDisinformation` idą do ostrzeżenia o domenie. Bez `EUVSDISINFO_MCP_API_KEY` workflow nic nie pobiera i zwraca `missing_env`; tę samą listę daje `corpus.missing_env()` dla raportu gotowości.
+
+Synchronizację z prawdziwym serwerem uruchamiamy ręcznie, poza CI, w środowisku z prawem zapisu do schematu `corpus`:
+
+```python
+from dbos import DBOSClient
+
+client = DBOSClient(system_database_url=URL, dbos_system_schema="worker_dev", application_name="meritum-worker")
+client.enqueue({"workflow_name": "euvsdisinfo_sync", "queue_name": "default", "app_version": "dev"})
+```
+
+Na razie kopia żyje w pamięci procesu workera. Trwały zapis w PostgreSQL czeka na tabele w schemacie `corpus`.
+
 ## CI/CD
 
 `.github/workflows/ci.yml`: `lint` i `tests` na runnerach GCP, `deploy` na `dellpromaxgb10` tylko z `develop` i `main`, po zielonym CI. `deploy/deploy.sh` buduje obraz, uruchamia `dbos migrate` jako rola workera (z `-r meritum_api_<env>`, żeby API mogło zlecać zadania), podmienia kontener z `--stop-timeout 40` i czeka, aż worker zgłosi gotowość. Niedokończone workflowy wznawia nowy kontener.
