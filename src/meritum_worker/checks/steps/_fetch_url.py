@@ -4,11 +4,11 @@ Features:
     US-SPR-07, US-ZRD-05, F-06, ADR-12
 """
 
-from meritum_core.checks import CheckResult
 from meritum_core.corpus.fetching import FetchPurpose, PageFetchError
 from meritum_core.security.pii import mask_personal_data
 
 from meritum_worker.checks.constants import (
+    FETCH_URL_STEP,
     MAX_PAGE_TEXT_CHARS,
     URL_UNAVAILABLE_CODE,
     URL_UNAVAILABLE_MESSAGE,
@@ -17,7 +17,7 @@ from meritum_worker.checks.models import CheckDeps, CheckState
 
 
 async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
-    """Read the link through the SSRF-safe fetcher; a text without a link skips it.
+    """Read the link through the SSRF-safe fetcher; pasted text or no link skips it.
 
     The page text is masked like the input and cut to the length of a pasted
     text; it stays data for every later prompt (ADR-12). Any fetch failure (an
@@ -35,27 +35,21 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     Features:
         US-SPR-07, US-ZRD-05, F-06, ADR-12
     """
-    url = state.job.request.url
-    if url is None:
+    request = state.job.request
+    url = request.url
+    # Pasted text is what the citizen wants checked; a link next to it is context.
+    has_text = bool((request.text or "").strip())
+    if url is None or has_text:
         return state.model_copy(
-            update={"skipped_steps": [*state.skipped_steps, "fetch_url"]}
+            update={"skipped_steps": [*state.skipped_steps, FETCH_URL_STEP]}
         )
     try:
         page = await deps.pages.fetch(str(url), purpose=FetchPurpose.USER_LINK)
     except PageFetchError:
-        return state.model_copy(update={"result": _url_unavailable(state)})
+        failure = state.technical_failure(URL_UNAVAILABLE_CODE, URL_UNAVAILABLE_MESSAGE)
+        return state.model_copy(update={"result": failure})
     masked = await mask_personal_data(
         page.untrusted_text[:MAX_PAGE_TEXT_CHARS], deps.pii
     )
-    text = masked.text
-    return state.model_copy(update={"page_text": text[:MAX_PAGE_TEXT_CHARS]})
-
-
-def _url_unavailable(state: CheckState) -> CheckResult:
-    return CheckResult(
-        check_id=state.check_id,
-        status="technical_failure",
-        message=URL_UNAVAILABLE_MESSAGE,
-        failure_code=URL_UNAVAILABLE_CODE,
-        corpus_version=state.corpus_version,
-    )
+    # Cut again: a marker can be longer than the personal data it replaced.
+    return state.model_copy(update={"page_text": masked.text[:MAX_PAGE_TEXT_CHARS]})

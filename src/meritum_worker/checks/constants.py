@@ -61,6 +61,9 @@ OUT_OF_SCOPE_MESSAGE: Final = "status_hint.out_of_scope"
 LIMITATION_MAX_CHARS: Final = 300
 """Longest limitation CheckResult accepts; a longer skipped claim is cut to fit."""
 
+FETCH_URL_STEP: Final = "fetch_url"
+"""AnalysisStep code of fetching the citizen's link; skipped when there is none."""
+
 URL_UNAVAILABLE_CODE: Final = "url_unavailable"
 """failure_code of a check whose link could not be fetched (contract v4)."""
 
