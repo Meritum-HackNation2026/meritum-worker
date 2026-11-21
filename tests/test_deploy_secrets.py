@@ -64,7 +64,9 @@ def test_secret_is_passed_by_name_only(tmp_path: Path) -> None:
     assert VALUE not in calls
     assert VALUE not in log
     assert [
-        p for p in tmp_path.rglob("*") if p.is_file() and VALUE.encode() in p.read_bytes()
+        p
+        for p in tmp_path.rglob("*")
+        if p.is_file() and VALUE.encode() in p.read_bytes()
     ] == []
 
 
