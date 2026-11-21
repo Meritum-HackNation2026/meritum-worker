@@ -17,7 +17,8 @@ container="meritum-worker-$env"
 image="meritum-worker:$env-${sha:0:12}"
 # Repository secrets the worker container gets. docker run -e NAME copies the
 # value from this process's env, so it is never on a command line or on disk;
-# an unset secret is left out and the readiness report names it.
+# an unset secret is left out and the container still starts (worker/027 will
+# name it in the readiness report).
 # Add a name here and in the env of the Deploy step in .github/workflows/ci.yml.
 worker_secrets=(EUVSDISINFO_MCP_API_KEY)
 secret_args=()
