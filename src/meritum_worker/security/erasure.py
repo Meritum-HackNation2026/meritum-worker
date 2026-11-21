@@ -30,8 +30,9 @@ async def erase_subject(
     """Delete everything stored about one session, user or channel user.
 
     The person's check workflows (running ones are cancelled first; DBOS stops
-    them at their next step, so a step already saving may still finish, and
-    retention takes that record later) and the escalations of their checks
+    them at their next step, so a step already saving may still finish;
+    ``delete_subject`` runs this twice, ``ERASURE_SETTLE`` apart, to catch that
+    record) and the escalations of their checks
     leave DBOS; then the eraser deletes their records, notifications and case
     checks, and their uploaded audio goes. Running it again deletes nothing more.
 

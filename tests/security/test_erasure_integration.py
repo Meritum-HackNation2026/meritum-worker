@@ -15,7 +15,9 @@ import psycopg
 import pytest
 from dbos import DBOS
 from meritum_core.checks import CheckRequest
+from meritum_core.checks.contracts import CheckRecord
 from meritum_core.jobs.contracts import CheckInput
+from meritum_core.observability import build_app_repositories
 from meritum_core.shared.database import DatabaseSettings
 from meritum_core.shared.database.adapters import apply_migrations
 from psycopg import sql
@@ -75,9 +77,32 @@ async def _check(session: str) -> str:
     return handle.workflow_id
 
 
+def _late_record() -> CheckRecord:
+    now = datetime.now(UTC)
+    return CheckRecord(
+        check_id="chk_late",
+        session_id=SESSION,
+        channel="web",
+        received_at=now,
+        answered_at=now,
+        question_masked="Płaca minimalna wynosi 4806 zł",
+        status="done",
+        verdicts=["confirmed"],
+        source_ids=[],
+        corpus_version="c1",
+        models=[],
+        retention_until=now + timedelta(days=30),
+    )
+
+
 async def _erase() -> str:
     payload = {"kind": "session_id", "value": SESSION}
     handle = await DBOS.start_workflow_async(main.delete_subject_workflow, payload)
+    # A cancelled check's save step lands its record after the first pass.
+    while not await DBOS.list_workflow_steps_async(handle.workflow_id):  # ruff: ignore[async-busy-wait]  # DBOS has no event for a finished step
+        await asyncio.sleep(0.05)
+    records = build_app_repositories(DatabaseSettings()).records
+    await records.save(_late_record())
     assert (await handle.get_result())["deleted"] > 0
     return handle.workflow_id
 
@@ -88,7 +113,7 @@ async def _retain() -> None:
     await security.run_retention(deps, datetime.now(UTC) + timedelta(hours=2))
 
 
-def _rows_naming(value: str, skip: str = "", unless: str = "never-in-a-row") -> int:
+def _rows_naming(value: str, skip: str = "", unless: str | None = None) -> int:
     """Count rows of all tables but ``skip`` naming ``value`` and not ``unless``."""
     found = 0
     with psycopg.connect(URL) as conn:
@@ -104,7 +129,8 @@ def _rows_naming(value: str, skip: str = "", unless: str = "never-in-a-row") -> 
                 "SELECT count(*) FROM {} t"
                 " WHERE t::text LIKE %s AND t::text NOT LIKE %s"
             )
-            patterns = (f"%{value}%", f"%{unless}%")
+            # NOT LIKE NULL is never true, so no ``unless`` must not filter.
+            patterns = (f"%{value}%", "" if unless is None else f"%{unless}%")
             row = conn.execute(query.format(name), patterns).fetchone()
             found += 0 if row is None else int(row[0])
     return found
@@ -116,7 +142,7 @@ def test_no_row_names_the_session_after_erasure(
     app_url: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     assert app_url
-    monkeypatch.setattr(security, "ERASURE_SETTLE", timedelta(seconds=1))
+    monkeypatch.setattr(security, "ERASURE_SETTLE", timedelta(seconds=3))
     erased = asyncio.run(_check(SESSION))
     kept = asyncio.run(_check(OTHER))
     assert _rows_naming(SESSION) > 0
