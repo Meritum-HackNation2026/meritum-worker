@@ -57,7 +57,7 @@ def build_euvsdisinfo_copy() -> EuvsCopyPort:
         US-KOR-08, F-11
     """
     # shortcut: in-memory only, lost on restart; add a PostgreSQL copy once the
-    # corpus schema has its tables (follow-up issue).
+    # corpus schema has its tables (worker#59).
     return MemoryEuvsCopy()
 
 
