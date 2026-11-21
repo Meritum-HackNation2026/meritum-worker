@@ -1,20 +1,33 @@
-"""Builds the classifier gate named by configuration and the detector around it.
+"""Builds the classifier gate, the detector around it and the retention ports.
 
 Features:
-    US-BEZ-01, F-19, ADR-12, ADR-35
+    US-BEZ-01, US-BEZ-05, F-19, F-20, ADR-12, ADR-13, ADR-35
 """
 
 from google.auth.credentials import Credentials
 from httpx2 import AsyncClient
+from meritum_core.observability import build_app_repositories
 from meritum_core.security.injection import (
     InjectionDetectorPort,
     InjectionGatePort,
     NullInjectionGate,
     build_injection_detector,
 )
+from meritum_core.shared.blobs import BlobProvider, BlobSettings, build_blob_store
+from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.llm import LlmPort
 
-from meritum_worker.security.adapters import ModelArmorGate, WorkersAiGate
+from meritum_worker.security.adapters import (
+    DbosWorkflowStore,
+    ModelArmorGate,
+    NullBlobCleaner,
+    NullRemovedCaseChecks,
+    PostgresRemovedCaseChecks,
+    StoreBlobCleaner,
+    WorkersAiGate,
+)
+from meritum_worker.security.models import RetentionDeps
+from meritum_worker.security.ports import BlobCleaner, RemovedCaseChecks, WorkflowStore
 from meritum_worker.security.settings import (
     InjectionGateProvider,
     InjectionGateSettings,
@@ -78,3 +91,45 @@ def build_detector(
         settings, credentials=credentials, http_client=http_client
     )
     return build_injection_detector(llm=llm, gate=gate)
+
+
+def build_retention_deps(
+    database: DatabaseSettings,
+    blobs: BlobSettings | None,
+    *,
+    workflows: WorkflowStore | None = None,
+) -> RetentionDeps:
+    """Build the ports of the retention and ``delete_subject`` workflows.
+
+    Args:
+        database: app database settings, usually ``DatabaseSettings()``.
+        blobs: blob store settings, usually ``BlobSettings()``; None when the
+            worker has no ``MERITUM_BLOB_PROVIDER`` and so no files to delete.
+        workflows: the DBOS workflow data; DBOS itself when None.
+
+    Returns:
+        The ports.
+
+    Features:
+        US-BEZ-05, US-POW-04, F-20, ADR-13
+    """
+    return RetentionDeps(
+        app=build_app_repositories(database),
+        workflows=DbosWorkflowStore() if workflows is None else workflows,
+        blobs=_blob_cleaner(blobs),
+        removed_checks=_removed_checks(database),
+    )
+
+
+def _blob_cleaner(settings: BlobSettings | None) -> BlobCleaner:
+    if settings is None:
+        return NullBlobCleaner()
+    is_volume = settings.provider is BlobProvider.FILESYSTEM
+    directory = settings.directory if is_volume else None
+    return StoreBlobCleaner(build_blob_store(settings), directory)
+
+
+def _removed_checks(settings: DatabaseSettings) -> RemovedCaseChecks:
+    if settings.provider is DatabaseProvider.POSTGRES and settings.url is not None:
+        return PostgresRemovedCaseChecks(settings.url.get_secret_value())
+    return NullRemovedCaseChecks()

@@ -111,6 +111,9 @@ error-on-warning = true
 [tool.meritum-conventions]
 max-lines = 250
 
+[tool.meritum-conventions.line-limit-exceptions]
+"src/meritum_worker/main.py" = "registers every DBOS workflow; split into a main/ package in its own PR, so parallel PRs do not conflict on a move"
+
 # --------------------------------------------------------------------------- #
 # Dead code (vulture) and security (bandit)
 # --------------------------------------------------------------------------- #

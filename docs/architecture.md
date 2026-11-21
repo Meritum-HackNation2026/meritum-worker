@@ -23,4 +23,6 @@ Obecne wyjątki:
 
 - `src/meritum_worker/checks/steps/_*.py`: `unused-async` (ruff). Kroki zastępcze workflowu `check` mają sygnaturę `async`, której workflow oczekuje; prawdziwe kroki dodadzą `await`.
 - `src/meritum_worker/checks/adapters/_dbos.py`: `no-self-use` (ruff) w linii. `DbosCheckRuntime` spełnia protokół `CheckRuntime` z metodami instancji.
+- `src/meritum_worker/security/adapters/_blobs.py`, `_dbos_workflows.py`, `_removed_checks.py`: `no-self-use` (ruff) w linii. Adaptery retencji spełniają protokoły `BlobCleaner`, `WorkflowStore` i `RemovedCaseChecks` z metodami instancji.
+- `src/meritum_worker/main.py`: limit 250 linii (`line-limit-exceptions`). Plik rejestruje wszystkie workflowy DBOS; podział na pakiet `main/` w osobnym PR, żeby równoległe PR-y nie miały konfliktu przy przenosinach.
 - `__call__` w `ignore_names` vulture'a: sygnatura wywołania w protokole `Step` nie jest martwym kodem.

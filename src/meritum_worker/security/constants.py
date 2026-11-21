@@ -1,9 +1,10 @@
-"""Endpoints, limits and environment names of the injection classifier gate.
+"""Constants of the security slice: the injection classifier gate and retention.
 
 Features:
-    US-BEZ-01, F-19, ADR-12, ADR-35
+    US-BEZ-01, US-BEZ-05, US-POW-04, F-19, F-20, ADR-12, ADR-13, ADR-35
 """
 
+from datetime import timedelta
 from typing import Final
 
 ENV_PREFIX: Final = "MERITUM_INJECTION_GATE_"
@@ -56,3 +57,53 @@ WORKERS_AI_INJECTION_CATEGORIES: Final = frozenset({"S14"})
 """Llama Guard 3 hazard categories the gate flags: only S14 (code interpreter abuse)
 is about steering the model. The others (violence, elections, defamation...) are
 topics citizens ask Meritum to check, so cutting them would drop real claims."""
+
+DATA_RETENTION: Final = timedelta(days=30)
+"""How long user data lives: check records, notifications, DBOS workflow data and
+uploaded files (ADR-13, US-BEZ-05, US-POW-04)."""
+
+ERASURE_RESULT_KEPT: Final = timedelta(hours=1)
+"""How long a finished ``delete_subject`` run stays in DBOS so the backend can read
+its result; its input names the person, so the next hourly retention run after
+that deletes it (at most two hours after the erasure)."""
+
+ERASURE_SETTLE: Final = timedelta(minutes=1)
+"""Wait between the two passes of ``delete_subject``: longer than a step that
+was already saving a record when its check was cancelled."""
+
+RETENTION_BATCH: Final = 500
+"""Most expired check records deleted in one round of the retention run."""
+
+WORKFLOW_PAGE: Final = 200
+"""Workflows read from DBOS per page while looking for one person's data."""
+
+FINISHED_STATUSES: Final = (
+    "SUCCESS",
+    "ERROR",
+    "CANCELLED",
+    "MAX_RECOVERY_ATTEMPTS_EXCEEDED",
+)
+"""DBOS statuses of a workflow that will not run again; a ``delete_subject`` run
+goes after an hour only in one of these."""
+
+RETENTION_WORKFLOW: Final = "retention"
+"""DBOS name of the retention workflow; its schedule starts it, never the API."""
+
+RETENTION_SCHEDULE_NAME: Final = "retention_hourly"
+"""Name of the DBOS schedule that starts the retention workflow."""
+
+RETENTION_CRON: Final = "15 * * * *"
+"""When the retention workflow runs: every hour at :15 UTC. Expired records need a
+daily run; erasure runs (ERASURE_RESULT_KEPT) need the hourly one."""
+
+BLOB_PROVIDER_ENV: Final = "MERITUM_BLOB_PROVIDER"
+"""Environment variable naming the blob store; a worker without it has no files."""
+
+CHECK_ID_FIELD: Final = "check_id"
+"""Field of an ``EscalateClaimInput`` that names its check."""
+
+REQUEST_FIELD: Final = "request"
+"""Field of a ``CheckInput`` holding the ``CheckRequest``."""
+
+AUDIO_ID_FIELD: Final = "audio_id"
+"""Field of a ``CheckRequest`` naming its uploaded audio."""

@@ -65,6 +65,20 @@ Obaj dostawcy nie podają, gdzie w tekście jest polecenie. Bramka wysyła więc
 
 Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration tests/security`.
 
+## Retencja i usuwanie danych
+
+Workflow `retention` (`src/meritum_worker/security/`) startuje co godzinę (o :15 UTC) z harmonogramu DBOS. Usuwa zapisy sprawdzeń po `retention_until` razem z ich powiadomieniami, miejscem w sprawach moderatora i workflowami DBOS (także eskalacjami), potem wygasłe powiadomienia, wszystkie workflowy DBOS starsze niż 30 dni (także zawieszone i niezwiązane z osobą, np. historia synchronizacji korpusu), pliki z wolumenu starsze niż 30 dni (w tym nagrania `audio_*`, których nie użyło żadne sprawdzenie) i wpisy `removed_case_checks` starsze niż 30 dni. Na GCS pliki usuwa reguła bucketu, więc tam workflow plików nie przegląda.
+
+Workflow `delete_subject` (zleca go backend) usuwa wszystko o jednej sesji, użytkowniku albo `channel_user_hash`: workflowy sprawdzeń (działające najpierw anuluje), eskalacje tych sprawdzeń, zapisy, powiadomienia, miejsca w sprawach i nagrania. DBOS zatrzymuje anulowany workflow dopiero przed następnym krokiem, więc po minucie (`ERASURE_SETTLE`) usuwanie przechodzi drugi raz i kasuje zapis, który zdążył zapisać krok trwający w chwili anulowania. Jego własne wejście zawiera identyfikator osoby, więc przebieg `retention` usuwa go po godzinie od startu przebiegu, najpóźniej dwie godziny po nim. Backend musi odczytać wynik w tym czasie. W `removed_case_checks` zostaje sam losowy `check_id`, żeby zapis sprawy wczytanej przed usunięciem go nie przywrócił (core#74).
+
+Retencja pełnych tekstów korpusu (90 dni) i wnioski wydawców czekają na model dokumentu z [worker#17](https://github.com/Meritum-HackNation2026/meritum-worker/issues/17).
+
+Test na prawdziwym DBOS i PostgreSQL sprawdza, że po usunięciu żaden wiersz schematu aplikacji ani tabel DBOS nie zawiera `session_id`; tworzy i usuwa schematy `app_erasure` i `worker_erasure`:
+
+```bash
+MERITUM_TEST_DATABASE_URL=postgresql://... uv run pytest -m integration tests/security/test_erasure_integration.py
+```
+
 ## Lokalna kopia EUvsDisinfo
 
 Workflow `euvsdisinfo_sync` (`src/meritum_worker/corpus/`) czyta wszystkie przypadki i artykuły EUvsDisinfo przez serwer MCP, stronami po 100, i zapisuje różnicę: nowe wpisy dodaje, zmienione podmienia, a zniknięte ze źródła oznacza jako usunięte. Opisy przypadków i teksty fact dostają embeddingi z portu core, a teksty fact trafiają do kopii jako `Source` z `via = mcp`. Domeny z `linksToDisinformation` są zapisane w kopii (`flagged_domains()`) i czekają na ostrzeżenie o domenie z [worker#42](https://github.com/Meritum-HackNation2026/meritum-worker/issues/42). Bez `EUVSDISINFO_MCP_API_KEY` workflow nic nie pobiera i zwraca `missing_env`; tę samą listę daje `corpus.missing_env()` dla raportu gotowości.
