@@ -4,7 +4,8 @@ Features:
     US-SPR-01, US-OBS-01, F-22, ADR-03
 """
 
-from meritum_core.checks.fakes import InMemoryCheckRecordRepository
+from meritum_core.observability import build_app_repositories
+from meritum_core.shared.database import DatabaseSettings
 from meritum_core.shared.llm import LlmSettings, build_llm
 
 from meritum_worker.checks.adapters import DbosCheckRuntime
@@ -12,11 +13,14 @@ from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.ports import CheckRuntime
 
 
-def build_check_deps(settings: LlmSettings) -> CheckDeps:
+def build_check_deps(settings: LlmSettings, database: DatabaseSettings) -> CheckDeps:
     """Build the model and the record repository the steps call.
 
     Args:
         settings: LLM settings, usually ``LlmSettings()`` from ``MERITUM_LLM_*``.
+        database: app database settings, usually ``DatabaseSettings()`` from
+            ``MERITUM_DATABASE_*``: in-memory fakes by default, PostgreSQL on dev
+            and prd.
 
     Returns:
         The ports.
@@ -24,9 +28,8 @@ def build_check_deps(settings: LlmSettings) -> CheckDeps:
     Features:
         US-SPR-01, US-OBS-01, F-22
     """
-    # shortcut: records live in memory and die with the process; switch to the
-    # PostgreSQL repository once meritum-core#38 ships it.
-    return CheckDeps(llm=build_llm(settings), records=InMemoryCheckRecordRepository())
+    records = build_app_repositories(database).records
+    return CheckDeps(llm=build_llm(settings), records=records)
 
 
 def build_check_runtime() -> CheckRuntime:
