@@ -18,6 +18,8 @@
     "claims": [
       {
         "claim": "Inflacja w październiku wyniosła 2,8%.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "today",
         "verdict": "insufficient_evidence",
         "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
         "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."

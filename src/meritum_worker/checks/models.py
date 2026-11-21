@@ -138,11 +138,12 @@ class CheckState(BaseModel):
         Returns:
             The result.
         """
+        failed = status == "technical_failure"
         return CheckResult(
             check_id=self.check_id,
             status=status,
             message=message,
-            failure_code=TECHNICAL_FAILURE_CODE if status == "technical_failure" else None,
+            failure_code=TECHNICAL_FAILURE_CODE if failed else None,
             corpus_version=self.corpus_version,
         )
 

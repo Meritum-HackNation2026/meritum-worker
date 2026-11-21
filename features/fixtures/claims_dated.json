@@ -15,6 +15,8 @@
     "claims": [
       {
         "claim": "W marcu 2025 r. bezrobocie wynosiło 5,3%",
+        "claim_date": "2025-03-01",
+        "claim_date_source": "text",
         "verdict": "insufficient_evidence",
         "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
         "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
