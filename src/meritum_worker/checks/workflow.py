@@ -13,7 +13,7 @@ from meritum_core.jobs.contracts import CHECK, CONTRACT_VERSION, CheckOutput
 
 from meritum_worker.checks import steps
 from meritum_worker.checks.constants import STEP_TIMEOUTS
-from meritum_worker.checks.errors import is_provider_error, provider_failure
+from meritum_worker.checks.errors import provider_failure
 from meritum_worker.checks.models import CheckDeps, CheckState
 from meritum_worker.checks.ports import CheckRuntime, StepRun
 
@@ -136,25 +136,28 @@ def _step(code: str, status: str) -> AnalysisStep:
 
 def _outcome(code: str, before: CheckState, after: CheckState) -> str:
     # The code whose steps turned the check into a technical failure is "failed".
-    def failed(state: CheckState) -> bool:
-        return state.result is not None and state.result.status == "technical_failure"
-
-    if failed(after) and not failed(before):
+    if _failed(after) and not _failed(before):
         return "failed"
     return "skipped" if code in after.skipped_steps else "done"
 
 
+def _failed(state: CheckState) -> bool:
+    return state.result is not None and state.result.status == "technical_failure"
+
+
 def _bind(code: str, function: Step, deps: CheckDeps) -> StepRun:
-    # A provider failure or a timeout becomes a technical_failure state, so the
-    # record is still saved and no later step answers from the corpus alone.
+    # A provider failure or a timeout becomes a technical_failure state; after
+    # it only save_record runs, so nothing answers from the corpus alone.
     async def run(state: CheckState) -> CheckState:
+        if _failed(state) and function.__name__ != steps.save_record.__name__:
+            return state
         try:
             async with asyncio.timeout(STEP_TIMEOUTS[code].total_seconds()):
                 return await function(state, deps)
         except Exception as error:
-            if not is_provider_error(error):
-                raise
             failure = provider_failure(code, error)
+            if failure is None:
+                raise
             update = {
                 "result": state.technical_failure(failure.code),
                 "retrieval_errors": [*state.retrieval_errors, failure.reason],

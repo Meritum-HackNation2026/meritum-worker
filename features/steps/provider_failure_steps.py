@@ -5,6 +5,7 @@ The web search step and the model are replaced with fakes; no network.
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from unittest.mock import patch
 
 from behave import given, then, when
@@ -19,9 +20,9 @@ from meritum_core.shared.llm import (
     LlmResult,
     LlmSettings,
     Prompt,
+    ProviderUnavailableError,
     build_llm,
 )
-from meritum_core.shared.llm import ProviderUnavailableError as Unavailable
 from pydantic import BaseModel
 
 from meritum_worker.checks import (
@@ -34,6 +35,7 @@ from meritum_worker.checks import (
 )
 from meritum_worker.checks.constants import STEP_TIMEOUTS
 
+FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "llm_stub_answer.json"
 CHECK_ID = "check-behave-j"
 TEXT = "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł"
 
@@ -50,12 +52,13 @@ class _Failing503Llm:
         del prompt, output
         self.calls += 1
         msg = "503 from vertex, key MERITUM_LLM_API_KEY"
-        raise Unavailable(msg)
+        raise ProviderUnavailableError(msg)
 
 
 def _deps(llm: LlmPort | None = None) -> CheckDeps:
     return CheckDeps(
-        llm=llm or build_llm(LlmSettings(provider=LlmProvider.STUB)),
+        llm=llm
+        or build_llm(LlmSettings(provider=LlmProvider.STUB, stub_fixtures=FIXTURE)),
         records=InMemoryCheckRecordRepository(),
         pages=FakePageFetcher(),
         pii=NullPiiGate(),

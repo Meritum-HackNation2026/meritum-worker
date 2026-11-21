@@ -95,9 +95,18 @@ Model codes allow for the core adapter's retries; a timeout ends the check as
 technical_failure.
 """
 
+TRANSCRIPTION_FAILED_CODE: Final[FailureCode] = "transcription_failed"
+"""failure_code of a check whose voice message could not be transcribed."""
+
+WEB_SEARCH_UNAVAILABLE_CODE: Final[FailureCode] = "web_search_unavailable"
+"""failure_code of a check whose web search failed or timed out."""
+
+TIMEOUT_REASON: Final = "timeout"
+"""What retrieval_errors records after ``<step code>: `` for a step that timed out."""
+
 STEP_FAILURE_CODES: Final[dict[str, FailureCode]] = {
     "fetch_url": URL_UNAVAILABLE_CODE,
-    "transcribe_audio": "transcription_failed",
-    "search_web": "web_search_unavailable",
+    "transcribe_audio": TRANSCRIPTION_FAILED_CODE,
+    "search_web": WEB_SEARCH_UNAVAILABLE_CODE,
 }
 """failure_code of a step code that timed out; any other code: provider_unavailable."""

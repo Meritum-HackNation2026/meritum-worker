@@ -8,7 +8,12 @@ from meritum_core.checks.contracts import FailureCode
 from meritum_core.checks.transcription import TranscriptionUnavailableError
 from meritum_core.shared.llm import ProviderUnavailableError
 
-from meritum_worker.checks.constants import STEP_FAILURE_CODES, TECHNICAL_FAILURE_CODE
+from meritum_worker.checks.constants import (
+    STEP_FAILURE_CODES,
+    TECHNICAL_FAILURE_CODE,
+    TIMEOUT_REASON,
+    TRANSCRIPTION_FAILED_CODE,
+)
 
 
 class ProviderFailureError(Exception):
@@ -31,7 +36,7 @@ class ProviderFailureError(Exception):
         self.reason = reason
 
 
-def provider_failure(step: str, error: Exception) -> ProviderFailureError:
+def provider_failure(step: str, error: Exception) -> ProviderFailureError | None:
     """Map a provider error or timeout of the step code ``step`` to the domain error.
 
     Args:
@@ -39,7 +44,8 @@ def provider_failure(step: str, error: Exception) -> ProviderFailureError:
         error: the error it raised.
 
     Returns:
-        The domain error; the provider's own message is dropped.
+        The domain error, the provider's own message dropped; None for any other
+        error, which still fails the workflow.
 
     Features:
         US-BEZ-03, US-SPR-04, US-SPR-06, F-18
@@ -49,30 +55,11 @@ def provider_failure(step: str, error: Exception) -> ProviderFailureError:
             return error
         case TimeoutError():
             code = STEP_FAILURE_CODES.get(step, TECHNICAL_FAILURE_CODE)
-            return ProviderFailureError(code, f"{step}: timeout")
+            return ProviderFailureError(code, f"{step}: {TIMEOUT_REASON}")
         case TranscriptionUnavailableError():
-            code = "transcription_failed"
-        case _:
+            code = TRANSCRIPTION_FAILED_CODE
+        case ProviderUnavailableError():
             code = TECHNICAL_FAILURE_CODE
+        case _:
+            return None
     return ProviderFailureError(code, f"{step}: {code}")
-
-
-def is_provider_error(error: Exception) -> bool:
-    """Whether ``error`` ends the check as technical_failure instead of crashing it.
-
-    Args:
-        error: what a step raised.
-
-    Returns:
-        True for a provider failure, a missing key, a rate limit or a timeout.
-
-    Features:
-        US-BEZ-03, US-SPR-04, US-SPR-06, F-18
-    """
-    return isinstance(
-        error,
-        ProviderFailureError
-        | ProviderUnavailableError
-        | TranscriptionUnavailableError
-        | TimeoutError,
-    )
