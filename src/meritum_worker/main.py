@@ -3,12 +3,15 @@
 import os
 import signal
 import threading
+from functools import cache
 from typing import Any
 
 from dbos import DBOS, DBOSConfig, WorkflowSerializationFormat
-from meritum_core.jobs.contracts import APPLICATION_NAME, DEFAULT_QUEUE, PING
+from meritum_core.jobs.contracts import APPLICATION_NAME, CHECK, DEFAULT_QUEUE, PING
+from meritum_core.shared.llm import LlmSettings
 
-from meritum_worker import jobs
+from meritum_worker import checks, jobs
+from meritum_worker.checks.factory import build_check_deps, build_check_runtime
 
 
 def env() -> str:
@@ -37,6 +40,38 @@ def ping_workflow(payload: dict[str, Any]) -> dict[str, Any]:
         ADR-03
     """
     return jobs.ping(payload, env())
+
+
+@cache
+def check_deps() -> checks.CheckDeps:
+    """The ports of the `check` workflow, built once per process.
+
+    Returns:
+        The model from ``MERITUM_LLM_*`` and the record repository.
+
+    Features:
+        US-SPR-01, F-22
+    """
+    return build_check_deps(LlmSettings())
+
+
+@DBOS.workflow(name=CHECK.name, serialization_type=WorkflowSerializationFormat.PORTABLE)
+async def check_workflow(payload: dict[str, Any]) -> dict[str, Any]:
+    """Check one request (see meritum_core.jobs.contracts.CHECK).
+
+    Args:
+        payload: the `CheckInput` JSON object.
+
+    Returns:
+        The `CheckOutput` JSON object; progress goes to the PROGRESS_KEY stream.
+
+    Features:
+        US-SPR-01, US-OBS-01, F-22, ADR-03
+    """
+    output = await checks.run_check(
+        payload, DBOS.workflow_id or "", check_deps(), build_check_runtime()
+    )
+    return output.model_dump(mode="json")
 
 
 def config() -> DBOSConfig:

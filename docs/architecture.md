@@ -5,7 +5,7 @@ Zasady są w skillu `meritum-architecture` w monorepo (`.claude/skills/meritum-a
 | Zasada | Kontrola |
 | --- | --- |
 | pionowe wycinki, prywatne `_nazwy` | `tests/architecture/test_slices.py` (pytestarch: wycinek importuje inny tylko przez jego pakiet, prywatny moduł `_x` tylko we własnym pakiecie); `scripts/check_conventions.py` (import prywatnej nazwy albo modułu innego pakietu; pakiet z modułami `_x` deklaruje `__all__`) |
-| heksagonalna | `tests/architecture/test_hexagonal.py` (pytestarch: `jobs.py`, czyli treść workflowów, nie importuje DBOS ani adapterów; DBOS rejestruje i uruchamia je tylko `main.py`, wskazany w `WIRING` w `tests/architecture/conftest.py`) |
+| heksagonalna | `tests/architecture/test_hexagonal.py` (pytestarch: treść workflowów, `jobs.py` i wycinki takie jak `checks/workflow.py`, nie importuje DBOS ani adapterów; DBOS rejestruje i uruchamia je tylko `main.py`, wskazany w `WIRING` w `tests/architecture/conftest.py`; kroki `check` biegną w DBOS przez adapter `checks/adapters/`) |
 | lintery na pełną moc | ruff `select = ["ALL"]` z `preview`, wyłączone tylko reguły sprzeczne z formatterem i konwencją Google; `ty` z `all = "error"` |
 | docstringi z funkcjami produktu | ruff `D` i `DOC` (Args, Returns, Raises); `scripts/check_conventions.py`: publiczna klasa i funkcja najwyższego poziomu w `src/` ma sekcję `Features:` z ID `US-XXX-00`, `F-00`, `ADR-00` albo `none (infrastructure)`, każdy parametr jest w `Args:` (parametry `__init__` w docstringu klasy), każde pole klasy w `Attributes:` |
 | najwyżej 250 linii na plik | `scripts/check_conventions.py` (`src/`, `tests/`, `scripts/`, `features/`) |
@@ -19,4 +19,8 @@ Zasady są w skillu `meritum-architecture` w monorepo (`.claude/skills/meritum-a
 
 Wąsko i zawsze z powodem: `# noqa: XXX  # powód` w linii, per-file ignore w `[tool.ruff.lint.per-file-ignores]` z komentarzem, a dla `scripts/check_conventions.py` wpis `ścieżka = "powód"` w `[tool.meritum-conventions.*-exceptions]` w `pyproject.toml`.
 
-Obecnie brak wyjątków.
+Obecne wyjątki:
+
+- `src/meritum_worker/checks/steps/_*.py`: `unused-async` (ruff). Kroki zastępcze workflowu `check` mają sygnaturę `async`, której workflow oczekuje; prawdziwe kroki dodadzą `await`.
+- `src/meritum_worker/checks/adapters/_dbos.py`: `no-self-use` (ruff) w linii. `DbosCheckRuntime` spełnia protokół `CheckRuntime` z metodami instancji.
+- `__call__` w `ignore_names` vulture'a: sygnatura wywołania w protokole `Step` nie jest martwym kodem.
