@@ -41,10 +41,14 @@ def test_failed_migration_exits_with_its_name(
     ran: list[tuple[str, str]], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     def fail(_url: str) -> list[str]:
-        msg = "0002_x.sql: syntax error"
+        msg = "0002_x.sql: syntax error\nLINE 3: CREAT TABLE\n        ^"
         raise RuntimeError(msg)
 
     monkeypatch.setattr(main, "apply_migrations", fail)
-    with pytest.raises(SystemExit, match=r"^migration app_dev failed: 0002_x\.sql"):
+    with pytest.raises(SystemExit) as exited:
         main.migrate(["--corpus"])
+    # one line: the deploy shows the last line of the output as its error
+    assert exited.value.code == (
+        "migration app_dev failed: 0002_x.sql: syntax error LINE 3: CREAT TABLE ^"
+    )
     assert ran == []

@@ -189,7 +189,8 @@ def migrate(argv: list[str] | None = None) -> None:
         try:
             applied = apply(url.get_secret_value())
         except (psycopg.Error, RuntimeError) as exc:
-            sys.exit(f"migration {name} failed: {exc}")
+            # one line: the deploy turns the last output line into its ::error
+            sys.exit(f"migration {name} failed: {' '.join(str(exc).split())}")
         sys.stdout.write(f"{name}: {', '.join(applied) or 'up to date'}\n")
 
 

@@ -1,7 +1,7 @@
 """Steps for features/deploy.feature: deploy/deploy.sh with a fake docker."""
 
 import os
-import subprocess  # ruff: ignore[suspicious-subprocess-import]
+import subprocess  # ruff: ignore[suspicious-subprocess-import] - runs only deploy.sh
 import tempfile
 from pathlib import Path
 
@@ -45,7 +45,7 @@ def deploy_starts(context: Context, env: str) -> None:
     (tmp / "envs" / f"worker-{env}.env").write_text("")
     calls = tmp / "calls"
     calls.touch()
-    done = subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true]
+    done = subprocess.run(  # ruff: ignore[subprocess-without-shell-equals-true] - fixed argv
         [str(DEPLOY), BRANCHES[env], "0" * 40],
         env={
             "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
