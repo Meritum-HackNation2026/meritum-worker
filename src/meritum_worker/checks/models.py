@@ -12,6 +12,7 @@ from meritum_core.checks import CheckRecordRepository, CheckResult, InjectionEve
 from meritum_core.checks.contracts import (
     ClaimDateSource,
     ClaimResult,
+    FailureCode,
     ModelUsage,
 )
 from meritum_core.corpus.fetching import PageFetcherPort
@@ -158,13 +159,27 @@ class CheckState(BaseModel):
             corpus_version=self.corpus_version,
         )
 
-    def technical_failure(self) -> CheckResult:
+    def technical_failure(
+        self,
+        code: FailureCode = TECHNICAL_FAILURE_CODE,
+        message: str = TECHNICAL_FAILURE_MESSAGE,
+    ) -> CheckResult:
         """Build the technical-failure result: no claims, a message instead.
+
+        Args:
+            code: why the check failed; the model provider by default.
+            message: the copy key channels show.
 
         Returns:
             The result channels show as „Problem techniczny”.
         """
-        return self.with_message("technical_failure", TECHNICAL_FAILURE_MESSAGE)
+        return CheckResult(
+            check_id=self.check_id,
+            status="technical_failure",
+            message=message,
+            failure_code=code,
+            corpus_version=self.corpus_version,
+        )
 
     def final_result(self) -> CheckResult:
         """The answer, or a technical failure when no step produced one.

@@ -124,3 +124,20 @@ def test_check_of_an_unreachable_link_fails_at_fetch_url_without_a_verdict(
     assert failed == ["fetch_url"]
     assert output.result.failure_code == "url_unavailable"
     assert output.result.claims == []
+
+
+def test_fetch_url_keeps_pasted_text_and_skips_the_link_next_to_it(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    pages = FakePageFetcher(LoginWallError(FetchFailureReason.LOGIN_WALL))
+    request = CheckRequest(
+        channel="web", text="Płaca minimalna wynosi 4806 zł", url=LINK
+    )
+    job = make_job().model_copy(update={"request": request})
+    out = asyncio.run(
+        fetch_url(CheckState(check_id="c-1", job=job), make_deps(pages=pages))
+    )
+    assert pages.calls == []
+    assert out.result is None
+    assert out.skipped_steps == ["fetch_url"]
+    assert out.question == "Płaca minimalna wynosi 4806 zł"
