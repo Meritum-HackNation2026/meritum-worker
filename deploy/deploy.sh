@@ -41,7 +41,8 @@ fi
 # meritum-infra#28: WIF credential directories, space-separated host:container:ro entries.
 gcp_mounts=$(env_value MERITUM_GCP_MOUNTS)
 if [ -n "$gcp_mounts" ]; then
-  for mount in $gcp_mounts; do volume_args+=(-v "$mount"); done
+  read -ra gcp_entries <<<"$gcp_mounts"  # split on spaces, no globbing
+  for mount in "${gcp_entries[@]}"; do volume_args+=(-v "$mount"); done
 else
   log "no MERITUM_GCP_MOUNTS in $envfile: container starts without GCP credentials"
 fi
