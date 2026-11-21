@@ -1,0 +1,13 @@
+{
+  "AnswerDraft": {
+    "claims": [
+      {
+        "claim": "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      }
+    ],
+    "limitations": ["Odpowiedź z modelu zastępczego, bez przeszukania korpusu."]
+  }
+}

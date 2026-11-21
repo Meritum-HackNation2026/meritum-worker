@@ -1,0 +1,75 @@
+import asyncio
+from collections.abc import Callable
+from datetime import timedelta
+
+from meritum_core.jobs.contracts import CheckInput
+
+from meritum_worker.checks import CheckDeps, CheckState
+from meritum_worker.checks.steps import save_record, write_answer
+
+type MakeDeps = Callable[..., CheckDeps]
+
+
+def test_write_answer_builds_done_result_and_records_model_usage(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    out = asyncio.run(write_answer(state, make_deps()))
+    assert out.result is not None
+    assert out.result.status == "done"
+    assert [claim.verdict for claim in out.result.claims] == ["insufficient_evidence"]
+    assert [(m.provider, m.cost_usd) for m in out.models] == [("stub", 0.0)]
+
+
+def test_write_answer_turns_contract_breaking_answer_into_technical_failure(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    out = asyncio.run(write_answer(state, make_deps("llm_stub_broken_answer.json")))
+    assert out.result is not None
+    assert out.result.status == "technical_failure"
+    assert out.result.claims == []
+    assert out.result.message == "status_hint.technical_failure"
+    assert len(out.models) == 1
+
+
+def test_write_answer_turns_provider_failure_into_technical_failure(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    out = asyncio.run(write_answer(state, make_deps(None)))
+    assert out.result is not None
+    assert out.result.status == "technical_failure"
+    assert out.models == []
+
+
+def test_save_record_keeps_record_30_days_from_receipt(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    deps = make_deps()
+    answered = asyncio.run(write_answer(state, deps))
+    asyncio.run(save_record(answered, deps))
+    record = asyncio.run(deps.records.get("check-1"))
+    assert record is not None
+    assert record.retention_until == state.job.received_at + timedelta(days=30)
+    assert record.status == "done"
+    assert record.question_masked == "Płaca minimalna wynosi 4806 zł"
+    assert record.models == answered.models
+
+
+def test_save_record_without_answer_records_technical_failure(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    deps = make_deps()
+    asyncio.run(save_record(state, deps))
+    record = asyncio.run(deps.records.get("check-1"))
+    assert record is not None
+    assert record.status == "technical_failure"
+
+
+def test_save_record_uses_user_id_when_signed_in_without_session(
+    make_deps: MakeDeps, make_job: Callable[..., CheckInput]
+) -> None:
+    deps = make_deps()
+    state = CheckState(check_id="check-2", job=make_job(user_id="user-0001"))
+    asyncio.run(save_record(state, deps))
+    record = asyncio.run(deps.records.get("check-2"))
+    assert record is not None
+    assert (record.session_id, record.user_id) == ("user-0001", "user-0001")

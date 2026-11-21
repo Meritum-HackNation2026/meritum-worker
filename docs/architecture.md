@@ -19,4 +19,8 @@ Zasady są w skillu `meritum-architecture` w monorepo (`.claude/skills/meritum-a
 
 Wąsko i zawsze z powodem: `# noqa: XXX  # powód` w linii, per-file ignore w `[tool.ruff.lint.per-file-ignores]` z komentarzem, a dla `scripts/check_conventions.py` wpis `ścieżka = "powód"` w `[tool.meritum-conventions.*-exceptions]` w `pyproject.toml`.
 
-Obecnie brak wyjątków.
+Obecne wyjątki:
+
+- `src/meritum_worker/checks/steps/_*.py`: `unused-async` (ruff). Kroki zastępcze workflowu `check` mają sygnaturę `async`, której workflow oczekuje; prawdziwe kroki dodadzą `await`.
+- `src/meritum_worker/checks/adapters/_dbos.py`: `no-self-use` (ruff) w linii. `DbosCheckRuntime` spełnia protokół `CheckRuntime` z metodami instancji.
+- `__call__` w `ignore_names` vulture'a: sygnatura wywołania w protokole `Step` nie jest martwym kodem.
