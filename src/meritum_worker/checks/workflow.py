@@ -1,15 +1,19 @@
 """The `check` workflow body: the 12 AnalysisStep codes in order, each with its steps.
 
 Features:
-    US-SPR-01, US-SPR-02, US-OBS-01, F-22, ADR-03
+    US-SPR-01, US-SPR-02, US-OBS-01, US-BEZ-03, US-SPR-04, US-SPR-06, F-18, F-22,
+    ADR-03
 """
 
+import asyncio
 from typing import Protocol
 
 from meritum_core.checks import AnalysisStatus, AnalysisStep, CheckResult
 from meritum_core.jobs.contracts import CHECK, CONTRACT_VERSION, CheckOutput
 
 from meritum_worker.checks import steps
+from meritum_worker.checks.constants import STEP_TIMEOUTS
+from meritum_worker.checks.errors import is_provider_error, provider_failure
 from meritum_worker.checks.models import CheckDeps, CheckState
 from meritum_worker.checks.ports import CheckRuntime, StepRun
 
@@ -103,7 +107,7 @@ async def run_check(
         try:
             for function in functions:
                 state = await runtime.step(
-                    function.__name__, _bind(function, deps), state
+                    function.__name__, _bind(code, function, deps), state
                 )
         except Exception:
             progress[index] = _step(code, "failed")
@@ -140,8 +144,21 @@ def _outcome(code: str, before: CheckState, after: CheckState) -> str:
     return "skipped" if code in after.skipped_steps else "done"
 
 
-def _bind(function: Step, deps: CheckDeps) -> StepRun:
+def _bind(code: str, function: Step, deps: CheckDeps) -> StepRun:
+    # A provider failure or a timeout becomes a technical_failure state, so the
+    # record is still saved and no later step answers from the corpus alone.
     async def run(state: CheckState) -> CheckState:
-        return await function(state, deps)
+        try:
+            async with asyncio.timeout(STEP_TIMEOUTS[code].total_seconds()):
+                return await function(state, deps)
+        except Exception as error:
+            if not is_provider_error(error):
+                raise
+            failure = provider_failure(code, error)
+            update = {
+                "result": state.technical_failure(failure.code),
+                "retrieval_errors": [*state.retrieval_errors, failure.reason],
+            }
+            return state.model_copy(update=update)
 
     return run
