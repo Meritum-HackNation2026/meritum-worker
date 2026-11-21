@@ -32,7 +32,7 @@ async def screen_cases(golden: GoldenSet, gate: InjectionGatePort) -> list[GateC
         One call per case with text; the output is the text left after cutting.
 
     Features:
-        US-BEZ-01, F-19, F-27, ADR-23, ADR-35
+        US-OBS-04, US-BEZ-01, F-19, F-27, ADR-23, ADR-35
     """
     calls: list[GateCall] = []
     for case in golden.root:
@@ -62,7 +62,7 @@ async def mask_cases(cases: Sequence[DlpCase], gate: PiiGatePort) -> list[GateCa
         One call per case; the output is the masked text.
 
     Features:
-        US-BEZ-04, F-20, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-20, F-27, ADR-35
     """
     calls: list[GateCall] = []
     for case in cases:

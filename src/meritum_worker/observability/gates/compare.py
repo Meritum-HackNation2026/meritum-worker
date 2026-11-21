@@ -49,7 +49,7 @@ class GateBuilders:
         pii: The masking gate of a DLP configuration.
 
     Features:
-        US-BEZ-01, US-BEZ-04, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-27, ADR-35
     """
 
     injection: Callable[[InjectionConfig], InjectionGatePort]
@@ -66,7 +66,7 @@ def load_gate_config(path: Path) -> GateConfig:
         The configuration.
 
     Features:
-        US-OBS-04, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-35
     """
     config = GateConfigFile.model_validate_json(path.read_text(encoding="utf-8")).root
     here = path.parent

@@ -36,7 +36,7 @@ class InjectionScore(_Calls):
         cost_100_calls_usd: Price of 100 calls.
 
     Features:
-        US-BEZ-01, F-19, F-27, ADR-23, ADR-35
+        US-OBS-04, US-BEZ-01, F-19, F-27, ADR-23, ADR-35
     """
 
     kind: Literal["injection"] = "injection"
@@ -59,7 +59,7 @@ class DlpScore(_Calls):
         cost_100_calls_usd: Price of 100 calls.
 
     Features:
-        US-BEZ-04, F-20, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-20, F-27, ADR-35
     """
 
     kind: Literal["dlp"] = "dlp"
@@ -81,7 +81,7 @@ class ClassifierScore(_Calls):
         cost_100_calls_usd: Price of 100 calls.
 
     Features:
-        US-OBS-04, US-SPR-06, F-07, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, US-SPR-06, F-07, F-27, ADR-35
     """
 
     kind: Literal["input_classifier"] = "input_classifier"
@@ -104,7 +104,7 @@ class NliScore(_Calls):
         cost_100_calls_usd: Price of 100 calls.
 
     Features:
-        US-OBS-04, F-27, ADR-06, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-06, ADR-35
     """
 
     kind: Literal["nli"] = "nli"
@@ -127,7 +127,7 @@ class RerankerDelta(_Frozen):
         cost_100_checks_usd: Difference of the cost of 100 checks.
 
     Features:
-        US-KOR-02, F-12, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-KOR-02, F-12, F-27, ADR-35
     """
 
     kind: Literal["reranker"] = "reranker"
@@ -150,7 +150,7 @@ class GateEntry(_Frozen):
         score: Its metrics.
 
     Features:
-        US-OBS-04, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-35
     """
 
     name: str
@@ -166,7 +166,7 @@ class GatesReport(_Frozen):
         entries: One per configuration, in the order given.
 
     Features:
-        US-OBS-04, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-35
     """
 
     date: date

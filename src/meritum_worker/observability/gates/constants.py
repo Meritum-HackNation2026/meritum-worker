@@ -18,3 +18,9 @@ CLAIM_STATUSES: Final = frozenset({"done", "technical_failure"})
 
 REPORT_ZONE: Final = ZoneInfo("Europe/Warsaw")
 """Time zone of the report's date: the day the team ran it, in Poland."""
+
+COST_SAMPLE_CALLS: Final = 100
+"""The report prices this many gate calls."""
+
+PAGE_ATTACK: Final = "source_page"
+"""Injection place of an attack hidden on a source page."""

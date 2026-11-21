@@ -7,8 +7,13 @@ Features:
 import statistics
 from collections.abc import Sequence
 
-from meritum_worker.observability.constants import COST_SAMPLE_CHECKS, REPORT_DECIMALS
-from meritum_worker.observability.gates.constants import CLAIM_CLASS, CLAIM_STATUSES
+from meritum_worker.observability.constants import REPORT_DECIMALS
+from meritum_worker.observability.gates.constants import (
+    CLAIM_CLASS,
+    CLAIM_STATUSES,
+    COST_SAMPLE_CALLS,
+    PAGE_ATTACK,
+)
 from meritum_worker.observability.gates.models import (
     DlpCase,
     GateCall,
@@ -36,9 +41,9 @@ def screened_text(case: GoldenCase) -> str | None:
         The text, or None for a case without text.
 
     Features:
-        US-BEZ-01, F-19, F-27, ADR-23
+        US-OBS-04, US-BEZ-01, F-19, F-27, ADR-23
     """
-    if case.injection is not None and case.injection.place == "source_page":
+    if case.injection is not None and _is_page_attack(case):
         return case.injection.payload
     return case.text
 
@@ -62,7 +67,7 @@ def score_injection(
         The score.
 
     Features:
-        US-BEZ-01, F-19, F-27, ADR-23, ADR-35
+        US-OBS-04, US-BEZ-01, F-19, F-27, ADR-23, ADR-35
     """
     by_id = {case.id: case for case in golden.root}
     attacks: list[bool] = []
@@ -97,7 +102,7 @@ def score_dlp(
         The score.
 
     Features:
-        US-BEZ-04, F-20, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-20, F-27, ADR-35
     """
     masked = {call.case_id: call.output for call in calls}
     personal = [i not in masked[c.id] for c in cases for i in c.personal]
@@ -126,7 +131,7 @@ def score_classifier(
         The score.
 
     Features:
-        US-OBS-04, US-SPR-06, F-07, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, US-SPR-06, F-07, F-27, ADR-35
     """
     by_id = {case.id: case for case in golden.root}
     pairs = [(expected_class(by_id[call.case_id]), call.output) for call in calls]
@@ -150,7 +155,7 @@ def expected_class(case: GoldenCase) -> str:
         ``claim``, or the case's expected state when it is not about a claim.
 
     Features:
-        US-OBS-04, US-SPR-06, F-07, F-27
+        US-BEZ-01, US-OBS-04, US-SPR-06, F-07, F-27
     """
     is_claim = case.expected_status in CLAIM_STATUSES
     return CLAIM_CLASS if is_claim else case.expected_status
@@ -167,7 +172,7 @@ def score_nli(calls: Sequence[StanceCall], runs_on: GateModel) -> NliScore:
         The score.
 
     Features:
-        US-OBS-04, F-27, ADR-06, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-06, ADR-35
     """
     manual = [call.nli == call.manual for call in calls if call.manual is not None]
     return NliScore(
@@ -191,7 +196,7 @@ def reranker_delta(with_reranker: EvalReport, without: EvalReport) -> RerankerDe
         The differences.
 
     Features:
-        US-KOR-02, F-12, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-KOR-02, F-12, F-27, ADR-35
     """
     on, off = with_reranker.citation_correctness, without.citation_correctness
     return RerankerDelta(
@@ -206,10 +211,14 @@ def reranker_delta(with_reranker: EvalReport, without: EvalReport) -> RerankerDe
 
 def _repelled(attack: GoldenCase, clean: GoldenCase, call: GateCall) -> bool:
     left = _flat(call.output)
-    if attack.injection is None or attack.injection.place == "source_page":
+    if attack.injection is None or _is_page_attack(attack):
         return left != _flat(screened_text(attack) or "")
     question_kept = clean.text is None or _flat(clean.text) in left
     return _flat(attack.injection.payload) not in left and question_kept
+
+
+def _is_page_attack(case: GoldenCase) -> bool:
+    return case.injection is not None and case.injection.place == PAGE_ATTACK
 
 
 def _flat(text: str) -> str:
@@ -221,7 +230,7 @@ def _median(calls: Sequence[GateCall] | Sequence[StanceCall]) -> float:
 
 
 def _cost_100(runs_on: GateModel) -> float:
-    return _round(runs_on.price_per_call_usd * COST_SAMPLE_CHECKS)
+    return _round(runs_on.price_per_call_usd * COST_SAMPLE_CALLS)
 
 
 def _share(hits: Sequence[bool]) -> Ratio:

@@ -34,7 +34,7 @@ class GateModel(_Frozen):
         price_per_call_usd: Mean price of one call; 0 inside a free tier.
 
     Features:
-        US-OBS-04, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-35
     """
 
     provider: Label
@@ -58,7 +58,7 @@ class InjectionConfig(_Config):
             ``MERITUM_INJECTION_GATE_*`` environment.
 
     Features:
-        US-BEZ-01, F-19, F-27, ADR-23, ADR-35
+        US-OBS-04, US-BEZ-01, F-19, F-27, ADR-23, ADR-35
     """
 
     gate: Literal["injection"]
@@ -75,7 +75,7 @@ class DlpConfig(_Config):
         cases: The DLP case file, relative to the config file.
 
     Features:
-        US-BEZ-04, F-20, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-20, F-27, ADR-35
     """
 
     gate: Literal["dlp"]
@@ -92,7 +92,7 @@ class RerankerConfig(_Config):
         without_reranker: Report of the run with the null gate.
 
     Features:
-        US-KOR-02, F-12, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-KOR-02, F-12, F-27, ADR-35
     """
 
     gate: Literal["reranker"]
@@ -108,7 +108,7 @@ class RecordedConfig(_Config):
         calls: The recorded answers, relative to the config file.
 
     Features:
-        US-OBS-04, US-SPR-06, F-07, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, US-SPR-06, F-07, F-27, ADR-35
     """
 
     gate: Literal["nli", "input_classifier"]
@@ -126,7 +126,7 @@ class GateConfigFile(RootModel[GateConfig]):
     """Validates one configuration file.
 
     Features:
-        US-OBS-04, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-35
     """
 
 
@@ -140,7 +140,7 @@ class GateCall(_Frozen):
         seconds: Time of the call.
 
     Features:
-        US-OBS-04, F-27, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-35
     """
 
     case_id: Label
@@ -152,7 +152,7 @@ class GateCalls(RootModel[tuple[GateCall, ...]]):
     """A recorded input classifier run.
 
     Features:
-        US-OBS-04, US-SPR-06, F-07, F-27
+        US-BEZ-01, US-OBS-04, US-SPR-06, F-07, F-27
     """
 
 
@@ -168,7 +168,7 @@ class StanceCall(_Frozen):
         seconds: Time of the NLI call.
 
     Features:
-        US-OBS-04, F-27, ADR-06, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-06, ADR-35
     """
 
     claim: str
@@ -183,7 +183,7 @@ class StanceCalls(RootModel[tuple[StanceCall, ...]]):
     """A recorded NLI run.
 
     Features:
-        US-OBS-04, F-27, ADR-06, ADR-35
+        US-BEZ-01, US-OBS-04, F-27, ADR-06, ADR-35
     """
 
 
@@ -198,7 +198,7 @@ class DlpCase(_Frozen):
             must stay unchanged.
 
     Features:
-        US-BEZ-04, F-20, F-27
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-20, F-27
     """
 
     id: Label
@@ -211,5 +211,5 @@ class DlpCases(RootModel[tuple[DlpCase, ...]]):
     """The DLP case file.
 
     Features:
-        US-BEZ-04, F-20, F-27
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-20, F-27
     """

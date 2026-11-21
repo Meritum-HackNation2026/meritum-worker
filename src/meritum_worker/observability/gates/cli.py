@@ -38,7 +38,12 @@ def gates_eval(argv: Sequence[str]) -> None:
     except (OSError, ValueError) as error:
         parser.error(str(error))
     day = datetime.now(REPORT_ZONE).date()
-    report = asyncio.run(compare_gates(configs, golden, build_gate_builders(), day))
+    try:
+        run = compare_gates(configs, golden, build_gate_builders(), day)
+        report = asyncio.run(run)
+    except (OSError, ValueError) as error:
+        # A missing recorded file or bad gate settings: a message, not a traceback.
+        parser.error(str(error))
     text = report.model_dump_json(indent=2) + "\n"
     if args.output is None:
         sys.stdout.write(text)

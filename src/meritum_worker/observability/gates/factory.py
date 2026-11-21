@@ -1,7 +1,7 @@
 """Builds the live gates of the comparison from their configurations.
 
 Features:
-    US-BEZ-01, US-BEZ-04, F-27, ADR-35
+    US-OBS-04, US-BEZ-01, US-BEZ-04, F-27, ADR-35
 """
 
 from meritum_core.security.injection import InjectionGatePort
@@ -19,7 +19,7 @@ def build_gate_builders() -> GateBuilders:
         The builders.
 
     Features:
-        US-BEZ-01, US-BEZ-04, F-27, ADR-35
+        US-OBS-04, US-BEZ-01, US-BEZ-04, F-27, ADR-35
     """
     return GateBuilders(injection=_injection, pii=_pii)
 
