@@ -8,6 +8,9 @@ Features:
 """
 
 import asyncio
+from datetime import date
+
+from meritum_core.security.pii import mask_personal_data
 
 from meritum_worker.checks.constants import (
     MAX_PARALLEL_CLAIMS,
@@ -23,7 +26,8 @@ async def search_corpus(state: CheckState, deps: CheckDeps) -> CheckState:
 
     Args:
         state: the check so far, with its dated claims.
-        deps: the corpus search, the reranker and the pinned snapshot.
+        deps: the masking gate, the corpus search, the reranker and the pinned
+            snapshot.
 
     Returns:
         The state with reranked passages per fact and the snapshot searched;
@@ -37,8 +41,9 @@ async def search_corpus(state: CheckState, deps: CheckDeps) -> CheckState:
     if not facts or deps.corpus_version == NO_CORPUS_VERSION:
         skipped = [*state.skipped_steps, SEARCH_CORPUS_STEP]
         return state.model_copy(update={"skipped_steps": skipped})
-    gate = asyncio.Semaphore(MAX_PARALLEL_CLAIMS)
-    found = await asyncio.gather(*(_research(f, state, deps, gate) for f in facts))
+    slots = asyncio.Semaphore(MAX_PARALLEL_CLAIMS)
+    today = state.job.received_at.date()
+    found = await asyncio.gather(*(_research(f, today, deps, slots) for f in facts))
     # One failing reranker fails every fact the same way: record it once.
     errors = dict.fromkeys(e for reranking in found for e in reranking.retrieval_errors)
     passages = {f.claim: r.passages for f, r in zip(facts, found, strict=True)}
@@ -52,12 +57,14 @@ async def search_corpus(state: CheckState, deps: CheckDeps) -> CheckState:
 
 
 async def _research(
-    fact: ExtractedClaim, state: CheckState, deps: CheckDeps, gate: asyncio.Semaphore
+    fact: ExtractedClaim, today: date, deps: CheckDeps, slots: asyncio.Semaphore
 ) -> Reranking:
-    async with gate:
+    async with slots:
+        # The query is embedded and reranked by outside providers: mask it first.
+        query = (await mask_personal_data(fact.claim, deps.pii)).text
         found = await deps.corpus.search(
-            fact.claim,
-            claim_date=fact.claim_date or state.job.received_at.date(),
+            query,
+            claim_date=fact.claim_date or today,
             corpus_version=deps.corpus_version,
         )
-        return await rerank_passages(deps.reranker, fact.claim, found)
+        return await rerank_passages(deps.reranker, query, found)

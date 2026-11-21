@@ -3,8 +3,8 @@ import dataclasses
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 
-from meritum_core.corpus import CorpusSearchPort
-from meritum_core.corpus.models import Passage
+import pytest
+from meritum_core.corpus import CorpusSearchPort, Passage
 from meritum_core.corpus.rerank.fakes import FakeReranker
 from meritum_core.shared.llm import ProviderUnavailableError
 
@@ -16,6 +16,7 @@ from meritum_worker.checks import (
     corpus_ports,
 )
 from meritum_worker.checks.constants import MAX_PARALLEL_CLAIMS
+from meritum_worker.checks.settings import ResearchSettings
 from meritum_worker.checks.steps import search_corpus
 
 type MakeDeps = Callable[..., CheckDeps]
@@ -114,3 +115,22 @@ def test_search_corpus_is_skipped_without_facts(
 
 def test_fake_corpus_search_is_a_corpus_search_port() -> None:
     assert isinstance(FakeCorpusSearch(PASSAGES), CorpusSearchPort)
+
+
+def test_search_corpus_masks_the_claim_before_it_is_embedded(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    corpus = FakeCorpusSearch(PASSAGES)
+    deps = dataclasses.replace(make_deps(), corpus=corpus, corpus_version="v1")
+    fact = _fact("Pod numerem 600 700 800 płaca minimalna wynosi 4806 zł")
+    asyncio.run(search_corpus(state.model_copy(update={"claims": [fact]}), deps))
+    ((query, _),) = corpus.queries
+    assert "600 700 800" not in query
+
+
+def test_research_settings_pin_the_snapshot_from_the_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert ResearchSettings().corpus_version == "none"
+    monkeypatch.setenv("MERITUM_CORPUS_VERSION", "2026-11-21T10:00Z")
+    assert ResearchSettings().corpus_version == "2026-11-21T10:00Z"

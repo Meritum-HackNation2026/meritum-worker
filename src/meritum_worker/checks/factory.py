@@ -4,8 +4,6 @@ Features:
     US-SPR-01, US-OBS-01, F-22, ADR-03
 """
 
-import os
-
 from meritum_core.checks.transcription import TranscriptionSettings, build_transcriber
 from meritum_core.corpus import CorpusSettings, build_corpus_search
 from meritum_core.corpus.catalog import load_catalog
@@ -19,9 +17,9 @@ from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings, build_llm
 
 from meritum_worker.checks.adapters import DbosCheckRuntime
-from meritum_worker.checks.constants import CORPUS_VERSION_ENV, NO_CORPUS_VERSION
 from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.ports import CheckRuntime
+from meritum_worker.checks.settings import ResearchSettings
 from meritum_worker.corpus import build_reranker
 from meritum_worker.security import InjectionGateSettings, build_detector
 
@@ -44,7 +42,8 @@ def build_check_deps(
         blobs: blob store settings, usually ``BlobSettings()``; the in-memory
             store when None (no ``MERITUM_BLOB_PROVIDER``). Transcription reads
             ``MERITUM_TRANSCRIPTION_*``; corpus search ``MERITUM_CORPUS_*`` and
-            ``MERITUM_EMBEDDINGS_*``, the reranker ``MERITUM_RERANKER``.
+            ``MERITUM_EMBEDDINGS_*``, the reranker ``MERITUM_RERANKER``, the
+            snapshot ``MERITUM_CORPUS_VERSION``.
 
     Returns:
         The ports.
@@ -72,9 +71,7 @@ def build_check_deps(
             CorpusSettings(), build_embeddings(EmbeddingsSettings())
         ),
         reranker=build_reranker(),
-        # shortcut: one snapshot pinned by env, upgrade to the newest snapshot
-        # once hourly snapshots (worker#17) land.
-        corpus_version=os.environ.get(CORPUS_VERSION_ENV, NO_CORPUS_VERSION),
+        corpus_version=ResearchSettings().corpus_version,
     )
 
 

@@ -66,7 +66,7 @@ class CorpusPorts(TypedDict):
         corpus_version: the pinned snapshot.
 
     Features:
-        US-SPR-04, F-12
+        US-SPR-02, US-SPR-04, F-09, F-12
     """
 
     corpus: CorpusSearchPort
@@ -87,7 +87,7 @@ def corpus_ports(
         The ports.
 
     Features:
-        US-SPR-04, F-12
+        US-SPR-02, US-SPR-04, F-09, F-12
     """
     return CorpusPorts(
         corpus=FakeCorpusSearch(passages),
