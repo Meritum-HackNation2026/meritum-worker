@@ -103,8 +103,9 @@ async def sync_euvsdisinfo(
         How many entries were added, updated and marked deleted.
 
     Raises:
-        EuvsDisinfoUnavailableError: The scan returned nothing, so the copy is
-            kept instead of marking every entry deleted.
+        EuvsDisinfoUnavailableError: A page failed, the scan passed
+            ``MAX_PAGES``, or one tool returned nothing (the copy is kept
+            instead of marking all its cases or articles deleted).
 
     Features:
         US-KOR-08, F-11, ADR-26
@@ -113,8 +114,8 @@ async def sync_euvsdisinfo(
     articles = await _all_pages(client.articles)
     entries = [_case_entry(c) for c in cases] + [_article_entry(a) for a in articles]
     fetched = list({e.key: e for e in entries}.values())
-    if not fetched:
-        msg = "EUvsDisinfo returned nothing; the copy is left as it was"
+    if not cases or not articles:
+        msg = "EUvsDisinfo returned no cases or no articles; copy left as it was"
         raise EuvsDisinfoUnavailableError(msg)
     stored = {s.entry.key: s for s in await store.entries()}
     fresh = [e for e in fetched if _is_fresh(e, stored.get(e.key))]
