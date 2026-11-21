@@ -161,13 +161,13 @@ def test_attack_label_must_match_its_clean_case() -> None:
 
 
 def test_same_session_repeat_must_share_channel_and_session() -> None:
-    first = raw(session="s1")
+    first = raw(session="ses-1")
     repeat = raw(
         id="H-own-x",
         scenario="H",
         variant="same_session",
         related_case="D-own-test",
-        session="s2",
+        session="ses-2",
     )
     with pytest.raises(ValidationError, match="session"):
         GoldenSet.model_validate([first, repeat])
@@ -225,3 +225,15 @@ def test_attack_must_keep_the_main_claim_of_its_clean_case() -> None:
 def test_case_id_starts_with_its_scenario() -> None:
     with pytest.raises(ValidationError, match="scenario"):
         GoldenCase.model_validate(raw(id="A-own-test"))
+
+
+def test_case_cannot_repeat_itself() -> None:
+    repeat = raw(
+        id="H-own-x",
+        scenario="H",
+        variant="same_session",
+        related_case="H-own-x",
+        session="ses-1",
+    )
+    with pytest.raises(ValidationError, match="after"):
+        GoldenSet.model_validate([repeat])

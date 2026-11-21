@@ -597,7 +597,7 @@
     "main_claim": "W Pcimiu od tego miesiąca obowiązuje strefa płatnego parkowania.",
     "expected_status": "done",
     "expected_verdict": "insufficient_evidence",
-    "expected_behavior": "Pytanie z Discorda trafia do tej samej sprawy co pytania z SMS.",
+    "expected_behavior": "Pytanie z Discorda trafia do tej samej sprawy co pytania z SMS; o zapisie sprawy mówi tylko wtedy, gdy system go potwierdził.",
     "variant": "other_channel",
     "related_case": "H-own-parkowanie"
   },

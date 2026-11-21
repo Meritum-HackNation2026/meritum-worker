@@ -166,7 +166,7 @@ def _reference_problems(cases: dict[str, GoldenCase]) -> list[str]:
     problems += [
         f"{case.id}: must come after {case.related_case}"
         for case in cases.values()
-        if order.get(case.related_case or "", -1) > order[case.id]
+        if order.get(case.related_case or "", -1) >= order[case.id]
     ]
     return problems
 

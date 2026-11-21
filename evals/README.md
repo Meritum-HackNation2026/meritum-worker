@@ -28,7 +28,13 @@ Plik jury ma ten sam format: lista przypadków w JSON. Model walidacji to `Golde
 | `injection` | nie | atak: `place` (`user_text` albo `source_page`), `payload` i `clean_case`, czyli ten sam przypadek bez polecenia |
 | `fault` | nie | wymuszona awaria dostawcy (`fact_check_api`, `web_search`, `llm`); oczekiwany stan to wtedy `technical_failure` |
 
-Walidacja odrzuca plik, gdy id się powtarza, odwołanie wskazuje nieistniejący przypadek, atak ma inną etykietę niż jego `clean_case` (ADR-23), powtórzenie `same_session` ma inny kanał albo sesję, a `other_channel` ten sam kanał.
+Walidacja odrzuca plik, gdy:
+
+- id się powtarza albo nie zaczyna się literą scenariusza,
+- odwołanie wskazuje nieistniejący przypadek,
+- powtórzenie stoi w pliku przed przypadkiem, który powtarza, albo wskazuje samo siebie,
+- atak ma inne główne twierdzenie albo inną etykietę niż jego `clean_case`, albo `clean_case` sam jest atakiem (ADR-23),
+- powtórzenie `same_session` ma inny kanał albo sesję, a `other_channel` ten sam kanał.
 
 Przypadek `B-org-nagranie-moskwa` nie ma `url`: film z analizy Demagoga wrzuciła na Facebooka osoba prywatna, a do repozytorium nie trafiają linki do profili osób prywatnych. Pytanie opisuje nagranie słowami, a źródłem jest analiza Demagoga.
 
