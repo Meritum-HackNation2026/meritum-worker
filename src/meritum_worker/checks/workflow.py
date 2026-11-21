@@ -69,6 +69,8 @@ async def run_check(
 ) -> dict[str, Any]:
     """Run every step, publishing an AnalysisStatus before and after each code.
 
+    The code whose steps produced a technical failure ends as "failed".
+
     Args:
         payload: the `CheckInput` JSON object.
         check_id: the check's id (the DBOS workflow id).
@@ -89,14 +91,15 @@ async def run_check(
         msg = f"unsupported contract_version {job.contract_version}"
         raise ValueError(msg)
     state = CheckState(check_id=check_id, job=job)
-    codes = [code for code, _ in pipeline()]
-    progress = [_step(code, "pending") for code in codes]
-    for index, (code, functions) in enumerate(pipeline()):
+    stages = pipeline()
+    progress = [_step(code, "pending") for code, _ in stages]
+    for index, (code, functions) in enumerate(stages):
         progress[index] = _step(code, "active")
         await runtime.publish(AnalysisStatus(check_id=check_id, steps=progress))
+        before = state
         for function in functions:
             state = await runtime.step(function.__name__, _bind(function, deps), state)
-        progress[index] = _step(code, "done")
+        progress[index] = _step(code, _outcome(before, state))
     result = state.final_result()
     await runtime.publish(
         AnalysisStatus(check_id=check_id, steps=progress, result=result)
@@ -106,6 +109,14 @@ async def run_check(
 
 def _step(code: str, status: str) -> AnalysisStep:
     return AnalysisStep.model_validate({"code": code, "status": status})
+
+
+def _outcome(before: CheckState, after: CheckState) -> str:
+    # The code whose steps turned the check into a technical failure is "failed".
+    def failed(state: CheckState) -> bool:
+        return state.result is not None and state.result.status == "technical_failure"
+
+    return "failed" if failed(after) and not failed(before) else "done"
 
 
 def _bind(function: Step, deps: CheckDeps) -> StepRun:

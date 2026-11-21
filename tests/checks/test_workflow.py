@@ -6,8 +6,7 @@ import pytest
 from meritum_core.checks import AnalysisStep, CheckResult
 from meritum_core.jobs.contracts import CONTRACT_VERSION, CheckInput
 
-from meritum_worker.checks import CheckDeps, pipeline, run_check
-from meritum_worker.checks.fakes import InlineCheckRuntime
+from meritum_worker.checks import CheckDeps, InlineCheckRuntime, pipeline, run_check
 
 STEP_CODES = list(get_args(AnalysisStep.model_fields["code"].annotation))
 
@@ -61,3 +60,14 @@ def test_check_rejects_other_contract_version(
     payload["contract_version"] = CONTRACT_VERSION + 1
     with pytest.raises(ValueError, match="contract_version"):
         _run(payload, make_deps())
+
+
+def test_check_marks_the_step_that_failed_technically_as_failed(
+    payload: Payload, make_deps: Callable[..., CheckDeps]
+) -> None:
+    _, runtime = _run(payload, make_deps("llm_stub_broken_answer.json"))
+    final = runtime.published[-1]
+    failed = [step.code for step in final.steps if step.status == "failed"]
+    assert failed == ["write_answer"]
+    assert final.result is not None
+    assert final.result.status == "technical_failure"

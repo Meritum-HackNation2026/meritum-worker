@@ -29,6 +29,8 @@ uv run pytest -m integration  # tylko lokalnie: prawdziwy PostgreSQL albo dostaw
 uv run behave            # scenariusze z features/
 ```
 
+Workflow `check` woła model przez `LlmPort` z meritum-core (`MERITUM_LLM_*`). Stub (`MERITUM_LLM_PROVIDER=stub`, domyślny) odpowiada tylko z pliku `MERITUM_LLM_STUB_FIXTURES`, np. `features/fixtures/llm_stub_answer.json`; bez niego każde sprawdzenie kończy się stanem `technical_failure`. Do czasu adaptera PostgreSQL z meritum-core#38 CheckRecord leży w pamięci procesu i znika przy restarcie.
+
 Scenariusze Gherkin ze zgłoszeń trafiają do `features/<domena>.feature`, kroki do `features/steps/`; kroki wołają tylko publiczne API wycinka. Test na prawdziwej bazie albo u prawdziwego dostawcy dostaje `@pytest.mark.integration`: `uv run pytest` (także w CI) go pomija, `uv run pytest -m integration` uruchamia.
 
 Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architecture.md).

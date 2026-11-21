@@ -16,8 +16,7 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
-from meritum_worker.checks import CheckDeps, run_check
-from meritum_worker.checks.fakes import InlineCheckRuntime
+from meritum_worker.checks import CheckDeps, InlineCheckRuntime, run_check
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 CHECK_ID = "check-behave-1"
