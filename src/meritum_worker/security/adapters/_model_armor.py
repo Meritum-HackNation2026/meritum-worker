@@ -94,12 +94,12 @@ class ModelArmorGate:
             Each chunk the filter matched (``screen_chunks``); nothing when it
             matched none, or when the gate was skipped (logged).
         """
-        return await screen_chunks(text, self._flags)
+        return await screen_chunks(text, self._flags, InjectionGateProvider.MODEL_ARMOR)
 
-    async def _flags(self, text: str) -> bool:
+    async def _flags(self, text: str) -> bool | None:
         token = await self._token()
         if token is None:
-            return False
+            return None
         reply = await post_reply(
             self._client,
             url=self._url,
@@ -114,7 +114,7 @@ class ModelArmorGate:
             reply=_Reply,
             provider=InjectionGateProvider.MODEL_ARMOR,
         )
-        return reply is not None and _matched(reply)
+        return None if reply is None else _verdict(reply)
 
     async def _token(self) -> str | None:
         try:
@@ -131,13 +131,13 @@ class ModelArmorGate:
         return str(credentials.token)
 
 
-def _matched(reply: _Reply) -> bool:
-    # A filter that is missing or did not run is a skip, not a clean result.
+def _verdict(reply: _Reply) -> bool | None:
+    # A filter that is missing or did not run is a skip (logged), not a clean result.
     pi_filter = reply.sanitization_result.filter_results.pi_and_jailbreak
     if pi_filter is None:
         skipped(InjectionGateProvider.MODEL_ARMOR, "template has no injection filter")
-        return False
+        return None
     if pi_filter.result.execution_state != MODEL_ARMOR_EXECUTED:
         skipped(InjectionGateProvider.MODEL_ARMOR, "filter did not run")
-        return False
+        return None
     return pi_filter.result.match_state == MODEL_ARMOR_MATCH

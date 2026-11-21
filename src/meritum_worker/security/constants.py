@@ -26,6 +26,11 @@ CHUNK_OVERLAP_CHARS: Final = 200
 """Characters each chunk shares with the next, so a short instruction cut by a
 chunk boundary is still whole in one of them."""
 
+MAX_CHUNKS: Final = 25
+"""Most chunks screened per text (about 95 000 characters): a page is outside
+input, so its length must not set the number of paid requests. The rest of the
+text is skipped with a log line."""
+
 MODEL_ARMOR_LOCATION: Final = "eu"
 """Model Armor multi-region: texts are screened in the EU only (ADR-14)."""
 

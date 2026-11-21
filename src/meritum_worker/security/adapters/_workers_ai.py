@@ -70,9 +70,9 @@ class WorkersAiGate:
             Each chunk flagged with an injection category (``screen_chunks``);
             nothing otherwise, or when the gate was skipped (logged).
         """
-        return await screen_chunks(text, self._flags)
+        return await screen_chunks(text, self._flags, InjectionGateProvider.WORKERS_AI)
 
-    async def _flags(self, text: str) -> bool:
+    async def _flags(self, text: str) -> bool | None:
         reply = await post_reply(
             self._client,
             url=self._url,
@@ -87,7 +87,7 @@ class WorkersAiGate:
             provider=InjectionGateProvider.WORKERS_AI,
         )
         if reply is None:
-            return False
+            return None
         verdict = reply.result.response
         return not verdict.safe and bool(
             WORKERS_AI_INJECTION_CATEGORIES.intersection(verdict.categories)
