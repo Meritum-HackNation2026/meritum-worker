@@ -155,3 +155,22 @@ def test_tiny_runs_do_not_crash(
 ) -> None:
     report = score_runs([run(case(), result())] * count)
     assert report.cases == len(report.outcomes) == count
+
+
+def test_output_tokens_per_second_over_time_of_runs_with_answers(
+    case: Case, result: Result, run: Run
+) -> None:
+    runs = [
+        run(case(), result(), seconds=2.0, output_tokens=100),
+        run(case(), result(), seconds=3.0, output_tokens=150),
+        run(case(), result("technical_failure"), seconds=5.0),
+    ]
+    assert score_runs(runs).output_tokens_per_second == pytest.approx(50.0)
+
+
+def test_output_tokens_per_second_is_zero_without_answers(
+    case: Case, result: Result, run: Run
+) -> None:
+    assert (
+        score_runs([run(case(), result(), seconds=0.0)]).output_tokens_per_second == 0
+    )

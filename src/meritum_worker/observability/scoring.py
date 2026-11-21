@@ -66,6 +66,7 @@ def score_runs(runs: Sequence[CaseRun]) -> EvalReport:
         max_seconds=_round(seconds[-1]),
         input_tokens_per_check=_round(sum(r.input_tokens for r in runs) / count),
         output_tokens_per_check=_round(sum(r.output_tokens for r in runs) / count),
+        output_tokens_per_second=_tokens_per_second(runs),
         cost_per_check_usd=_round(cost),
         cost_100_checks_usd=_round(cost * COST_SAMPLE_CHECKS),
         channel_consistency=_channel_consistency(runs),
@@ -93,6 +94,15 @@ def _round(value: float) -> float:
 
 def _share(hits: Sequence[bool]) -> Ratio:
     return _round(sum(hits) / len(hits)) if hits else None
+
+
+def _tokens_per_second(runs: Sequence[CaseRun]) -> float:
+    # Checks without answer tokens (failures, screenshots) would dilute the speed.
+    answered = [run for run in runs if run.output_tokens]
+    seconds = sum(run.seconds for run in answered)
+    return (
+        _round(sum(run.output_tokens for run in answered) / seconds) if seconds else 0.0
+    )
 
 
 def _percentile(ordered: Sequence[float]) -> float:
