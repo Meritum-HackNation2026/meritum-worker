@@ -1,4 +1,4 @@
-"""Entry point: launch DBOS, register queues and wait for work."""
+"""Entry points: the worker (DBOS, queues, workflows) and its deploy migrations."""
 
 import argparse
 import asyncio

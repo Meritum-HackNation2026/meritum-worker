@@ -11,6 +11,7 @@ from behave.runner import Context
 DEPLOY = Path(__file__).resolve().parents[2] / "deploy" / "deploy.sh"
 BRANCHES = {"dev": "develop", "prd": "main"}
 # Records argv; the migration command fails when FAIL_MIGRATION names a schema.
+# The failure text is the stub's: tests/test_migrate.py checks that migrate() writes it.
 FAKE_DOCKER = """#!/usr/bin/env bash
 printf '%s\\n' "$*" >>"$CALLS"
 case "$*" in
@@ -35,7 +36,9 @@ def failing_app_migration(context: Context) -> None:
 
 @when('deploy workera "{env}" startuje')
 def deploy_starts(context: Context, env: str) -> None:
-    tmp = Path(tempfile.mkdtemp())
+    sandbox = tempfile.TemporaryDirectory()
+    context.add_cleanup(sandbox.cleanup)
+    tmp = Path(sandbox.name)
     bin_dir = tmp / "bin"
     bin_dir.mkdir()
     for name, body in (("docker", FAKE_DOCKER), ("flock", "#!/bin/sh\n")):
