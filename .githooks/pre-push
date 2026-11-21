@@ -1,0 +1,23 @@
+#!/bin/sh
+# Blocks a push that would publish a secret: gitleaks scans only the commits
+# being pushed, before they leave the machine. CI (.github/workflows/secrets.yml)
+# scans the whole history again on the server.
+# One-time setup per clone:  git config core.hooksPath .githooks
+# (meritum-monorepo: scripts/setup-git-hooks.sh does it for every repo).
+# A justified false positive goes to .gitleaks.toml, not to git push --no-verify.
+command -v gitleaks >/dev/null 2>&1 || {
+  echo "pre-push: gitleaks is not installed (brew install gitleaks); push blocked" >&2
+  exit 1
+}
+status=0
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+  case $local_sha in *[!0]*) ;; *) continue ;; esac # branch deletion: nothing to scan
+  range=""
+  case $remote_sha in
+    *[!0]*) git cat-file -e "$remote_sha^{commit}" 2>/dev/null && range="$remote_sha..$local_sha" ;;
+  esac
+  # New branch, or a remote tip we do not have: scan what no remote branch has yet.
+  [ -n "$range" ] || range="$local_sha --not --remotes"
+  gitleaks git --log-opts="$range" --redact --no-banner --verbose . || status=1
+done
+exit $status
