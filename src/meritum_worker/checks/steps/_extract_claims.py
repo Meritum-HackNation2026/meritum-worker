@@ -6,7 +6,7 @@ Features:
 
 from datetime import date
 
-from meritum_core.shared.llm import Prompt, ProviderUnavailableError
+from meritum_core.shared.llm import Prompt
 
 from meritum_worker.checks.constants import (
     EXTRACTION_INSTRUCTIONS,
@@ -38,7 +38,9 @@ async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
 
     Returns:
         The state with its claims and limitations, or with a result that is not
-        a verdict (technical_failure when the provider fails).
+        a verdict.
+
+    A model failure propagates; the workflow maps it to technical_failure.
 
     Features:
         US-SPR-03, US-SPR-06, US-ZRD-05, F-07
@@ -46,10 +48,7 @@ async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
     if state.result is not None:
         return state
     prompt = Prompt(instructions=EXTRACTION_INSTRUCTIONS, data=(state.question,))
-    try:
-        answer = await deps.llm.complete(prompt, ClaimExtraction)
-    except ProviderUnavailableError:
-        return state.model_copy(update={"result": state.technical_failure()})
+    answer = await deps.llm.complete(prompt, ClaimExtraction)
     state = state.model_copy(
         update={"models": [*state.models, model_usage(answer.usage)]}
     )

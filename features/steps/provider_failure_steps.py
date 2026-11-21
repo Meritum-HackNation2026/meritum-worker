@@ -137,6 +137,7 @@ def failed_without_key_or_provider(context: Context) -> None:
     assert context.llm.calls == 1
     assert result.status == "technical_failure"
     assert result.failure_code == "provider_unavailable"
+    assert context.record.retrieval_errors == ["extract_claims: provider_unavailable"]
     shown = result.model_dump_json() + context.record.model_dump_json()
     assert "API_KEY" not in shown
     assert "vertex" not in shown
