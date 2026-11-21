@@ -128,7 +128,7 @@ MERITUM_BLOB_PROVIDER=gcs MERITUM_BLOB_BUCKET=... \
 MERITUM_TEST_AUDIO_FILE=wiadomosc.ogg uv run pytest -m integration tests/checks/test_transcription_integration.py
 ```
 
-Wynik: jeszcze nie uruchomiony (wymaga poświadczeń GCP); wpisz go tutaj po pierwszym przebiegu.
+Wynik: jeszcze nie uruchomiony, bo wymaga poświadczeń GCP. Przebieg i wpisanie wyniku śledzi [worker#92](https://github.com/Meritum-HackNation2026/meritum-worker/issues/92).
 
 ## Retencja i usuwanie danych
 
