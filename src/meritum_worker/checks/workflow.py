@@ -2,7 +2,7 @@
 
 Features:
     US-SPR-01, US-SPR-02, US-OBS-01, US-BEZ-03, US-SPR-04, US-SPR-06, US-KOR-04,
-    F-13, F-18, F-22, ADR-03
+    F-09, F-13, F-18, F-22, ADR-03, ADR-20
 """
 
 import asyncio
@@ -56,7 +56,7 @@ def pipeline() -> tuple[tuple[Lane, ...], ...]:
         The stages, each a tuple of lanes.
 
     Features:
-        US-SPR-01, US-SPR-02, US-KOR-04, F-13, F-22
+        US-SPR-01, US-SPR-02, US-KOR-04, F-09, F-13, F-22, ADR-20
     """
     return (
         (("receive", (steps.receive, steps.read_image)),),
@@ -64,12 +64,12 @@ def pipeline() -> tuple[tuple[Lane, ...], ...]:
         (("transcribe_audio", (steps.transcribe_audio,)),),
         (("screen_injection", (steps.screen_injection,)),),
         (("extract_claims", (steps.extract_claims,)),),
-        # Live web search runs next to the corpus search, never after it (F-13).
+        # The research agents run side by side, never one after another (F-09, F-13).
         (
             ("search_corpus", (steps.search_corpus,)),
             ("search_web", (steps.search_web,)),
+            ("search_fact_checks", (steps.search_fact_checks,)),
         ),
-        (("search_fact_checks", (steps.search_fact_checks,)),),
         (("assess_evidence", (steps.assess_evidence, steps.match_incidents)),),
         (("verify_citations", (steps.verify_citations,)),),
         (

@@ -103,7 +103,7 @@ def searches_in_parallel(context: Context) -> None:
         status
         for status in context.runtime.published
         if {s.code for s in status.steps if s.status == "active"}
-        == {"search_corpus", "search_web"}
+        >= {"search_corpus", "search_web"}
     ]
     assert together, "search_corpus and search_web never ran at the same time"
 

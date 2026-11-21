@@ -45,6 +45,7 @@ Workflow `check` bierze model, repozytorium zapisów, fetcher stron (ochrona SSR
 | `MERITUM_WEB_SEARCH_PROJECT` | brak | projekt aplikacji Vertex AI Search (na dev `196419832223`); wymagany dla `vertex_search` |
 | `MERITUM_WEB_SEARCH_ENGINE` | brak | id aplikacji (engine) nad website data store (na dev `meritum-live-search`, serving config `default_search`); wymagany dla `vertex_search` |
 | `MERITUM_WEB_SEARCH_STUB_FIXTURE` | brak | plik JSON z listą adresów, które zwraca stub; bez niego stub nic nie znajduje |
+| `MERITUM_CORPUS_VERSION` | `none` | migawka korpusu, którą przeszukuje krok `search_corpus` (przez `MERITUM_CORPUS_*` i `MERITUM_EMBEDDINGS_*`); przy `none` krok jest pomijany. Najwyżej 3 twierdzenia są badane naraz |
 
 Przy `technical_failure` wynik zawiera `failure_code` z kontraktu meritum-core. Pole `message` w wynikach bez werdyktu zawiera tekst diagnostyczny do użytku wewnętrznego.
 

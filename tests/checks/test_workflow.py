@@ -36,9 +36,10 @@ def test_pipeline_covers_every_analysis_step_in_contract_order() -> None:
     assert [code for stage in pipeline() for code, _ in stage] == STEP_CODES
 
 
-def test_web_search_shares_a_stage_with_corpus_search_one_step_each() -> None:
+def test_research_agents_share_one_stage_one_step_each() -> None:
     (stage,) = [s for s in pipeline() if len(s) > 1]
-    assert [code for code, _ in stage] == ["search_corpus", "search_web"]
+    research = ["search_corpus", "search_web", "search_fact_checks"]
+    assert [code for code, _ in stage] == research
     assert all(len(functions) == 1 for _, functions in stage)
 
 
