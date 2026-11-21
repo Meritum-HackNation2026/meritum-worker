@@ -174,8 +174,7 @@ WEB_TITLE_MAX_CHARS: Final = 200
 INJECTION_EXCERPT_MAX_CHARS: Final = 300
 """Longest InjectionEvent.excerpt the contract accepts."""
 CHUNK_MAX_CHARS: Final = 1200
-"""Longest passage of a catalogue document: short enough to quote with a link
-and to embed in one call (US-KOR-05, F-12)."""
+"""Longest passage: short enough to quote with a link (US-KOR-05, F-12)."""
 
 PARAGRAPH_SEPARATOR: Final = "\n\n"
 """Joins the paragraphs grouped into one passage."""
@@ -193,8 +192,7 @@ TDM_RESERVED_ENTRY: Final = "reserved"
 """Catalogue ``tdm_reservation`` of an owner who opted out of text and data mining."""
 
 PLAN_STEP: Final = "plan due entries"
-"""DBOS step that picks the due catalogue entries once per run, so a retried
-entry step still fetches all of its pages."""
+"""DBOS step that picks the due entries once, so a retried entry refetches all."""
 
 INGEST_STEP_PREFIX: Final = "ingest "
 """Prefix of an entry's DBOS step name, before its catalogue domain."""
@@ -209,8 +207,7 @@ INGEST_WORKFLOW: Final = "corpus_ingest"
 """DBOS name of the scheduled catalogue ingestion workflow."""
 
 INGEST_SCHEDULE: Final = "*/15 * * * *"
-"""Cron of the ingestion: the shortest ``refresh_minutes`` the catalogue allows
-is 15; each run fetches only the entries that are due."""
+"""Cron of the ingestion: 15 is the shortest ``refresh_minutes`` allowed."""
 
 SNAPSHOT_WORKFLOW: Final = "corpus_snapshot"
 """DBOS name of the scheduled snapshot workflow."""
@@ -222,8 +219,7 @@ SNAPSHOT_VERSION_FORMAT: Final = "%Y-%m-%dT%H:%MZ"
 """strftime format of a ``corpus_version`` from its scheduled UTC time."""
 
 INGEST_ENV: Final = "MERITUM_CORPUS_INGEST"
-"""Environment variable that turns on ingestion and snapshots; set only where the
-role may write the shared ``corpus`` schema (prd, infra#13)."""
+"""Turns on ingestion and snapshots; set only where ``corpus`` is writable (prd)."""
 
 INGEST_ENABLED: Final = "enabled"
 """The ``MERITUM_CORPUS_INGEST`` value that turns them on."""
