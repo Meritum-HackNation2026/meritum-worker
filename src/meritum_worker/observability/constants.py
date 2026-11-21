@@ -6,6 +6,8 @@ Features:
 
 from typing import Final
 
+from meritum_worker.corpus import TOKEN_ENV
+
 MAX_QUOTE_CHARS: Final = 300
 """Longest cited fragment of a source; full texts stay out of the repo (ADR-27)."""
 
@@ -73,9 +75,12 @@ ENV_NAME_VAR: Final = "MERITUM_ENV"
 LOCAL_ENV: Final = "local"
 """MERITUM_ENV of a worker run on a laptop; every other value is the public demo."""
 
+DEMO_PATH: Final = "demo"
+"""Path of a worker under dev or prd: the public demo."""
+
 REQUIRED_ENV: Final = {
-    "local": (),
-    "demo": ("MERITUM_DATABASE_URL", "EUVSDISINFO_MCP_API_KEY"),
+    LOCAL_ENV: (),
+    DEMO_PATH: ("MERITUM_DATABASE_URL", TOKEN_ENV),
 }
 """Variables each path needs, before the model's; README lists the same."""
 

@@ -1,7 +1,7 @@
-"""Builds the ports an evaluation run checks cases on.
+"""Builds the ports of an evaluation run and the probes of the readiness check.
 
 Features:
-    US-OBS-04, US-OBS-05, F-27, ADR-28, US-WDR-08, F-30
+    US-OBS-04, US-OBS-05, F-27, ADR-28, US-WDR-08, US-BEZ-03, F-30
 """
 
 from collections.abc import Mapping
@@ -67,7 +67,7 @@ def build_readiness_probes(
         ``missing_env`` already names it.
 
     Features:
-        US-WDR-08, F-30
+        US-WDR-08, US-BEZ-03, F-30
     """
     if corpus.missing_env(env):
         return {}

@@ -88,3 +88,12 @@ def test_readme_lists_every_required_variable() -> None:
         for n in names
     }
     assert all(f"`{name}`" in text for name in names)
+
+
+def test_empty_meritum_env_is_local() -> None:
+    assert required_env({"MERITUM_ENV": "", "MERITUM_LLM_PROVIDER": "stub"}) == []
+
+
+def test_unknown_model_provider_is_reported() -> None:
+    report = _check({"MERITUM_LLM_PROVIDER": "nope"})
+    assert report.missing_env == ["MERITUM_LLM_PROVIDER"]

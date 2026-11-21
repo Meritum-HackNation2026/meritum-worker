@@ -12,6 +12,7 @@ from meritum_core.jobs.contracts import ReadinessReport
 from meritum_core.shared.llm import LlmSettings
 
 from meritum_worker.observability.constants import (
+    DEMO_PATH,
     ENV_NAME_VAR,
     LLM_PROVIDER_VAR,
     LLM_REQUIRED_ENV,
@@ -35,11 +36,13 @@ def required_env(env: Mapping[str, str]) -> list[str]:
     Features:
         US-WDR-08, F-30
     """
-    path = "local" if env.get(ENV_NAME_VAR, LOCAL_ENV) == LOCAL_ENV else "demo"
+    path = LOCAL_ENV if (env.get(ENV_NAME_VAR) or LOCAL_ENV) == LOCAL_ENV else DEMO_PATH
     default = str(LlmSettings.model_fields["provider"].default)
     provider = (env.get(LLM_PROVIDER_VAR) or default).lower()
-    # An unknown provider adds no names; LlmSettings refuses it at the first check.
-    return [*REQUIRED_ENV[path], *LLM_REQUIRED_ENV.get(provider, ())]
+    if provider not in LLM_REQUIRED_ENV:
+        # An unknown provider fails every check, so the report names its variable.
+        return [*REQUIRED_ENV[path], LLM_PROVIDER_VAR]
+    return [*REQUIRED_ENV[path], *LLM_REQUIRED_ENV[provider]]
 
 
 async def check_readiness(
@@ -58,7 +61,13 @@ async def check_readiness(
     Features:
         US-WDR-08, US-BEZ-03, F-30
     """
-    missing = [name for name in required_env(env) if not env.get(name, "")]
+    known = LLM_REQUIRED_ENV.keys()
+    missing = [
+        name
+        for name in required_env(env)
+        if not env.get(name, "")
+        or (name == LLM_PROVIDER_VAR and env[name].lower() not in known)
+    ]
     unavailable = [name for name, probe in probes.items() if not await _answers(probe)]
     return ReadinessReport(
         missing_env=missing, unavailable_providers=unavailable, checked_at=now
