@@ -9,7 +9,6 @@ import asyncio
 import os
 from collections.abc import Iterator
 from datetime import UTC, datetime
-from importlib.resources import files
 
 import psycopg
 import pytest
@@ -17,10 +16,10 @@ from meritum_core.corpus import CorpusProvider, CorpusSettings
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 
 from meritum_worker import corpus
+from meritum_worker.corpus.adapters import apply_corpus_migrations
 from meritum_worker.corpus.fakes import FakeEuvsDisinfoServer
 
 TOKEN = "token"  # ruff: ignore[hardcoded-password-string]  # the fake server's token
-MIGRATIONS = files("meritum_core.corpus") / "migrations"
 ANY_ROW = (
     "SELECT 1 FROM corpus.euvsdisinfo_entries LIMIT 1",
     "SELECT 1 FROM corpus.euvsdisinfo_flagged_domains LIMIT 1",
@@ -36,10 +35,8 @@ def settings() -> Iterator[CorpusSettings]:
     url = os.environ.get("MERITUM_TEST_DATABASE_URL", "")
     if not url:
         pytest.skip("set MERITUM_TEST_DATABASE_URL to the meritum-postgres image")
-    scripts = sorted(MIGRATIONS.iterdir(), key=lambda f: f.name)
+    apply_corpus_migrations(url)
     with psycopg.connect(url, autocommit=True) as conn:
-        for script in (s for s in scripts if s.name.endswith(".sql")):
-            conn.execute(script.read_bytes())
         if any(conn.execute(query).fetchone() for query in ANY_ROW):
             pytest.skip("the EUvsDisinfo copy has rows; use an empty test database")
     yield CorpusSettings(provider=CorpusProvider.POSTGRES, database_url=url)
