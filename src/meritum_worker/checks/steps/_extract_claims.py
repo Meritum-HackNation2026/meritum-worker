@@ -1,10 +1,8 @@
 """Extract up to 5 dated claims and tell facts from opinions and predictions.
 
 Features:
-    US-SPR-03, US-SPR-06, US-ZRD-05, F-07
+    US-SPR-03, US-SPR-06, US-SPR-07, US-ZRD-05, F-06, F-07
 """
-
-from datetime import date
 
 from meritum_core.shared.llm import Prompt
 
@@ -30,7 +28,9 @@ async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
     A request not about information ends as out_of_scope and an input with no
     claim as needs_clarification, both with a message and no claims. Otherwise
     facts come first, the first MAX_CLAIMS_PER_CHECK go on with a date each and
-    the rest are named in the limitations.
+    the rest are named in the limitations. A claim the text does not date
+    (or dates by its publication) gets the linked page's metadata date
+    (input_published_at), else today.
 
     Args:
         state: the check so far; a state that already has a result passes on.
@@ -43,7 +43,7 @@ async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
     A model failure propagates; the workflow maps it to technical_failure.
 
     Features:
-        US-SPR-03, US-SPR-06, US-ZRD-05, F-07
+        US-SPR-03, US-SPR-06, US-SPR-07, US-ZRD-05, F-06, F-07
     """
     if state.result is not None:
         return state
@@ -63,18 +63,25 @@ async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
     ranked = sorted(extraction.claims, key=lambda claim: not claim.is_fact)
     kept = ranked[:MAX_CLAIMS_PER_CHECK]
     skipped = ranked[MAX_CLAIMS_PER_CHECK:]
-    today = state.job.received_at.date()
     return state.model_copy(
         update={
-            "claims": [_dated(claim, today) for claim in kept],
+            "claims": [_dated(claim, state) for claim in kept],
             "limitations": [*state.limitations, *map(_skipped_note, skipped)],
         }
     )
 
 
-def _dated(claim: ExtractedClaim, today: date) -> ExtractedClaim:
-    # A date the model did not find in the text is the day the check came in.
-    if claim.claim_date is None:
+def _dated(claim: ExtractedClaim, state: CheckState) -> ExtractedClaim:
+    # The page's metadata date beats a publication date the model read in its text.
+    page_date = state.published_at
+    is_undated = claim.claim_date is None
+    says_published = claim.claim_date_source == "input_published_at"
+    if page_date is not None and (is_undated or says_published):
+        return claim.model_copy(
+            update={"claim_date": page_date, "claim_date_source": "input_published_at"}
+        )
+    if is_undated:
+        today = state.job.received_at.date()
         return claim.model_copy(
             update={"claim_date": today, "claim_date_source": "today"}
         )

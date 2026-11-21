@@ -107,6 +107,31 @@ def test_claim_without_date_in_text_is_dated_today(state: CheckState) -> None:
     assert claim.claim_date_source == "today"
 
 
+def test_claim_without_date_from_a_dated_page_takes_its_publication_date(
+    state: CheckState,
+) -> None:
+    page_state = state.model_copy(update={"published_at": date(2026, 11, 18)})
+    out, _ = _extract(page_state, _claim("Bezrobocie wynosi 5,3%"))
+    (claim,) = out.claims
+    assert (claim.claim_date, claim.claim_date_source) == (
+        date(2026, 11, 18),
+        "input_published_at",
+    )
+
+
+def test_page_metadata_date_wins_over_a_publication_date_the_model_read(
+    state: CheckState,
+) -> None:
+    page_state = state.model_copy(update={"published_at": date(2026, 11, 18)})
+    byline = _claim(
+        "Bezrobocie wynosi 5,3%",
+        claim_date="2026-11-17",
+        claim_date_source="input_published_at",
+    )
+    out, _ = _extract(page_state, byline)
+    assert out.claims[0].claim_date == date(2026, 11, 18)
+
+
 def test_claim_keeps_date_and_source_from_model(state: CheckState) -> None:
     published = _claim(
         "Bezrobocie wynosi 5,3%",

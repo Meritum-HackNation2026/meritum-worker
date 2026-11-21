@@ -110,6 +110,7 @@ class CheckState(BaseModel):
         retrieval_errors: retrieval failures met on the way.
         injection_events: instructions found and neutralised.
         page_text: the masked main text of the linked page, once fetch_url read it.
+        published_at: the linked page's publication date from its metadata, if any.
         skipped_steps: step codes that had nothing to do for this input.
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
         limitations: what the check already knows it will not cover.
@@ -129,6 +130,7 @@ class CheckState(BaseModel):
     retrieval_errors: list[str] = []
     injection_events: list[InjectionEvent] = []
     page_text: str | None = None
+    published_at: date | None = None
     skipped_steps: list[str] = []
     claims: list[ExtractedClaim] = []
     limitations: list[str] = []

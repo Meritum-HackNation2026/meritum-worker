@@ -54,4 +54,7 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
         page.untrusted_text[:MAX_PAGE_TEXT_CHARS], deps.pii
     )
     # Cut again: a marker can be longer than the personal data it replaced.
-    return state.model_copy(update={"page_text": masked.text[:MAX_PAGE_TEXT_CHARS]})
+    text = masked.text[:MAX_PAGE_TEXT_CHARS]
+    return state.model_copy(
+        update={"page_text": text, "published_at": page.published_at}
+    )
