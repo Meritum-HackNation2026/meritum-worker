@@ -10,6 +10,7 @@ from ._extract_claims import extract_claims
 from ._fetch_url import fetch_url
 from ._match_incidents import match_incidents
 from ._moderator_cases import moderator_cases
+from ._notify_done import notify_done
 from ._read_image import read_image
 from ._receive import receive
 from ._sanctions_warning import sanctions_warning
@@ -29,6 +30,7 @@ __all__ = [
     "fetch_url",
     "match_incidents",
     "moderator_cases",
+    "notify_done",
     "read_image",
     "receive",
     "sanctions_warning",

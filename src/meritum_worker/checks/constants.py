@@ -8,6 +8,7 @@ from datetime import timedelta
 from typing import Final
 
 from meritum_core.checks.contracts import FailureCode
+from meritum_core.checks.transcription import MAX_AUDIO_BYTES, MAX_AUDIO_SECONDS
 
 RECORD_RETENTION: Final = timedelta(days=30)
 """How long a CheckRecord is kept: retention_until = received_at + 30 days (ADR-13)."""
@@ -80,7 +81,7 @@ MAX_PAGE_TEXT_CHARS: Final = 4000
 STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
     "receive": timedelta(seconds=10),
     "fetch_url": timedelta(seconds=30),
-    "transcribe_audio": timedelta(seconds=60),
+    "transcribe_audio": timedelta(minutes=16),
     "screen_injection": timedelta(seconds=30),
     "extract_claims": timedelta(seconds=90),
     "search_corpus": timedelta(seconds=30),
@@ -93,7 +94,8 @@ STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
 }
 """Longest wait per AnalysisStep code; web search at most 10 s (US-SPR-06, F-18).
 
-Model codes allow for the core adapter's retries; a timeout ends the check as
+Transcription allows for the core batch mode (up to 15 min for 10 min of
+audio); model codes allow for the core adapter's retries; a timeout ends the check as
 technical_failure.
 """
 
@@ -112,3 +114,29 @@ STEP_FAILURE_CODES: Final[dict[str, FailureCode]] = {
     "search_web": WEB_SEARCH_UNAVAILABLE_CODE,
 }
 """failure_code of a failed or timed-out step code; any other: provider_unavailable."""
+
+TRANSCRIBE_AUDIO_STEP: Final = "transcribe_audio"
+"""AnalysisStep code of transcribing a voice message; skipped without audio."""
+
+MAX_TRANSCRIPT_CHARS: Final = 4000
+"""Longest transcript checked and shown: the limit of a pasted text and of
+CheckResult.transcript."""
+
+UNSUPPORTED_AUDIO_FORMAT_MESSAGE: Final = (
+    "The recording format is not supported; send OGG Opus, MP3, M4A or WAV, "
+    "or paste the text."
+)
+"""Diagnostic for a recording the transcription port does not accept."""
+
+AUDIO_TOO_LONG_MESSAGE: Final = (
+    f"The recording is over {MAX_AUDIO_SECONDS // 60} minutes or "
+    f"{MAX_AUDIO_BYTES // 2**20} MiB; send a shorter one or the text."
+)
+"""Diagnostic for a recording over the transcription limits."""
+
+LONG_AUDIO_SECONDS: Final = 55
+"""Recordings longer than this go to the provider's batch mode (core
+SYNC_MAX_SECONDS); their end is announced with a check_done notification."""
+
+CHECK_LINK: Final = "/sprawdzenie/{check_id}"
+"""In-app path of a check's result (meritum-frontend route)."""

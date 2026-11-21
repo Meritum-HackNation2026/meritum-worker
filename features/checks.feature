@@ -77,3 +77,19 @@ Funkcja: Smoke test workera
     Wtedy wynik ma stan technical_failure bez twierdzeń
     Oraz failure_code wynosi "provider_unavailable"
     Oraz message nie zaczyna się od "status_hint."
+
+  Scenariusz: wiadomość głosowa z twierdzeniem
+    Zakładając plik OGG z Opus z nagraniem "Od jutra pociągi do Gdańska nie jeżdżą"
+    Gdy workflow sprawdzania działa
+    Wtedy krok transcribe_audio kończy się stanem done, a twierdzenie z transkrypcji dostaje werdykt
+    Oraz wynik zawiera transkrypcję oznaczoną jako automatyczna
+
+  Scenariusz: awaria transkrypcji
+    Zakładając dostawca transkrypcji zwraca błąd
+    Gdy workflow sprawdzania działa
+    Wtedy wynik ma stan technical_failure
+
+  Scenariusz: nieobsługiwany format
+    Zakładając plik w formacie, którego port nie obsługuje
+    Gdy workflow sprawdzania działa
+    Wtedy wynik ma stan out_of_scope z komunikatem, co można wysłać zamiast

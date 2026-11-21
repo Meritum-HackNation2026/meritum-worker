@@ -15,8 +15,8 @@ from meritum_worker.checks.models import (
     CheckDeps,
     CheckState,
     ExtractedClaim,
-    model_usage,
 )
+from meritum_worker.checks.usage import model_usage
 
 
 async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:

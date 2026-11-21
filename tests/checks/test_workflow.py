@@ -43,8 +43,9 @@ def test_check_publishes_each_step_active_then_done_and_ends_with_result(
     for index, status in enumerate(statuses[:-1]):
         pending = len(STEP_CODES) - index - 1
         expected = ["done"] * index + ["active"] + ["pending"] * pending
-        if index > 1:  # a text has no link: fetch_url, the second code, is skipped
-            expected[1] = "skipped"
+        # A text has no link and no audio: the second and third codes are skipped.
+        for skipped in (1, 2)[: max(index - 1, 0)]:
+            expected[skipped] = "skipped"
         assert [step.status for step in status.steps] == expected
         assert status.result is None
     final = statuses[-1]
