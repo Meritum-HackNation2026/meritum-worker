@@ -39,6 +39,11 @@ Funkcja: Smoke test workera
     Gdy system wyodrębnia twierdzenia
     Wtedy twierdzenie ma claim_date 2025-03-01 i claim_date_source "text"
 
+  Scenariusz: link do artykułu
+    Zakładając link do publicznego artykułu z datą publikacji 2026-11-18
+    Gdy workflow sprawdza link
+    Wtedy krok fetch_url kończy się stanem done, a twierdzenia z tekstu artykułu mają claim_date_source "input_published_at", gdy tekst nie podaje innej daty
+
   Scenariusz: post za logowaniem
     Zakładając link do posta na Facebooku wymagającego logowania
     Gdy workflow sprawdza link

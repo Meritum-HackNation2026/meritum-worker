@@ -10,7 +10,11 @@ from behave import given, then, when
 from behave.runner import Context
 from check_support import CHECK_ID, DEFAULT_TEXT, RECEIVED_AT, deps, run
 from meritum_core.checks.contracts import CheckRecord
-from meritum_core.corpus.fetching import FetchFailureReason, LoginWallError
+from meritum_core.corpus.fetching import (
+    FetchedPage,
+    FetchFailureReason,
+    LoginWallError,
+)
 
 from meritum_worker.checks import (
     FailingCheckRuntime,
@@ -167,17 +171,46 @@ def claim_has_date(context: Context, day: str, source: str) -> None:
 
 
 FACEBOOK_POST = "https://www.facebook.com/groups/1/posts/2"
+ARTICLE_TEXT = "Inflacja w październiku wyniosła 2,8%. Bezrobocie 03.2025: 5,3%."
 
 
 @given("link do posta na Facebooku wymagającego logowania")
 def facebook_post_behind_login(context: Context) -> None:
     wall = LoginWallError(FetchFailureReason.LOGIN_WALL)
     context.deps = deps("llm_stub_answer.json", FakePageFetcher(wall))
+    context.link = FACEBOOK_POST
+
+
+@given("link do publicznego artykułu z datą publikacji {day}")
+def article_with_date(context: Context, day: str) -> None:
+    page = FetchedPage(
+        url="https://example.com/artykul",
+        content_type="text/html",
+        untrusted_text=ARTICLE_TEXT,
+        published_at=date.fromisoformat(day),
+    )
+    context.deps = deps("claims_article.json", FakePageFetcher(page))
+    context.link = page.url
+    context.published_at = page.published_at
 
 
 @when("workflow sprawdza link")
 def check_gets_link(context: Context) -> None:
-    run(context, url=FACEBOOK_POST)
+    run(context, url=context.link)
+
+
+@then(
+    "krok fetch_url kończy się stanem done, a twierdzenia z tekstu artykułu mają"
+    ' claim_date_source "{source}", gdy tekst nie podaje innej daty'
+)
+def article_claims_take_its_date(context: Context, source: str) -> None:
+    steps = {step.code: step.status for step in context.runtime.published[-1].steps}
+    assert steps["fetch_url"] == "done"
+    undated, dated = context.result.result.claims
+    assert undated.claim_date == context.published_at
+    assert undated.claim_date_source == source
+    # The second claim names its own month in the text (claims_article.json).
+    assert dated.claim_date_source == "text"
 
 
 @then(

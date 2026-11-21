@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Callable
+from datetime import date
 
 import pytest
 from meritum_core.checks import CheckRequest
@@ -48,6 +49,16 @@ def test_fetch_url_reads_the_link_as_a_user_link_and_masks_the_page_text(
     assert out.result is None
     assert out.question.startswith("Inflacja w październiku wyniosła 2,8%.")
     assert "600 700 800" not in out.question
+
+
+def test_fetch_url_keeps_the_publication_date_of_the_page(
+    make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
+) -> None:
+    page = _page().model_copy(update={"published_at": date(2026, 11, 18)})
+    out = asyncio.run(
+        fetch_url(_url_state(make_job), make_deps(pages=FakePageFetcher(page)))
+    )
+    assert out.published_at == date(2026, 11, 18)
 
 
 def test_fetch_url_cuts_a_long_page_to_the_length_of_a_pasted_text(
