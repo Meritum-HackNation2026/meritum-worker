@@ -23,9 +23,21 @@ image="meritum-worker:$env-${sha:0:12}"
 worker_secrets=(EUVSDISINFO_MCP_API_KEY)
 secret_args=()
 for name in "${worker_secrets[@]}"; do secret_args+=(-e "$name"); done
+# ADR-31: the files volume shared with the backend of this env (meritum-infra#8
+# writes both names to the env file); without them the container gets no mount.
+env_value() { sed -n "s/^$1=//p" "$envfile" | tail -n 1; }
 log() { printf '[meritum-worker] %s\n' "$*" >&2; }
 
 [ -f "$envfile" ] || { echo "::error::$envfile missing: run the platform workflow in meritum-infra"; exit 1; }
+
+volume_args=()
+files_volume=$(env_value MERITUM_FILES_VOLUME)
+files_dir=$(env_value MERITUM_FILES_DIR)
+if [ -n "$files_volume" ] && [ -n "$files_dir" ]; then
+  volume_args=(-v "$files_volume:$files_dir")
+else
+  log "no MERITUM_FILES_VOLUME/MERITUM_FILES_DIR in $envfile: container starts without the files volume"
+fi
 
 labels=(--label meritum.managed=true --label meritum.role=worker --label meritum.env="$env" --label meritum.sha="$sha")
 docker build -q --ssh default="${CORE_KEY_FILE:?}" -t "$image" "${labels[@]}" "$repo" >/dev/null
@@ -44,7 +56,7 @@ log "DBOS schema migrated"
 # workflows resume on the new container.
 docker rm -f "$container" >/dev/null 2>&1 || true
 docker run -d --name "$container" --network meritum --restart unless-stopped --stop-timeout 40 \
-  "${labels[@]}" --env-file "$envfile" "${secret_args[@]}" "$image" >/dev/null
+  "${labels[@]}" --env-file "$envfile" "${volume_args[@]}" "${secret_args[@]}" "$image" >/dev/null
 log "started $container"
 
 for i in $(seq 30); do
