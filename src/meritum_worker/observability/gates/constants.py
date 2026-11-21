@@ -13,9 +13,6 @@ GATES_COMMAND: Final = "gates"
 CLAIM_CLASS: Final = "claim"
 """Input classifier class of a case the main model must check."""
 
-CLAIM_STATUSES: Final = frozenset({"done", "technical_failure"})
-"""Expected states of a case whose input is a claim (a failure is forced later)."""
-
 REPORT_ZONE: Final = ZoneInfo("Europe/Warsaw")
 """Time zone of the report's date: the day the team ran it, in Poland."""
 

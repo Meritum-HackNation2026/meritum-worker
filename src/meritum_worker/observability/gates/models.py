@@ -10,7 +10,6 @@ Features:
 from pathlib import Path
 from typing import Annotated, Literal
 
-from meritum_core.checks.contracts import Stance
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 type Seconds = Annotated[float, Field(ge=0)]
@@ -19,11 +18,17 @@ type Label = Annotated[str, Field(min_length=1, max_length=100)]
 """A short free-form name, e.g. a provider or a region."""
 
 
-class _Frozen(BaseModel):
+class Frozen(BaseModel):
+    """Base of every gate model: immutable, unknown fields rejected.
+
+    Features:
+        US-BEZ-01, US-OBS-04, F-27, ADR-35
+    """
+
     model_config = ConfigDict(frozen=True, extra="forbid")
 
 
-class GateModel(_Frozen):
+class GateModel(Frozen):
     """What a configuration runs on; every field goes to the report.
 
     Attributes:
@@ -44,7 +49,7 @@ class GateModel(_Frozen):
     price_per_call_usd: Annotated[float, Field(ge=0)] = 0.0
 
 
-class _Config(_Frozen):
+class _Config(Frozen):
     name: Label
     runs_on: GateModel
 
@@ -100,23 +105,40 @@ class RerankerConfig(_Config):
     without_reranker: Path
 
 
-class RecordedConfig(_Config):
-    """A gate compared only, never deployed: its answers come from a file.
+class NliConfig(_Config):
+    """The NLI stance pre-check, compared only: its answers come from a file.
 
     Attributes:
-        gate: ``nli`` (stance pre-check) or ``input_classifier``.
+        gate: Always ``nli``.
+        calls: The recorded answers, relative to the config file.
+
+    Features:
+        US-BEZ-01, US-OBS-04, F-27, ADR-06, ADR-35
+    """
+
+    gate: Literal["nli"]
+    calls: Path
+
+
+class ClassifierConfig(_Config):
+    """The input classifier, compared only: its answers come from a file.
+
+    Attributes:
+        gate: Always ``input_classifier``.
+        cases: The input cases with their expected class, relative to the file.
         calls: The recorded answers, relative to the config file.
 
     Features:
         US-BEZ-01, US-OBS-04, US-SPR-06, F-07, F-27, ADR-35
     """
 
-    gate: Literal["nli", "input_classifier"]
+    gate: Literal["input_classifier"]
+    cases: Path
     calls: Path
 
 
 type GateConfig = Annotated[
-    InjectionConfig | DlpConfig | RerankerConfig | RecordedConfig,
+    InjectionConfig | DlpConfig | RerankerConfig | NliConfig | ClassifierConfig,
     Field(discriminator="gate"),
 ]
 """One configuration file of ``evals/gates/``."""
@@ -130,13 +152,12 @@ class GateConfigFile(RootModel[GateConfig]):
     """
 
 
-class GateCall(_Frozen):
+class GateCall(Frozen):
     """One gate call on one case.
 
     Attributes:
         case_id: The golden or DLP case.
-        output: Text left after cutting flagged ranges, masked text, or the
-            input class (``claim``, ``needs_clarification``, ``out_of_scope``).
+        output: Text left after cutting flagged ranges, or the masked text.
         seconds: Time of the call.
 
     Features:
@@ -148,46 +169,7 @@ class GateCall(_Frozen):
     seconds: Seconds
 
 
-class GateCalls(RootModel[tuple[GateCall, ...]]):
-    """A recorded input classifier run.
-
-    Features:
-        US-BEZ-01, US-OBS-04, US-SPR-06, F-07, F-27
-    """
-
-
-class StanceCall(_Frozen):
-    """The NLI stance of a cited fragment next to the model's and a person's.
-
-    Attributes:
-        claim: The claim.
-        fragment: The cited fragment.
-        nli: Stance from the NLI model.
-        model: Stance from the stance assessment of the check.
-        manual: Stance a person gave, for the manual sample only.
-        seconds: Time of the NLI call.
-
-    Features:
-        US-BEZ-01, US-OBS-04, F-27, ADR-06, ADR-35
-    """
-
-    claim: str
-    fragment: str
-    nli: Stance
-    model: Stance
-    manual: Stance | None = None
-    seconds: Seconds
-
-
-class StanceCalls(RootModel[tuple[StanceCall, ...]]):
-    """A recorded NLI run.
-
-    Features:
-        US-BEZ-01, US-OBS-04, F-27, ADR-06, ADR-35
-    """
-
-
-class DlpCase(_Frozen):
+class DlpCase(Frozen):
     """A text with invented personal data and content that must stay.
 
     Attributes:

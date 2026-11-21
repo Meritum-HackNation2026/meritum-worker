@@ -18,8 +18,8 @@ from meritum_worker.observability.gates.models import (
     DlpCase,
     GateCall,
     GateModel,
-    StanceCall,
 )
+from meritum_worker.observability.gates.recorded import ClassCall, InputCase, StanceCall
 from meritum_worker.observability.gates.report import GatesReport
 from meritum_worker.observability.gates.runner import mask_cases, screen_cases
 from meritum_worker.observability.gates.scoring import (
@@ -32,11 +32,13 @@ from meritum_worker.observability.gates.scoring import (
 
 __all__ = [
     "GATES_COMMAND",
+    "ClassCall",
     "DlpCase",
     "GateBuilders",
     "GateCall",
     "GateModel",
     "GatesReport",
+    "InputCase",
     "StanceCall",
     "compare_gates",
     "gates_eval",

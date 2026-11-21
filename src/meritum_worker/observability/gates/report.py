@@ -7,17 +7,11 @@ Features:
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
-
-from meritum_worker.observability.gates.models import GateModel
+from meritum_worker.observability.gates.models import Frozen, GateModel
 from meritum_worker.observability.report import Ratio
 
 
-class _Frozen(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-
-class _Calls(_Frozen):
+class _Calls(Frozen):
     median_seconds: float
     cost_100_calls_usd: float
 
@@ -115,7 +109,7 @@ class NliScore(_Calls):
     production: Literal[False] = False
 
 
-class RerankerDelta(_Frozen):
+class RerankerDelta(Frozen):
     """Run with the reranker minus run with the null gate.
 
     Attributes:
@@ -141,7 +135,7 @@ type GateScore = InjectionScore | DlpScore | ClassifierScore | NliScore | Rerank
 """The score of one configuration, by gate."""
 
 
-class GateEntry(_Frozen):
+class GateEntry(Frozen):
     """One configuration in the report.
 
     Attributes:
@@ -158,7 +152,7 @@ class GateEntry(_Frozen):
     score: GateScore
 
 
-class GatesReport(_Frozen):
+class GatesReport(Frozen):
     """The comparison, saved in ``evals/reports/``.
 
     Attributes:

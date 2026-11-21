@@ -1,4 +1,5 @@
 import asyncio
+import json
 from pathlib import Path
 
 import pytest
@@ -6,11 +7,18 @@ from meritum_core.security.injection import TextRange
 from meritum_core.security.injection.fakes import FakeInjectionGate
 from meritum_core.security.pii import NullPiiGate
 
-from meritum_worker.observability import EvalReport, GoldenSet, load_golden_set
+from meritum_worker.observability import (
+    EvalReport,
+    GoldenSet,
+    load_golden_set,
+    meritum_eval,
+)
 from meritum_worker.observability.gates import (
+    ClassCall,
     DlpCase,
     GateCall,
     GateModel,
+    InputCase,
     StanceCall,
     load_gate_config,
     mask_cases,
@@ -99,13 +107,23 @@ def test_dlp_run_masks_with_the_core_patterns_after_the_gate() -> None:
     assert score_dlp([case], calls, PRICED).detected == pytest.approx(1.0)
 
 
-def test_input_classifier_scores_accuracy_and_claims_it_would_block() -> None:
-    calls = [
-        _call("E-own-rola", "claim"),
-        _call("A-own-placa-2026", "out_of_scope"),
+def test_input_classifier_scores_every_class_and_claims_it_would_block() -> None:
+    cases = [
+        InputCase(id="t", text="Czy płaca wynosi 4806 zł?", expected="claim"),
+        InputCase(id="c", text="Czy to prawda?", expected="needs_clarification"),
+        InputCase(id="o", text="Napisz wiersz.", expected="out_of_scope"),
+        InputCase(id="t2", text="Czy inflacja spadła?", expected="claim"),
     ]
-    score = score_classifier(GOLDEN, calls, PRICED)
-    assert (score.cases, score.accuracy, score.blocked_claims) == (2, 0.5, 0.5)
+    calls = [
+        ClassCall(case_id="t", label="out_of_scope", seconds=1.0),
+        ClassCall(case_id="c", label="claim", seconds=1.0),
+        ClassCall(case_id="o", label="out_of_scope", seconds=1.0),
+        ClassCall(case_id="t2", label="claim", seconds=1.0),
+    ]
+    score = score_classifier(cases, calls, PRICED)
+    assert score.cases == 4
+    # A gate answering "claim" everywhere would not get this accuracy.
+    assert (score.accuracy, score.blocked_claims) == (0.5, 0.5)
 
 
 def test_nli_agreement_with_the_model_and_with_the_manual_sample() -> None:
@@ -137,16 +155,18 @@ def _report(**metrics: float | None) -> EvalReport:
 
 def test_reranker_delta_is_the_run_with_it_minus_the_null_gate() -> None:
     on = _report(macro_f1=0.6, citation_correctness=0.75, median_seconds=8.0)
-    delta = reranker_delta(on, _report())
+    delta = reranker_delta(on, _report(), PRICED)
     assert (delta.macro_f1, delta.citation_correctness) == (0.1, 0.25)
-    assert (delta.median_seconds, delta.cost_100_checks_usd) == (-2.0, 0.0)
-    no_citations = reranker_delta(_report(citation_correctness=None), _report())
+    # Model cost is equal; the reranker's own price (0.001 per check) remains.
+    assert (delta.median_seconds, delta.cost_100_checks_usd) == (-2.0, 0.1)
+    off = _report(citation_correctness=None)
+    no_citations = reranker_delta(off, _report(), PRICED)
     assert no_citations.citation_correctness is None
 
 
 def test_every_config_in_the_repo_loads_with_paths_next_to_it() -> None:
     gates = ROOT / "evals" / "gates"
-    configs = [p for p in gates.glob("*.json") if p.name != "dlp-cases.json"]
+    configs = [p for p in gates.glob("*.json") if not p.name.endswith("-cases.json")]
     loaded = {load_gate_config(path).name for path in configs}
     assert len(loaded) == len(configs)
     dlp = load_gate_config(gates / "dlp-sdp-eu.json")
@@ -163,3 +183,36 @@ def test_no_production_module_uses_the_gate_comparison() -> None:
         and observability not in path.parents
     ]
     assert users == []
+
+
+def test_recorded_calls_naming_an_unknown_case_fail_with_its_id() -> None:
+    cases = [InputCase(id="t", text="Czy płaca wynosi 4806 zł?", expected="claim")]
+    calls = [ClassCall(case_id="Z-nie-ma", label="claim", seconds=0.1)]
+    with pytest.raises(ValueError, match="Z-nie-ma"):
+        score_classifier(cases, calls, PRICED)
+    with pytest.raises(ValueError, match="Z-nie-ma"):
+        score_injection(GOLDEN, [_call("Z-nie-ma", "")], PRICED)
+
+
+def test_gates_command_writes_the_report_with_date_and_runs_on(
+    tmp_path: Path,
+) -> None:
+    out = tmp_path / "report.json"
+    config = str(ROOT / "evals" / "gates" / "dlp-patterns.json")
+    meritum_eval(["gates", "--config", config, "--output", str(out)])
+    report = json.loads(out.read_text(encoding="utf-8"))
+    assert report["date"]
+    assert report["entries"][0]["runs_on"]["region"] == "lokalnie"
+    assert report["entries"][0]["score"]["kind"] == "dlp"
+
+
+def test_gates_command_reports_a_missing_recorded_file_without_a_traceback(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    config = json.loads((ROOT / "evals" / "gates" / "nli.json").read_text("utf-8"))
+    path = tmp_path / "nli.json"
+    path.write_text(json.dumps(config | {"calls": "brak.json"}), encoding="utf-8")
+    with pytest.raises(SystemExit) as stop:
+        meritum_eval(["gates", "--config", str(path)])
+    assert stop.value.code == 2
+    assert "brak.json" in capsys.readouterr().err

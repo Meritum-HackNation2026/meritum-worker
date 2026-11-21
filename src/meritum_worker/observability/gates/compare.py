@@ -13,14 +13,18 @@ from meritum_core.security.injection import InjectionGatePort
 from meritum_core.security.pii import PiiGatePort
 
 from meritum_worker.observability.gates.models import (
+    ClassifierConfig,
     DlpCases,
     DlpConfig,
-    GateCalls,
     GateConfig,
     GateConfigFile,
     InjectionConfig,
-    RecordedConfig,
+    NliConfig,
     RerankerConfig,
+)
+from meritum_worker.observability.gates.recorded import (
+    ClassCalls,
+    InputCases,
     StanceCalls,
 )
 from meritum_worker.observability.gates.report import (
@@ -73,8 +77,11 @@ def load_gate_config(path: Path) -> GateConfig:
     match config:
         case DlpConfig():
             return config.model_copy(update={"cases": here / config.cases})
-        case RecordedConfig():
+        case NliConfig():
             return config.model_copy(update={"calls": here / config.calls})
+        case ClassifierConfig():
+            changes = {"cases": here / config.cases, "calls": here / config.calls}
+            return config.model_copy(update=changes)
         case RerankerConfig():
             on, off = config.with_reranker, config.without_reranker
             changes = {"with_reranker": here / on, "without_reranker": here / off}
@@ -128,13 +135,14 @@ async def _score(
         case RerankerConfig():
             on = EvalReport.model_validate_json(_read(config.with_reranker))
             off = EvalReport.model_validate_json(_read(config.without_reranker))
-            return reranker_delta(on, off)
-        case RecordedConfig(gate="nli"):
+            return reranker_delta(on, off, config.runs_on)
+        case NliConfig():
             stances = StanceCalls.model_validate_json(_read(config.calls)).root
             return score_nli(stances, config.runs_on)
-        case RecordedConfig():
-            calls = GateCalls.model_validate_json(_read(config.calls)).root
-            return score_classifier(golden, calls, config.runs_on)
+        case ClassifierConfig():
+            inputs = InputCases.model_validate_json(_read(config.cases)).root
+            labels = ClassCalls.model_validate_json(_read(config.calls)).root
+            return score_classifier(inputs, labels, config.runs_on)
 
 
 def _read(path: Path) -> str:

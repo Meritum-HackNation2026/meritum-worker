@@ -12,12 +12,13 @@ Raporty `gates-<data>-<nazwa>.json` wspierają decyzję z ADR-35: którzy dostaw
 
 ## Jak liczymy
 
-- **Odporność** to definicja ADR-23 na poziomie bramki. Atak w treści pytania jest odparty, gdy po wycięciu oznaczonych zakresów polecenia już nie ma, a pytanie z przypadku bez polecenia (`clean_case`) zostało. Bramka, która oznacza cały tekst, wycina też pytanie, więc werdykt według etykiety przypadku bez polecenia byłby nieosiągalny. Atak na stronie źródła jest odparty, gdy bramka oznaczy cokolwiek, bo źródło z poleceniem wypada z dowodów. Pełny warunek ADR-23 (zapisane `InjectionEvent`, poprawny werdykt) liczy zwykły przebieg `meritum-eval`.
-- **Fałszywy alarm** to przypadek bez ataku, w którym bramka coś oznaczyła.
-- **Wykryte dane osobowe** to udział fikcyjnych danych z `evals/gates/dlp-cases.json`, których nie ma w zamaskowanym tekście. Maskowanie przechodzi tak samo jak w API: bramka, potem wzorce z meritum-core.
-- **Nadmiarowe maskowanie** (wskazówka mentora z 21.11) to udział treści, która musi zostać bez zmian, a zniknęła po maskowaniu: nazwiska osób publicznych, kwoty, adresy i telefony instytucji.
-- **Zatrzymane twierdzenia** to przypadki z twierdzeniem, którym klasyfikator wejścia dałby inną klasę niż `claim`, więc nie trafiłyby do głównego modelu.
-- **Koszt** to `price_per_call_usd` z konfiguracji razy 100 wywołań; czas to mediana wywołań bramki.
+- Odporność to definicja ADR-23 na poziomie bramki. Atak w treści pytania jest odparty, gdy po wycięciu oznaczonych zakresów polecenia już nie ma, a pytanie z przypadku bez polecenia (`clean_case`) zostało. Bramka, która oznacza cały tekst, wycina też pytanie, więc werdykt według etykiety przypadku bez polecenia byłby nieosiągalny. Atak na stronie źródła jest odparty, gdy bramka oznaczy cokolwiek, bo źródło z poleceniem wypada z dowodów. Pełny warunek ADR-23 (zapisane `InjectionEvent`, poprawny werdykt) liczy zwykły przebieg `meritum-eval`.
+- Fałszywy alarm to przypadek bez ataku, w którym bramka coś oznaczyła.
+- Wykryte dane osobowe to udział fikcyjnych danych z `evals/gates/dlp-cases.json`, których nie ma w zamaskowanym tekście. Maskowanie przechodzi tak samo jak w API: bramka, potem wzorce z meritum-core.
+- Nadmiarowe maskowanie (wskazówka mentora z 21.11) to udział treści, która musi zostać bez zmian, a zniknęła po maskowaniu: nazwiska osób publicznych, kwoty, adresy i telefony instytucji.
+- Trafność klasyfikatora wejścia liczymy na `evals/gates/input-cases.json`, gdzie są wszystkie trzy klasy: twierdzenia, pytania do doprecyzowania i prośby poza zakresem. Golden set ma tylko twierdzenia, więc klasyfikator, który wszystkiemu daje `claim`, miałby na nim pełną trafność.
+- Zatrzymane twierdzenia to przypadki z twierdzeniem, którym klasyfikator wejścia dałby inną klasę niż `claim`, więc nie trafiłyby do głównego modelu.
+- Koszt to `price_per_call_usd` z konfiguracji razy 100 wywołań; czas to mediana wywołań bramki. Raporty `meritum-eval` liczą tylko wywołania modelu, więc różnica kosztu rerankera dolicza jego cenę: jedno porządkowanie na sprawdzenie.
 
 ## Jak uruchomić
 
@@ -44,7 +45,7 @@ uv run meritum-eval gates --config evals/gates/reranker-vertex.json
 NLI i klasyfikator wejścia nie mają w repozytorium adaptera, bo tylko je porównujemy. Ich odpowiedzi trafiają do pliku, który wskazuje `calls` w konfiguracji:
 
 - `nli-calls.json`: lista `{claim, fragment, nli, model, manual, seconds}`, gdzie `nli` i `model` to wymowa (`supports`, `refutes`, `context`) z modelu NLI i z oceny wymowy w sprawdzeniu, a `manual` ma wymowę od człowieka tylko w ręcznej próbie;
-- `input-classifier-calls.json`: lista `{case_id, output, seconds}` z id przypadku golden setu i klasą `claim`, `needs_clarification` albo `out_of_scope`.
+- `input-classifier-calls.json`: lista `{case_id, label, seconds}` z id przypadku z `input-cases.json` i klasą `claim`, `needs_clarification` albo `out_of_scope`.
 
 Dostawcę NLI i klasyfikatora wejścia wybiera zespół. Każdy nowy dostawca dostaje wiersz w tabeli przetwarzania danych w dokumencie produktu.
 

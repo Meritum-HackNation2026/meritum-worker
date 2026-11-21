@@ -37,7 +37,7 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
         US-OBS-04, US-OBS-05, F-27, ADR-28
     """
     argv = sys.argv[1:] if argv is None else argv
-    if list(argv[:1]) == [GATES_COMMAND]:
+    if argv and argv[0] == GATES_COMMAND:
         gates_eval(argv[1:])
         return
     parser = argparse.ArgumentParser(prog=EVAL_NAME)

@@ -120,7 +120,10 @@ def report_has_reranker_delta(context: Context) -> None:
     assert delta.kind == "reranker"
     on = (delta.macro_f1, delta.median_seconds)
     assert on == (0.25, -1)
-    assert (delta.citation_correctness, delta.cost_100_checks_usd) == (0, 0)
+    assert delta.citation_correctness == 0
+    # Equal model cost, so only the reranker's own price is left.
+    price = context.report.entries[0].runs_on.price_per_call_usd
+    assert delta.cost_100_checks_usd == round(price * 100, 4) > 0
 
 
 @given("konfiguracja z wstępną oceną wymowy NLI")
@@ -185,16 +188,12 @@ def report_has_dlp_detection_and_over_masking(context: Context) -> None:
 @given("zapisane odpowiedzi klasyfikatora wejścia na golden secie")
 def recorded_classifier(context: Context) -> None:
     folder = _folder(context)
-    golden = load_golden_set(GOLDEN)
-    calls = [{"case_id": c.id, "output": "claim", "seconds": 0.1} for c in golden.root]
-    calls[0]["output"] = "out_of_scope"
+    config = json.loads((GATES / "input-classifier.json").read_text("utf-8"))
+    cases = json.loads((GATES / "input-cases.json").read_text("utf-8"))
+    # A classifier that answers "claim" to everything.
+    calls = [{"case_id": c["id"], "label": "claim", "seconds": 0.1} for c in cases]
     _write(folder / "calls.json", calls)
-    config = {
-        "name": "klasyfikator",
-        "gate": "input_classifier",
-        "runs_on": RUNS_ON,
-        "calls": "calls.json",
-    }
+    config |= {"cases": str(GATES / "input-cases.json"), "calls": "calls.json"}
     context.configs = [load_gate_config(_write(folder / "classifier.json", config))]
 
 
@@ -205,5 +204,5 @@ def recorded_classifier(context: Context) -> None:
 def report_has_classifier_scores(context: Context) -> None:
     score = context.report.entries[0].score
     assert score.kind == "input_classifier"
-    assert 0 < score.accuracy < 1
-    assert 0 < score.blocked_claims < 1
+    assert 0 < score.accuracy < 1  # clarification and out-of-scope cases count
+    assert score.blocked_claims == 0

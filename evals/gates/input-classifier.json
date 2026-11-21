@@ -8,5 +8,6 @@
     "region": "do uzupełnienia przy przebiegu",
     "price_per_call_usd": 0
   },
+  "cases": "input-cases.json",
   "calls": "../reports/input-classifier-calls.json"
 }
