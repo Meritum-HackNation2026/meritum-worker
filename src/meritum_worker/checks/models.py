@@ -149,11 +149,11 @@ class CheckState(BaseModel):
         return self.page_text or link or request.audio_id or ""
 
     def with_message(self, status: NotAVerdict, message: str) -> CheckResult:
-        """Build a result that is not a verdict: no claims, a message instead.
+        """Build a non-verdict result with a diagnostic message.
 
         Args:
             status: needs_clarification, out_of_scope or technical_failure.
-            message: the copy key channels show.
+            message: diagnostic text for internal use.
 
         Returns:
             The result.
@@ -176,10 +176,10 @@ class CheckState(BaseModel):
 
         Args:
             code: why the check failed; the model provider by default.
-            message: the copy key channels show.
+            message: diagnostic text, never shown to citizens.
 
         Returns:
-            The result channels show as „Problem techniczny”.
+            The coded failure with diagnostic text.
         """
         return CheckResult(
             check_id=self.check_id,

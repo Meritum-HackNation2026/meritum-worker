@@ -4,89 +4,51 @@ They run the workflow on the core stub model and the in-memory record repository
 with steps called inline instead of through DBOS; no network, no database.
 """
 
-import asyncio
-from datetime import UTC, date, datetime, timedelta
-from pathlib import Path
+from datetime import date, timedelta
 
 from behave import given, then, when
 from behave.runner import Context
-from meritum_core.checks import CheckRequest
+from check_support import CHECK_ID, DEFAULT_TEXT, RECEIVED_AT, deps, run
 from meritum_core.checks.contracts import CheckRecord
-from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.corpus.fetching import FetchFailureReason, LoginWallError
-from meritum_core.jobs.contracts import CheckInput
-from meritum_core.security.pii import NullPiiGate
-from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
 from meritum_worker.checks import (
-    CheckDeps,
     FailingCheckRuntime,
     FakePageFetcher,
-    InlineCheckRuntime,
-    run_check,
 )
 from meritum_worker.checks.constants import TECHNICAL_FAILURE_CODE
-
-FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
-CHECK_ID = "check-behave-1"
-RECEIVED_AT = datetime(2026, 1, 5, 12, 0, tzinfo=UTC)
-DEFAULT_TEXT = "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł"
-
-
-def _deps(fixture: str, pages: FakePageFetcher | None = None) -> CheckDeps:
-    settings = LlmSettings(provider=LlmProvider.STUB, stub_fixtures=FIXTURES / fixture)
-    return CheckDeps(
-        llm=build_llm(settings),
-        records=InMemoryCheckRecordRepository(),
-        pages=pages or FakePageFetcher(),
-        pii=NullPiiGate(),
-    )
-
-
-def _run(context: Context, text: str | None = None, url: str | None = None) -> None:
-    job = CheckInput(
-        request=CheckRequest(channel="web", text=text, url=url),
-        session_id="session-behave-1",
-        received_at=RECEIVED_AT,
-    )
-    if not hasattr(context, "runtime"):
-        context.runtime = InlineCheckRuntime()
-    context.result = asyncio.run(
-        run_check(job.model_dump(mode="json"), CHECK_ID, context.deps, context.runtime)
-    )
-    context.record = asyncio.run(context.deps.records.get(CHECK_ID))
 
 
 @given("worker działa z MERITUM_LLM_PROVIDER=stub")
 def worker_runs_on_stub(context: Context) -> None:
-    context.deps = _deps("llm_stub_answer.json")
+    context.deps = deps("llm_stub_answer.json")
 
 
 @given("stub zwraca wynik niezgodny z regułami kontraktu")
 def stub_breaks_contract(context: Context) -> None:
-    context.deps = _deps("llm_stub_broken_answer.json")
+    context.deps = deps("llm_stub_broken_answer.json")
 
 
 @given("krok workflowu sprawdzania rzuca wyjątek")
 def check_step_raises(context: Context) -> None:
-    context.deps = _deps("llm_stub_answer.json")
+    context.deps = deps("llm_stub_answer.json")
     context.runtime = FailingCheckRuntime("search_web")
 
 
 @when('workflow "check" dostaje CheckRequest z tekstem "{text}"')
 def check_gets_text(context: Context, text: str) -> None:
-    _run(context, text)
+    run(context, text)
 
 
 @when("workflow buduje CheckResult")
 def check_builds_result(context: Context) -> None:
-    _run(context, DEFAULT_TEXT)
+    run(context, DEFAULT_TEXT)
 
 
 @when("workflow kończy się błędem")
 def workflow_fails(context: Context) -> None:
     try:
-        _run(context, DEFAULT_TEXT)
+        run(context, DEFAULT_TEXT)
     except RuntimeError as error:
         context.workflow_error = error
 
@@ -154,7 +116,7 @@ OPINION = "Rząd kompletnie sobie nie radzi."
 @given('tekst "{text}" z nagranymi odpowiedziami modelu "{fixture}"')
 def text_with_recorded_model(context: Context, text: str, fixture: str) -> None:
     context.input_text = text
-    context.deps = _deps(fixture)
+    context.deps = deps(fixture)
 
 
 @given('tekst z 8 twierdzeniami o faktach z nagranymi odpowiedziami modelu "{fixture}"')
@@ -164,7 +126,7 @@ def eight_facts_with_recorded_model(context: Context, fixture: str) -> None:
 
 @when("system wyodrębnia twierdzenia")
 def system_extracts_claims(context: Context) -> None:
-    _run(context, context.input_text)
+    run(context, context.input_text)
 
 
 @then("wynik ma stan done i {count:d} wyniki")
@@ -210,12 +172,12 @@ FACEBOOK_POST = "https://www.facebook.com/groups/1/posts/2"
 @given("link do posta na Facebooku wymagającego logowania")
 def facebook_post_behind_login(context: Context) -> None:
     wall = LoginWallError(FetchFailureReason.LOGIN_WALL)
-    context.deps = _deps("llm_stub_answer.json", FakePageFetcher(wall))
+    context.deps = deps("llm_stub_answer.json", FakePageFetcher(wall))
 
 
 @when("workflow sprawdza link")
 def check_gets_link(context: Context) -> None:
-    _run(context, url=FACEBOOK_POST)
+    run(context, url=FACEBOOK_POST)
 
 
 @then(
@@ -226,19 +188,19 @@ def result_asks_to_paste_text(context: Context, code: str) -> None:
     result = context.result.result
     assert result.status == "technical_failure"
     assert result.failure_code == code
-    assert result.message == "status_hint.technical_failure_url"
+    assert not (result.message or "").startswith("status_hint.")
     assert result.claims == []
     assert context.deps.pages.calls[0][0] == FACEBOOK_POST
 
 
 @given("wklejony tekst bez adresu")
 def pasted_text_without_link(context: Context) -> None:
-    context.deps = _deps("llm_stub_answer.json")
+    context.deps = deps("llm_stub_answer.json")
 
 
 @when("workflow publikuje postęp")
 def check_publishes_progress(context: Context) -> None:
-    _run(context, DEFAULT_TEXT)
+    run(context, DEFAULT_TEXT)
 
 
 @then("krok fetch_url ma stan {status}")

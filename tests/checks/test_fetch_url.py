@@ -86,7 +86,7 @@ def test_fetch_url_turns_every_fetch_failure_into_url_unavailable(
     assert out.result is not None
     assert out.result.status == "technical_failure"
     assert out.result.failure_code == "url_unavailable"
-    assert out.result.message == "status_hint.technical_failure_url"
+    assert not (out.result.message or "").startswith("status_hint.")
     assert out.result.claims == []
 
 

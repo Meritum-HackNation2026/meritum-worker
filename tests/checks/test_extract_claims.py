@@ -83,7 +83,7 @@ def test_request_not_about_information_is_out_of_scope_with_message(
     out, _ = _extract(state, out_of_scope=True)
     assert out.result is not None
     assert (out.result.status, out.result.claims) == ("out_of_scope", [])
-    assert out.result.message == "status_hint.out_of_scope"
+    assert not (out.result.message or "").startswith("status_hint.")
     assert len(out.models) == 1
 
 
@@ -91,7 +91,7 @@ def test_input_without_claims_needs_clarification(state: CheckState) -> None:
     out, _ = _extract(state)
     assert out.result is not None
     assert out.result.status == "needs_clarification"
-    assert out.result.message == "status_hint.needs_clarification"
+    assert not (out.result.message or "").startswith("status_hint.")
 
 
 def test_only_opinion_is_still_a_claim_not_a_clarification(state: CheckState) -> None:

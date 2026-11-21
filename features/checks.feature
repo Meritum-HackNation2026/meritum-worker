@@ -65,3 +65,10 @@ Funkcja: Smoke test workera
     Gdy workflow kończy krok
     Wtedy wynik ma stan technical_failure, a komunikat nie zawiera nazwy klucza ani dostawcy
     Oraz CheckRecord ma status technical_failure
+
+  Scenariusz: techniczna porażka niesie kod, a nie klucz kopii
+    Zakładając worker działa z MERITUM_LLM_PROVIDER=stub
+    Gdy model nie odpowiada w kroku write_answer
+    Wtedy wynik ma stan technical_failure bez twierdzeń
+    Oraz failure_code wynosi "provider_unavailable"
+    Oraz message nie zaczyna się od "status_hint."
