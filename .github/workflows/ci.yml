@@ -35,7 +35,7 @@ jobs:
           install -m 600 /dev/null "$key" && printf '%s\n' "$CORE_KEY" >"$key"
           echo "GIT_SSH_COMMAND=ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$GITHUB_WORKSPACE/deploy/github_known_hosts" >>"$GITHUB_ENV"
       - &setup-uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false # ~/.cache/uv stays on the self-hosted runner
       - run: uv sync --locked
