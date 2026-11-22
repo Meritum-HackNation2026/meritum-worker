@@ -206,7 +206,9 @@ def _answered(
             "explanation": plain_text(written.explanation, EXPLANATION_MAX_CHARS),
             "unresolved": written.unresolved
             and plain_text(written.unresolved, UNRESOLVED_MAX_CHARS),
-            "would_change_verdict": changes,
+            # unresolved names the source this claim needs; the generic
+            # needs_named_source line next to it only repeats it (worker#269).
+            "would_change_verdict": [c for c in changes if c != "needs_named_source"],
             # Context next to the verdict, computed above without it.
             "incident": incident,
         }

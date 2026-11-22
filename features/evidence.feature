@@ -18,6 +18,7 @@ Funkcja: Wymowa cytatów i werdykt z reguły core
     Gdy system pisze odpowiedź
     Wtedy werdykt to "insufficient_evidence", a unresolved nazywa komunikat lokalnego organizatora transportu
     Oraz odpowiedź mówi, że brak wyniku w bazie nie oznacza, że zmiany nie było
+    Oraz "co zmieniłoby werdykt" nie powtarza ogólnej formułki o podpisanej wypowiedzi
 
   Scenariusz: zapowiedź o nieznanym wyniku (scenariusz A)
     Zakładając strona o strajku zapowiedzianym na 20 listopada 2026 r.
