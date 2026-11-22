@@ -212,6 +212,19 @@ MERITUM_TEST_AUDIO_FILE=wiadomosc.ogg uv run pytest -m integration tests/checks/
 
 Wynik: jeszcze nie uruchomiony, bo wymaga poświadczeń GCP. Przebieg i wpisanie wyniku śledzi [worker#92](https://github.com/Meritum-HackNation2026/meritum-worker/issues/92).
 
+## Obrazy i zrzuty ekranu
+
+Krok `read_image` (część kroku `receive`) czyta obraz z `BlobStore` portem OCR z meritum-core (`MERITUM_OCR_*`; domyślnie `stub`, który zwraca tekst z pliku `MERITUM_OCR_STUB_TEXT`; `vision` to Google Cloud Vision, `DOCUMENT_TEXT_DETECTION`, endpoint UE `eu-vision.googleapis.com`, wymaga `MERITUM_OCR_PROJECT` i poświadczeń ADC). Odczytany tekst jest maskowany jak wklejony i sprawdzany jak tekst; data zapisana na obrazie datuje twierdzenia (`claim_date_source = text`).
+
+| | |
+|---|---|
+| Koszt | Cloud Vision: pierwsze 1 000 obrazów miesięcznie bezpłatnie, potem około 1,5 USD za 1 000 (cennik Google, do potwierdzenia przed produkcją) |
+| Zakres | PNG, JPEG i WebP do 10 MiB; format rozpoznaje się po bajtach pliku, nie po typie MIME |
+| Retencja | obraz leży w `BlobStore` nie dłużej niż zapis sprawdzenia (retencja usuwa go razem z zapisem, osierocone po 30 dniach); Cloud Vision nie przechowuje obrazu po odpowiedzi; tekst z OCR żyje tylko w wyniku i zapisie |
+| Ograniczenia | data na obrazie nie potwierdza daty publikacji (ograniczenie w odpowiedzi); metadane pliku (format, rozmiar) są tylko kontekstem i nie wpływają na werdykt; wyszukiwania wcześniejszych wystąpień obrazu nie ma (`image_search_not_run`), dopóki nie podłączymy API albo lokalnej bazy |
+
+Nieobsługiwany albo za duży obraz kończy się stanem `out_of_scope` z kodem `image` i kodem ograniczenia (`image_format_unsupported`, `image_too_large`); obraz bez tekstu: `needs_clarification`; awaria OCR albo brak pliku: `technical_failure`. Krok `receive` ma limit 100 s, bo OCR robi do 3 prób po 30 s.
+
 ## Retencja i usuwanie danych
 
 Sprawy moderatora (`src/meritum_worker/moderation/`): workflow `escalate_claim` (przycisk „Przekaż moderatorom”, „Zgłoś błąd”, trafienie w pamięć wyników) i krok `moderator_cases` po werdykcie tworzą sprawę albo dołączają twierdzenie do otwartej (podobieństwo embeddingów od 0,85 przy zgodnych liczbach, miesiącach i nazwach własnych, okno 14 dni). Pojedynczy brak dowodów w zwykłym temacie to tylko `recommended`; sprawę otwiera temat wysokiego ryzyka (embeddingi, zapasowo słowa kluczowe), powtórka albo kliknięcie. Sprawy z kroku sprawdzenia worker ogłasza sam: `case_assigned` do skrzynek moderatorów i administratorów z `MERITUM_ADMIN_EMAILS` (link `/panel`); sprawy z `escalate_claim` ogłasza backend po odpowiedzi.

@@ -68,7 +68,7 @@ URL_UNAVAILABLE_MESSAGE: Final = (
 """Diagnostic for a link that could not be fetched."""
 
 STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
-    "receive": timedelta(seconds=10),
+    "receive": timedelta(seconds=100),
     "fetch_url": timedelta(seconds=30),
     "transcribe_audio": timedelta(minutes=16),
     "screen_injection": timedelta(seconds=30),
@@ -88,7 +88,7 @@ and pages; this backstop adds WEB_SEARCH_MARGIN so pages drop out first.
 
 Transcription allows for the core batch mode (up to 15 min for 10 min of
 audio); model codes allow for the core adapter's retries; a timeout ends the check as
-technical_failure.
+technical_failure. receive also runs read_image (OCR: 3 calls of 30 s).
 """
 
 TRANSCRIPTION_FAILED_CODE: Final[FailureCode] = "transcription_failed"
