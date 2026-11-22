@@ -170,3 +170,9 @@ def test_write_answer_cuts_too_long_texts_to_the_contract_limits(
 def test_write_answer_prompt_gives_the_length_limits() -> None:
     assert "800" in ANSWER_INSTRUCTIONS
     assert "300" in ANSWER_INSTRUCTIONS
+
+
+def test_write_answer_prompt_asks_for_plain_answers_about_the_claim() -> None:
+    assert "never mention fragments" in ANSWER_INSTRUCTIONS
+    assert "at most two limitations" in ANSWER_INSTRUCTIONS
+    assert "never generic" in ANSWER_INSTRUCTIONS
