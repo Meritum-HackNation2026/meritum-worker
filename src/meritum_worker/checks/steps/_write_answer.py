@@ -12,6 +12,7 @@ from meritum_core.checks import CheckResult
 from meritum_core.checks.contracts import (
     CatalogEntry,
     ClaimResult,
+    IncidentMatch,
     LimitationCode,
     ModelUsage,
     ai_marker_for,
@@ -90,7 +91,10 @@ def _result_from_draft(
         return state.technical_failure()
     # Skipped claims and dropped sources: what the check could not cover.
     skipped: list[LimitationCode] = [_code(text) for text in state.limitations]
-    answered = list(map(_answered, facts, judged, draft.claims, strict=True))
+    answered = [
+        _answered(fact, judgement, written, state.incidents.get(fact.claim))
+        for fact, judgement, written in zip(facts, judged, draft.claims, strict=True)
+    ]
     unverifiable = [_not_verifiable(c) for c in state.claims if not c.is_fact]
     notes = state.image_notes
     return CheckResult(
@@ -170,6 +174,7 @@ def _answered(
     fact: ExtractedClaim,
     judged: evidence.Judgement,
     written: evidence.ClaimExplanation,
+    incident: IncidentMatch | None,
 ) -> ClaimResult:
     claim_date = fact.claim_date or date.min
     changes = compute_verdict_changes(
@@ -189,6 +194,8 @@ def _answered(
             "unresolved": written.unresolved
             and plain_text(written.unresolved, UNRESOLVED_MAX_CHARS),
             "would_change_verdict": changes,
+            # Context next to the verdict, computed above without it.
+            "incident": incident,
         }
     )
 

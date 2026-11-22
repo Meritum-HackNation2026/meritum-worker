@@ -17,9 +17,15 @@ from meritum_core.notifications import NotificationRepository
 from meritum_core.security.injection import InjectionDetectorPort
 from meritum_core.security.pii import PiiGatePort
 from meritum_core.shared.blobs import BlobStore
+from meritum_core.shared.embeddings import EmbeddingsPort
 from meritum_core.shared.llm import LlmPort
 
-from meritum_worker.corpus import FactCheckPort, FakeFactCheck, LivePagesPort
+from meritum_worker.corpus import (
+    EuvsCopyPort,
+    FactCheckPort,
+    FakeFactCheck,
+    LivePagesPort,
+)
 from meritum_worker.evidence import SanctionsList
 from meritum_worker.moderation import ModerationDeps
 
@@ -51,6 +57,8 @@ class CheckDeps:
 
         ocr: reads text from an uploaded image; None fails an image check.
         image_search: earlier-occurrence search; None means it did not run.
+        incidents: the organiser's and EUvsDisinfo incidents; None skips matching.
+        embeddings: the multilingual embeddings incidents are compared with.
 
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-08, US-SPR-11, US-OBS-01,
@@ -78,3 +86,5 @@ class CheckDeps:
     sanctions: SanctionsList = field(default_factory=SanctionsList)
     ocr: OcrPort | None = None
     image_search: ImageSearchPort | None = None
+    incidents: EuvsCopyPort | None = None
+    embeddings: EmbeddingsPort | None = None

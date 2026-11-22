@@ -4,11 +4,12 @@ Features:
     US-ZRD-01, US-ZRD-04, F-15, F-16
 """
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 
 from meritum_core.checks.contracts import Source, SourceTier
 from meritum_core.evidence import SourceDocument
+from meritum_core.shared.embeddings import Vector
 from meritum_core.shared.llm import LlmResult, LlmToolResult, Prompt, Tool
 from meritum_core.shared.llm.errors import ProviderUnavailableError
 from pydantic import BaseModel
@@ -120,3 +121,41 @@ def document(  # ruff: ignore[too-many-arguments]  # a fake source names every f
         fetched_at=FAKE_FETCHED_AT,
     )
     return SourceDocument(source=source, text=text)
+
+
+class KeyedEmbeddings:
+    """Embeddings that return a chosen vector per text and a fallback otherwise.
+
+    Args:
+        vectors: the vector of each known text.
+        fallback: the vector of any other text.
+
+    Features:
+        US-ZRD-08, US-ZRD-09, F-11
+    """
+
+    def __init__(self, vectors: Mapping[str, Vector], fallback: Vector) -> None:
+        self._vectors = dict(vectors)
+        self._fallback = fallback
+
+    async def embed_query(self, text: str) -> Vector:
+        """Return the text's vector.
+
+        Args:
+            text: the text.
+
+        Returns:
+            Its chosen vector, else the fallback.
+        """
+        return self._vectors.get(text, self._fallback)
+
+    async def embed_documents(self, texts: Sequence[str]) -> list[Vector]:
+        """Return each text's vector.
+
+        Args:
+            texts: the texts.
+
+        Returns:
+            Their chosen vectors, else the fallback, in order.
+        """
+        return [self._vectors.get(text, self._fallback) for text in texts]
