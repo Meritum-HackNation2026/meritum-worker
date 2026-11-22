@@ -46,6 +46,7 @@ class CheckState(BaseModel):
         corpus_version: the corpus snapshot searched.
         models: every model call so far.
         web_search_calls: how many web searches ran.
+        news_search_calls: how many of them asked the major media.
         retrieval_errors: retrieval failures met on the way.
         injection_events: instructions found and neutralised.
         page_text: the masked main text of the linked page, once fetch_url read it.
@@ -83,6 +84,7 @@ class CheckState(BaseModel):
     corpus_version: str = NO_CORPUS_VERSION
     models: list[ModelUsage] = []
     web_search_calls: int = 0
+    news_search_calls: int = 0
     retrieval_errors: list[str] = []
     injection_events: list[InjectionEvent] = []
     page_text: str | None = None

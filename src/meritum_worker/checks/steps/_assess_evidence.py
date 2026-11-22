@@ -7,7 +7,7 @@ Features:
 import asyncio
 from datetime import date
 
-from meritum_core.checks.contracts import Validity
+from meritum_core.checks.contracts import ModelUsage, Validity
 from meritum_core.evidence import CitationDraft, SourceDocument
 from meritum_core.shared.llm import LlmUsage
 
@@ -16,6 +16,9 @@ from meritum_worker.checks.answers import plain_text
 from meritum_worker.checks.constants import LIMITATION_MAX_CHARS, PARTIAL_SUPPORT_NOTE
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
 from meritum_worker.checks.usage import model_usage
+
+type Pair = tuple[int, ExtractedClaim, SourceDocument]
+"""A fact's index among the facts, the fact and one source to assess it with."""
 
 
 async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
@@ -46,7 +49,6 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
     today = state.job.received_at.date()
     claims = [_claim_date(claim, state, today) for claim in state.claims]
     facts = [claim for claim in claims if claim.is_fact]
-    validity = {entry.domain: entry.validity for entry in deps.catalog}
     found = await _corpus_documents(state, deps)
     # extract_claims dated every fact; an undated one has no age to judge by.
     pairs = [
@@ -55,16 +57,7 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
         if fact.claim_date is not None
         for document in [*state.evidence, *found.get(fact.claim, [])]
     ]
-    answers = await asyncio.gather(
-        *(_assess(deps, fact, document, validity) for _, fact, document in pairs)
-    )
-    assessed = [
-        evidence.AssessedCitation(fact=index, draft=draft)
-        for (index, _, _), (draft, _, _) in zip(pairs, answers, strict=True)
-        if draft is not None
-    ]
-    usages = [model_usage(usage) for _, usage, _ in answers]
-    partial = _partial_notes(pairs, answers)
+    assessed, usages, partial = await assess_pairs(deps, pairs)
     compared = await asyncio.gather(
         *(_compared(deps, facts, f) for f in state.fact_checks)
     )
@@ -82,6 +75,34 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
             "models": [*state.models, *usages],
         }
     )
+
+
+async def assess_pairs(
+    deps: CheckDeps, pairs: list[Pair]
+) -> tuple[list[evidence.AssessedCitation], list[ModelUsage], list[str]]:
+    """Ask the model for the stance of each fact and source pair, one call each.
+
+    Args:
+        deps: the ports; the model is called and the catalogue read.
+        pairs: the fact's index among the facts, the dated fact and one source.
+
+    Returns:
+        The proposed citations, the calls' usage and the partial-support notes.
+
+    Features:
+        US-ZRD-01, US-ZRD-04, US-ZRD-10, F-15, F-16
+    """
+    validity = {entry.domain: entry.validity for entry in deps.catalog}
+    answers = await asyncio.gather(
+        *(_assess(deps, fact, document, validity) for _, fact, document in pairs)
+    )
+    assessed = [
+        evidence.AssessedCitation(fact=index, draft=draft)
+        for (index, _, _), (draft, _, _) in zip(pairs, answers, strict=True)
+        if draft is not None
+    ]
+    usages = [model_usage(usage) for _, usage, _ in answers]
+    return assessed, usages, _partial_notes(pairs, answers)
 
 
 async def _corpus_documents(
@@ -133,7 +154,7 @@ def _stated_date(fact: ExtractedClaim) -> date | None:
 
 
 def _partial_notes(
-    pairs: list[tuple[int, ExtractedClaim, SourceDocument]],
+    pairs: list[Pair],
     answers: list[tuple[CitationDraft | None, LlmUsage, str]],
 ) -> list[str]:
     # Partial support is context only; the limitation says what stayed unconfirmed.

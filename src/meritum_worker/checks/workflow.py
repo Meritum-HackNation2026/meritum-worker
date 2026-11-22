@@ -72,7 +72,7 @@ def pipeline() -> tuple[tuple[Lane, ...], ...]:
             ("search_web", (steps.search_web,)),
             ("search_fact_checks", (steps.search_fact_checks,)),
         ),
-        (("assess_evidence", (steps.search_news, steps.assess_evidence)),),
+        (("assess_evidence", (steps.assess_evidence, steps.search_news)),),
         (("verify_citations", (steps.verify_citations,)),),
         (
             (
