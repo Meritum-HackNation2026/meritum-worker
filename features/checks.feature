@@ -11,6 +11,7 @@ Funkcja: Smoke test workera
     Gdy workflow "check" dostaje CheckRequest z tekstem "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł"
     Wtedy workflow kończy się stanem done z CheckResult zgodnym z kontraktem
     Oraz CheckRecord ma question_masked, channel, received_at, answered_at, corpus_version, verdicts, source_ids, escalation i retention_until
+    Oraz CheckResult ma znacznik AI z dostawcą i modelem wywołania, które napisało odpowiedź
 
   Scenariusz: wynik niezgodny z kontraktem nie jest pokazywany
     Zakładając stub zwraca wynik niezgodny z regułami kontraktu

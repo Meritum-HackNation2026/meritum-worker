@@ -21,6 +21,12 @@ def test_write_answer_builds_done_result_and_records_model_usage(
     assert out.result.status == "done"
     assert [claim.verdict for claim in out.result.claims] == ["insufficient_evidence"]
     assert [(m.provider, m.cost_usd) for m in out.models] == [("stub", 0.0)]
+    marker = out.result.ai_marker
+    assert marker is not None
+    assert (marker.provider, marker.model) == (
+        out.models[-1].provider,
+        out.models[-1].model,
+    )
 
 
 def test_write_answer_turns_contract_breaking_answer_into_technical_failure(
