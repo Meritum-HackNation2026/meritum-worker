@@ -44,7 +44,7 @@ async def review_matches(
 def split_reviews(
     ratings: Sequence[tuple[bool, ClaimReviewPremise | ClaimReviewContext]],
 ) -> tuple[list[ClaimReviewPremise], list[ClaimReviewContext]]:
-    """Separate premises from context; a rating of another claim is only context.
+    """Keep one rating per URL and publisher, preferring a matching premise.
 
     Args:
         ratings: each rating after the rating rule, with whether the model found
@@ -56,13 +56,20 @@ def split_reviews(
     Features:
         US-KOR-01, F-14, ADR-34
     """
-    premises = [r for same, r in ratings if same and isinstance(r, ClaimReviewPremise)]
-    context = [
-        r if isinstance(r, ClaimReviewContext) else _context(r)
-        for same, r in ratings
-        if not (same and isinstance(r, ClaimReviewPremise))
+    premises: dict[tuple[str, str], ClaimReviewPremise] = {}
+    context: dict[tuple[str, str], ClaimReviewContext] = {}
+    for same, rating in ratings:
+        key = (str(rating.url), rating.publisher)
+        if same and isinstance(rating, ClaimReviewPremise):
+            premises.setdefault(key, rating)
+        else:
+            context.setdefault(
+                key,
+                rating if isinstance(rating, ClaimReviewContext) else _context(rating),
+            )
+    return list(premises.values()), [
+        rating for key, rating in context.items() if key not in premises
     ]
-    return premises, context
 
 
 def _context(premise: ClaimReviewPremise) -> ClaimReviewContext:

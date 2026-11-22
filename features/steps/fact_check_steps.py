@@ -114,13 +114,23 @@ def other_claim(context: Context) -> None:
     context.same_claim = False
 
 
+@given("model dwukrotnie podaje to samo ograniczenie")
+def duplicate_limitation(context: Context) -> None:
+    context.draft_limitations = ["Sprawdzono indeks ocen."] * 2
+
+
 @when("system bada twierdzenie z oceną fact-checkera")
 def check_runs(context: Context) -> None:
     llm = RecordedLlm(
         context.stances,
         ClaimExtraction(out_of_scope=False, claims=[getattr(context, "fact", FACT)]),
         ReviewMatch(same_claim=context.same_claim),
-        AnswerDraft(claims=[EXPLAINED], limitations=["Sprawdzono indeks ocen."]),
+        AnswerDraft(
+            claims=[EXPLAINED],
+            limitations=getattr(
+                context, "draft_limitations", ["Sprawdzono indeks ocen."]
+            ),
+        ),
     )
     context.deps = CheckDeps(
         llm=llm,
@@ -150,6 +160,12 @@ def check_runs(context: Context) -> None:
     )
     context.result = output.result
     context.claim = output.result.claims[0]
+
+
+@then("wynik zawiera to ograniczenie z kodem tylko raz")
+def one_limitation(context: Context) -> None:
+    assert context.result.limitations == ["Sprawdzono indeks ocen."]
+    assert context.result.limitation_codes == ["no_publications"]
 
 
 def _step_state(context: Context, code: str) -> str:
