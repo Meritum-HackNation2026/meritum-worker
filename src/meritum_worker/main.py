@@ -317,7 +317,7 @@ async def readiness_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     Features:
         US-WDR-08, US-BEZ-03, F-30, ADR-03
     """
-    READINESS.input.model_validate(payload)
+    READINESS.input.model_validate(payload, extra="ignore")
     report = await DBOS.run_step_async({"retries_allowed": False}, readiness_report)
     await DBOS.run_step_async({"retries_allowed": True}, _announce_service, report)
     await DBOS.set_event_async(
@@ -391,7 +391,7 @@ async def eval_run_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     Features:
         US-OBS-06, US-POW-05, F-28, ADR-03
     """
-    job = EVAL_RUN.input.model_validate(payload)
+    job = EVAL_RUN.input.model_validate(payload, extra="ignore")
     deps = _eval_run_deps(job.corpus_version)
 
     async def start() -> str:
@@ -512,7 +512,7 @@ async def retention_workflow(scheduled_at: datetime, _context: object) -> None:
 
 
 async def _remove_for_publisher(payload: dict[str, Any]) -> dict[str, Any]:
-    request = corpus.PublisherRemovalRequest.model_validate(payload)
+    request = corpus.PublisherRemovalRequest.model_validate(payload, extra="ignore")
     store = corpus.build_corpus_retention(CorpusSettings())
     removal = await security.remove_publisher_document(
         store, request, datetime.now(UTC)

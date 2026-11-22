@@ -121,7 +121,7 @@ async def run_check(
         US-SPR-01, US-SPR-02, US-OBS-01, US-KOR-04, US-BEZ-01, F-13, F-19, F-22,
         ADR-03
     """
-    job = CHECK.input.model_validate(payload)
+    job = CHECK.input.model_validate(payload, extra="ignore")
     if job.contract_version != CONTRACT_VERSION:
         msg = f"unsupported contract_version {job.contract_version}"
         raise ValueError(msg)

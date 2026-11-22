@@ -938,7 +938,7 @@ wheels = [
 [[package]]
 name = "meritum-core"
 version = "0.1.0"
-source = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=47d6361c6406892b9eb213728f2e68e40ef6a13b#47d6361c6406892b9eb213728f2e68e40ef6a13b" }
+source = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=93263aecf944dda66eba81feae68e205a6e86403#93263aecf944dda66eba81feae68e205a6e86403" }
 dependencies = [
     { name = "boto3" },
     { name = "dbos" },
@@ -987,7 +987,7 @@ requires-dist = [
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx2", specifier = ">=2.16.2" },
-    { name = "meritum-core", git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=47d6361c6406892b9eb213728f2e68e40ef6a13b" },
+    { name = "meritum-core", git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=93263aecf944dda66eba81feae68e205a6e86403" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3" },
     { name = "pydantic", specifier = ">=2.14.4" },
     { name = "pydantic-evals", specifier = ">=2.71.0" },

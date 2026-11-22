@@ -36,7 +36,7 @@ async def run_escalate_claim(
     Features:
         US-MOD-03, US-MOD-06, F-24, ADR-03, ADR-22
     """
-    job = ESCALATE_CLAIM.input.model_validate(payload)
+    job = ESCALATE_CLAIM.input.model_validate(payload, extra="ignore")
     claim = await deps.results.claim(job.check_id, job.claim_index)
     if claim is None:
         msg = f"check {job.check_id} has no claim {job.claim_index}"
