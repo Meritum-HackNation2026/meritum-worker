@@ -6,6 +6,7 @@ Zestaw: `evals/golden/fact-checks.json` (64 przypadki). Przebieg przez API dev (
 |---|---|---|---|---|---|---|---|---|---|---|
 | 0, bazowy (22.11, 03:08 UTC) | `fact-checks-2026-11-22-0-bazowy.json` | 0,41 | 0,46 | 0,45 | 0,09 | 0,63 | 0,50 | 10/64 | 39 / 64 | 0,43 |
 | 1 (22.11, 03:47 UTC, `--fresh`) | `fact-checks-2026-11-22-1.json` | 0,58 | 0,54 | 0,43 | 0,21 | 0,43 | 0,88 | 11/64 | 47 / 67 | 0,54 |
+| 2 (22.11, 04:27 UTC, `--fresh`) | `fact-checks-2026-11-22-2.json` | 0,66 | 0,61 | 0,51 | 0,33 | 0,44 | 1,00 | 5/64 | 53 / 68 | 0,60 |
 
 ## Przebieg 0: gdzie gubią się werdykty
 
@@ -49,3 +50,28 @@ Zestaw: `evals/golden/fact-checks.json` (64 przypadki). Przebieg przez API dev (
 5. Progi podobieństwa ocen fact-checkerów (0,8 / 0,6, worker#84): na dev są już ustawione `MERITUM_EMBEDDINGS_*`, więc da się je stroić na przypadkach `fact_checked`.
 
 Wyszukiwarka po core#149 i infra#61 zwraca już rozstrzygające strony (np. gov.pl/web/rodzina „Minimalne wynagrodzenie za pracę”, wskaźniki ZUS, rozdział Konstytucji na prezydent.pl, obwieszczenie PKW); przebieg 1 mógł zacząć się, zanim Vertex AI Search zaindeksował nowe wzorce.
+
+## Zmiany po przebiegu 1
+
+- worker#202 (PR #203): `develop` znów przechodzi CI, więc poprawki z PR #192, #193 i #196 trafiły na dev.
+- worker#206 (PR #209): długa strona z wyszukiwania zostawia fragmenty najbliższe zapytaniom zamiast pierwszych 4000 znaków.
+- worker#207 (PR #210): w ograniczeniach widać host odrzuconej strony i powód, a nie jej pełny adres.
+- worker#208 (PR #211): obliczenia, przepisy i tłumaczenia kończą się `out_of_scope`; „Od stycznia nie zapłacisz gotówką” jest twierdzeniem o przepisie.
+- Hipoteza o braku definicji `refutes` w ocenie wymowy odpadła (worker#199, ponownie worker#205): przy innej liczbie dla tej samej miary i tego samego roku model daje `refutes` w 4 z 4 prób.
+
+Przebieg 2 biegł na workerze b491a9d i API 8468570; oba kontenery nie zmieniły się od startu do końca pomiaru. Pierwsza próba tego przebiegu (04:10 UTC) jest nieważna: w jej trakcie wdrożył się backend, a potem worker z PR #204, więc 55 z 64 zgłoszeń dostało odmowę.
+
+## Przebieg 2: co zostało
+
+22 z 64 przypadków ma zły wynik:
+
+| Etap | Przypadki (`A-fc-…`) | Co się dzieje |
+|---|---|---|
+| ocena wymowy: data | sejm-460, senat-100, vat-23 | twierdzenie bez daty dostaje datę sprawdzenia (22.11.2026), a model wpisuje do `missing`, że źródło z 2018 r. („Obecnie zgodnie z Konstytucją Sejm składa się z 460 posłów”) albo z 12.2025 (VAT 23%) nie potwierdza stanu na ten dzień; częściowe potwierdzenie to `context`, więc werdykt to brak dowodów |
+| ocena wymowy: „brutto” | placa-2026, placa-2026-na-reke | „Od 1 stycznia 2026 r. minimalne wynagrodzenie za pracę wynosi 4806 zł.” przy twierdzeniu z „brutto” daje `missing: brutto`, choć urzędowe kwoty płac i świadczeń są kwotami brutto |
+| dopasowanie oceny fact-checkera | szwecja-gotowka, pap-depesza, mrna-terapia-genowa | ocena Demagogu jest pokazana, ale nie jest przesłanką: porównanie twierdzeń odrzuca np. „Szwecja jest pierwszym krajem, który zlikwidował gotówkę” (Fałsz) dla „Szwecja zlikwidowała gotówkę”; podejrzana reguła „inna data to inne twierdzenie” przy dacie sprawdzenia (jeszcze nie odtworzone) |
+| błąd techniczny w `write_answer` | placa-2025, senat-200, prog-podatkowy, stawka-godzinowa-2025, trzaskowski-ponad-50 | model dwa razy z rzędu zwraca pustą listę wyjaśnień dla jednego twierdzenia („0 explanations for 1 facts”), najczęściej przy samych cytatach `context` |
+| nie zbadane | deficyt-2026-rekord, pit-17, ue-2007, emerytura-netto, placa-2025-5000, od-stycznia-gotowka, cytryna-rak | wszystkie cytaty `context` albo brak cytatów; przyczyny jeszcze nie ustaliliśmy |
+| wymowa: źródła nie na temat | frekwencja-2025, stolica-warszawa | PKW i prezydent.pl obok tematu (frekwencja II tury, wynik Trzaskowskiego, stolica) |
+
+Przyczynę z daty i z „brutto” sprawdziliśmy, odtwarzając wywołania oceny wymowy ze stanu DBOS z dev na tym samym modelu: model wskazuje właściwy fragment i wymowę `supports`, a werdykt psuje dopiero pole `missing`.
