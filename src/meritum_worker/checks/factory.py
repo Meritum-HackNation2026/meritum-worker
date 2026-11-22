@@ -30,6 +30,7 @@ from meritum_worker.corpus import (
     FactCheckProvider,
     FactCheckSettings,
     FakeFactCheck,
+    build_corpus_writer,
     build_euvsdisinfo_copy,
     build_ingest_deps,
     build_reranker,
@@ -91,6 +92,8 @@ def build_check_deps(
         corpus=build_corpus_search(CorpusSettings(), embeddings),
         reranker=build_reranker(),
         corpus_version=ResearchSettings().corpus_version,
+        # Read only: the link and domain of the documents passages come from.
+        corpus_documents=build_corpus_writer(CorpusSettings()),
         moderation=build_moderation_deps(app, embeddings, os.environ),
         web_search_provider=search.provider.value,
         fact_check=build_fact_check(FactCheckSettings()),

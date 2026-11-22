@@ -6,6 +6,7 @@ Features:
 
 from meritum_worker.checks._corpus_fakes import (
     CorpusPorts,
+    FakeCorpusDocuments,
     FakeCorpusSearch,
     corpus_ports,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "CorpusPorts",
     "ExtractedClaim",
     "FailingCheckRuntime",
+    "FakeCorpusDocuments",
     "FakeCorpusSearch",
     "FakePageFetcher",
     "ImagePorts",
