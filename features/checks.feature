@@ -109,6 +109,7 @@ Funkcja: Smoke test workera
     Zakładając zdjęcie z tekstem "Od 1 grudnia zakaz wjazdu aut spalinowych do Warszawy. Opublikowano 12.11.2026."
     Gdy workflow sprawdza obraz
     Wtedy twierdzenie z OCR dostaje werdykt
+    Oraz wynik zawiera tekst odczytany z obrazu
     Oraz odpowiedź mówi, że nie szukano wcześniejszych wystąpień obrazu
     Oraz odpowiedź mówi, że data na obrazie nie potwierdza daty publikacji
 

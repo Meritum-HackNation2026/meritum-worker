@@ -64,6 +64,7 @@ def _given_image(context: Context, data: bytes, text: str | None) -> None:
 @given('zdjęcie z tekstem "{text}"')
 def image_with_text(context: Context, text: str) -> None:
     _given_image(context, png(), text)
+    context.expected_image_text = text
 
 
 @given("dostawca OCR zwraca błąd")
@@ -100,6 +101,12 @@ def ocr_claim_judged(context: Context) -> None:
     assert context.result.status == "done", context.result
     assert context.result.claims
     assert all(claim.verdict for claim in context.result.claims)
+
+
+@then("wynik zawiera tekst odczytany z obrazu")
+def image_text_returned(context: Context) -> None:
+    assert context.result.image_text == context.expected_image_text
+    assert context.runtime.published[-1].result == context.result
 
 
 @then("odpowiedź mówi, że nie szukano wcześniejszych wystąpień obrazu")

@@ -220,7 +220,7 @@ Wynik: jeszcze nie uruchomiony, bo wymaga poświadczeń GCP. Przebieg i wpisanie
 
 ## Obrazy i zrzuty ekranu
 
-Krok `read_image` (część kroku `receive`) czyta obraz z `BlobStore` portem OCR z meritum-core (`MERITUM_OCR_*`; domyślnie `stub`, który zwraca tekst z pliku `MERITUM_OCR_STUB_TEXT`; `vision` to Google Cloud Vision, `DOCUMENT_TEXT_DETECTION`, endpoint UE `eu-vision.googleapis.com`, wymaga `MERITUM_OCR_PROJECT` i poświadczeń ADC). Odczytany tekst jest maskowany jak wklejony i sprawdzany jak tekst; data zapisana na obrazie datuje twierdzenia (`claim_date_source = text`).
+Krok `read_image` (część kroku `receive`) czyta obraz z `BlobStore` portem OCR z meritum-core (`MERITUM_OCR_*`; domyślnie `stub`, który zwraca tekst z pliku `MERITUM_OCR_STUB_TEXT`; `vision` to Google Cloud Vision, `DOCUMENT_TEXT_DETECTION`, endpoint UE `eu-vision.googleapis.com`, wymaga `MERITUM_OCR_PROJECT` i poświadczeń ADC). Odczytany tekst jest maskowany jak wklejony i sprawdzany jak tekst; data zapisana na obrazie datuje twierdzenia (`claim_date_source = text`). Zamaskowany tekst trafia do pola `image_text` w wyniku sprawdzenia.
 
 | | |
 |---|---|

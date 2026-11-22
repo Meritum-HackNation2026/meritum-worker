@@ -46,6 +46,7 @@ def test_read_image_keeps_text_date_and_says_no_search_ran(
     out = _run(make_job, make_deps)
     assert out.result is None
     assert out.image_text == TEXT
+    assert out.final_result().image_text == TEXT
     assert out.image_date == date(2026, 11, 12)
     assert out.question == TEXT
     codes = [code for code, _ in out.image_notes]

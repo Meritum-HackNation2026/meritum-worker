@@ -179,7 +179,9 @@ class CheckState(BaseModel):
         """The answer, or a technical failure when no step produced one.
 
         Returns:
-            The result, with the transcript of an audio input.
+            The result, with the transcript or masked OCR text when available.
         """
         result = self.result or self.technical_failure()
-        return result.model_copy(update={"transcript": self.transcript})
+        return result.model_copy(
+            update={"transcript": self.transcript, "image_text": self.image_text}
+        )
