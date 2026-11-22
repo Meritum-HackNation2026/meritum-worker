@@ -4,6 +4,7 @@
 import os
 import re
 import subprocess  # ruff: ignore[suspicious-subprocess-import]
+import sys
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,10 @@ DEPLOY = ROOT / "deploy" / "deploy.sh"
 CI = ROOT / ".github" / "workflows" / "ci.yml"
 SECRET = "EUVSDISINFO_MCP_API_KEY"  # ruff: ignore[hardcoded-password-string] - a variable name, not a value
 VALUE = "token-that-must-not-leak"
+# Windows cannot exec deploy.sh or the fake #! binaries directly; CI (Linux) runs these.
+needs_posix = pytest.mark.skipif(
+    sys.platform == "win32", reason="runs deploy.sh and #! fakes, needs a POSIX exec"
+)
 FAKE_DOCKER = """#!/usr/bin/env bash
 printf '%s\\n' "$*" >>"$CALLS"
 if [ "$1" = logs ]; then echo 'meritum-worker ready'; fi
@@ -59,6 +64,7 @@ def started(calls: str) -> str:
 
 
 @pytest.mark.parametrize("name", secret_names())
+@needs_posix
 def test_secret_is_passed_by_name_only(tmp_path: Path, name: str) -> None:
     calls, log = deploy(tmp_path, {name: VALUE})
     assert f"-e {name} " in started(calls)
@@ -71,6 +77,7 @@ def test_secret_is_passed_by_name_only(tmp_path: Path, name: str) -> None:
     ] == []
 
 
+@needs_posix
 def test_missing_secret_still_starts_the_container(tmp_path: Path) -> None:
     calls, _ = deploy(tmp_path, {})
     assert f"-e {SECRET} " in started(calls)
