@@ -59,6 +59,10 @@ EXPLANATION_MAX_CHARS: Final = 800
 DRAFT_MAX_CHARS: Final = 4000
 """Longest AnalysisStatus.draft."""
 
+ANSWER_ATTEMPTS: Final = 2
+"""Model calls write_answer makes before an answer breaking the contract is a
+technical failure (worker#194)."""
+
 UNRESOLVED_MAX_CHARS: Final = 500
 """Longest ClaimResult.unresolved; a longer model text is cut to fit."""
 
