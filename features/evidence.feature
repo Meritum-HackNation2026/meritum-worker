@@ -37,6 +37,12 @@ Funkcja: Wymowa cytatów i werdykt z reguły core
     Wtedy starszy dowód ma validity superseded i nie liczy się do siły ani rozbieżności
     Oraz werdykt to "false" z techniką outdated
 
+  Scenariusz: źródło potwierdza tylko część twierdzenia
+    Zakładając źródło z kwotą 4806 zł, które nie mówi, że jest to kwota brutto, i twierdzenie o 4806 zł brutto
+    Gdy system pisze odpowiedź
+    Wtedy werdykt to "insufficient_evidence" bez siły
+    Oraz ograniczenie wskazuje, że nie potwierdzono kwalifikatora "brutto"
+
   Scenariusz: link do podmiotu z listy sankcji UE dostaje neutralne ostrzeżenie
     Zakładając sprawdzany link prowadzi do domeny podmiotu z aktualnym wpisem na liście sankcji UE
     Gdy system buduje wynik

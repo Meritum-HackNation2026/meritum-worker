@@ -26,6 +26,8 @@ class StanceJudgement(BaseModel):
         relevant: whether the source is about the claim at all.
         fragment: the quoted fragment (untrusted until the verbatim check).
         stance: whether the fragment supports, refutes or gives context.
+        missing: the part of the claim (a qualifier, number or date) the fragment
+            does not confirm; empty when it confirms all of it.
 
     Features:
         US-ZRD-01, US-ZRD-04, F-15, F-16
@@ -34,6 +36,7 @@ class StanceJudgement(BaseModel):
     relevant: bool
     fragment: str = ""
     stance: Stance = "context"
+    missing: str = ""
 
 
 class AssessedCitation(BaseModel):

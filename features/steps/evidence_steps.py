@@ -34,6 +34,7 @@ from meritum_worker.evidence import (
 
 SUPPORT = "Płaca minimalna od 1 stycznia wynosi 4806 zł brutto miesięcznie."
 REFUTE = "Płaca minimalna od 1 stycznia nie wynosi 4806 zł, lecz 4666 zł brutto."
+NET_ONLY = "Od 1 stycznia 2026 r. płaca minimalna wynosi 4806 zł miesięcznie."
 BUDGET = "W 2023 r. wydatki na transport zbiorowy wyniosły 650 mln zł."
 SAID = "Prezydent powiedział, że miasto wydaje około 700 mln zł na komunikację."
 STRIKE = "Związki zapowiedziały strajk generalny we Włoszech na 20 listopada 2026 r."
@@ -77,6 +78,28 @@ def _says(fragment: str, stance: str) -> StanceJudgement:
 def _insufficient(unresolved: str) -> ClaimExplanation:
     return ClaimExplanation(
         explanation="Źródła nie rozstrzygają twierdzenia.", unresolved=unresolved
+    )
+
+
+@given(
+    "źródło z kwotą 4806 zł, które nie mówi, że jest to kwota brutto, i twierdzenie"
+    " o 4806 zł brutto"
+)
+def partial_support(context: Context) -> None:
+    stance = StanceJudgement.model_validate(
+        {
+            "relevant": True,
+            "fragment": NET_ONLY,
+            "stance": "supports",
+            "missing": "brutto",
+        }
+    )
+    _given(
+        context,
+        "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł brutto",
+        [document("gus-1", NET_ONLY)],
+        {NET_ONLY: stance},
+        _insufficient("Nie ustalono, czy kwota jest brutto; rozstrzygnęłoby to GUS."),
     )
 
 

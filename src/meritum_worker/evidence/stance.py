@@ -53,7 +53,7 @@ async def assess_stance(
     claim_date: date,
     document: SourceDocument,
     validity: Validity,
-) -> tuple[CitationDraft | None, LlmUsage]:
+) -> tuple[CitationDraft | None, LlmUsage, str]:
     """Ask the model how one source bears on one claim.
 
     Args:
@@ -64,8 +64,10 @@ async def assess_stance(
         validity: the validity of the source's catalogue entry.
 
     Returns:
-        The proposed citation (None when the source is not about the claim) and
-        the call's usage.
+        The proposed citation (None when the source is not about the claim), the
+        call's usage and the part of the claim the source does not confirm
+        (empty when it confirms all). Partial support is only context: a verdict
+        is never stronger than what the citations confirm.
 
     A model failure propagates.
 
@@ -76,11 +78,12 @@ async def assess_stance(
     answer = await llm.complete(prompt, StanceJudgement)
     judged = answer.output
     if not judged.relevant:
-        return None, answer.usage
+        return None, answer.usage, ""
+    partial = judged.stance == "supports" and bool(judged.missing.strip())
     draft = CitationDraft(
         source_id=document.source.id,
         fragment=judged.fragment,
-        stance=judged.stance,
+        stance="context" if partial else judged.stance,
         validity=validity,
     )
-    return draft, answer.usage
+    return draft, answer.usage, judged.missing.strip() if partial else ""

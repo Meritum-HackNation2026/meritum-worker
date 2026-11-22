@@ -47,6 +47,12 @@ OUT_OF_SCOPE_MESSAGE: Final = "Claim extraction classified the input as out of s
 LIMITATION_MAX_CHARS: Final = 300
 """Longest limitation CheckResult accepts; a longer skipped claim is cut to fit."""
 
+PARTIAL_SUPPORT_NOTE: Final = (
+    "Nie potwierdzono: {missing}. Źródła potwierdzają tylko część twierdzenia"
+    " „{claim}”."
+)
+"""Limitation for a fact whose sources confirm only a part of it."""
+
 EXPLANATION_MAX_CHARS: Final = 800
 """Longest ClaimResult.explanation; a longer model text is cut to fit."""
 
