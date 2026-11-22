@@ -23,7 +23,10 @@ FACT_CHECK_TIMEOUT_SECONDS: Final = 10.0
 
 REVIEW_RATING_MAX_CHARS: Final = 120
 """Longest textualRating ClaimReviewPremise and ClaimReviewContext accept; a longer
-rating is dropped, since cutting it would no longer be the rating verbatim."""
+rating is cut at a word and ends with RATING_ELLIPSIS."""
+
+RATING_ELLIPSIS: Final = "…"
+"""Ends a fact-checker's rating cut to REVIEW_RATING_MAX_CHARS."""
 
 REVIEW_TITLE_MAX_CHARS: Final = 200
 """Longest fact-check title ``ClaimReviewPremise`` accepts; longer ones are cut."""

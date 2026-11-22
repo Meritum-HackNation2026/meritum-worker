@@ -16,6 +16,7 @@ from meritum_worker.corpus import (
     search_fact_checks,
 )
 from meritum_worker.corpus.adapters import GoogleFactCheck
+from meritum_worker.corpus.fact_check_constants import REVIEW_RATING_MAX_CHARS
 
 FIXTURES = Path(__file__).resolve().parents[2] / "features" / "fixtures"
 CLAIM = "PAP usunęła depeszę o wypowiedzi posła przed wyborami"
@@ -108,20 +109,33 @@ def test_the_stub_provider_finds_no_review() -> None:
     assert asyncio.run(port.search(CLAIM, language="pl")).hits == []
 
 
-def test_a_rating_longer_than_the_contract_allows_is_dropped_not_a_crash() -> None:
-    # Dev, 2026-11-22: a long textualRating passed the search and failed the
-    # contract later in assess_evidence, so the whole check ended technical_failure.
+def _search_ratings(*ratings: str) -> list[str]:
     hit = asyncio.run(
         _google(200, "fact_check_demagog.json")[0].search(CLAIM, language="pl")
     ).hits[0]
-    long_rating = hit.model_copy(
-        update={
-            "rating": "Fałsz. " + "x" * 120,
-            "url": "https://demagog.org.pl/fake_news/inna-ocena/",
-        }
-    )
-    port = FakeFactCheck(FactCheckAnswer(hits=[long_rating, hit]))
+    hits = [
+        hit.model_copy(
+            update={"rating": r, "url": f"https://demagog.org.pl/fake_news/{i}/"}
+        )
+        for i, r in enumerate(ratings)
+    ]
+    port = FakeFactCheck(FactCheckAnswer(hits=hits))
     found = asyncio.run(
         search_fact_checks([CLAIM], port, NullPiiGate(), load_catalog())
     )
-    assert [f.found.rating for f in found.findings] == ["Fałsz"]
+    return [f.found.rating for f in found.findings]
+
+
+def test_a_rating_longer_than_the_contract_allows_is_cut_at_a_word() -> None:
+    # Dev, 2026-11-22: a long textualRating passed the search and failed the
+    # contract later in assess_evidence, so the whole check ended technical_failure.
+    words = "Fałsz. Nagranie pokazuje inne wydarzenie niż to, o którym mówi wpis, "
+    [rating] = _search_ratings(words * 3)
+    assert len(rating) <= REVIEW_RATING_MAX_CHARS
+    assert rating.startswith("Fałsz. Nagranie")
+    assert rating.endswith("…")
+    assert not rating.removesuffix("…").endswith(" ")
+
+
+def test_a_long_rating_without_words_is_dropped() -> None:
+    assert _search_ratings("." * 200, "Fałsz") == ["Fałsz"]

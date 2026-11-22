@@ -17,6 +17,7 @@ from urllib.parse import urlsplit
 
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus.web_search import catalog_entry_for
+from meritum_core.evidence import normalize_rating
 from meritum_core.evidence.models import FoundClaimReview
 from meritum_core.security.pii import PiiGatePort, mask_personal_data
 from meritum_core.shared.embeddings import (
@@ -31,6 +32,7 @@ from meritum_worker.corpus.fact_check_constants import (
     FACT_CHECK_LANGUAGE,
     FACT_CHECK_PARALLEL_QUERIES,
     FACT_CHECK_SIMILARITY_THRESHOLD,
+    RATING_ELLIPSIS,
     REVIEW_RATING_MAX_CHARS,
     REVIEW_TITLE_MAX_CHARS,
 )
@@ -186,16 +188,15 @@ def _finding(
     fetched_at: datetime,
 ) -> ClaimReviewFinding | None:
     entry = _publisher(hit, catalog)
-    # A rating ClaimReviewPremise/Context cannot hold would fail the check later.
-    too_long = len(hit.rating) > REVIEW_RATING_MAX_CHARS
-    if entry is None or hit.reviewed_at is None or too_long:
+    rating = _contract_rating(hit.rating)
+    if entry is None or hit.reviewed_at is None or rating is None:
         return None
     try:
         found = FoundClaimReview(
             publisher=entry.publisher,
             publisher_id=entry.publisher_id,
             signatory_of=list(entry.signatory_of),
-            rating=hit.rating,
+            rating=rating,
             title=hit.title[:REVIEW_TITLE_MAX_CHARS],
             reviewed_at=hit.reviewed_at,
             url=hit.url,
@@ -209,6 +210,18 @@ def _finding(
         found=found,
         cache_control=cache_control,
     )
+
+
+def _contract_rating(rating: str) -> str | None:
+    # A rating longer than ClaimReviewPremise/Context take is cut at a word with
+    # an ellipsis: still the fact-checker's link and words, as context (its stance
+    # comes from the full-rating table, so a cut rating is never a premise).
+    if len(rating) <= REVIEW_RATING_MAX_CHARS:
+        return rating
+    cut = rating[: REVIEW_RATING_MAX_CHARS - 1].rsplit(" ", 1)[0]
+    cut = cut.rstrip(" ,;:-")
+    has_words = any(ch.isalnum() for ch in normalize_rating(cut))
+    return f"{cut}{RATING_ELLIPSIS}" if has_words else None
 
 
 def _publisher(
