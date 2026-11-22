@@ -15,11 +15,7 @@ from meritum_worker.observability.comparison import (
     compare_models,
     load_model_config,
 )
-from meritum_worker.observability.constants import (
-    DEFAULT_CASES_FILE,
-    DEFAULT_EVAL_FILES_DIR,
-    EVAL_FILES_DIR_VAR,
-)
+from meritum_worker.observability.constants import DEFAULT_CASES_FILE
 from meritum_worker.observability.costs import (
     CostLine,
     CostSummary,
@@ -76,8 +72,6 @@ from meritum_worker.observability.scoring import score_runs
 
 __all__ = [
     "DEFAULT_CASES_FILE",
-    "DEFAULT_EVAL_FILES_DIR",
-    "EVAL_FILES_DIR_VAR",
     "CaseRun",
     "CaseScore",
     "CaseSource",

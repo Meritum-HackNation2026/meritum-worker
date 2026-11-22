@@ -4,11 +4,11 @@ Features:
     US-OBS-07, US-OBS-04, F-27, ADR-28
 """
 
+from meritum_worker.observability.adapters._blob_case_sets import BlobCaseSets
 from meritum_worker.observability.adapters._corpus import (
     CassetteCorpus,
     CassetteReranker,
 )
-from meritum_worker.observability.adapters._file_case_sets import FileCaseSets
 from meritum_worker.observability.adapters._injection import CassetteInjection
 from meritum_worker.observability.adapters._llm import CassetteLlm
 from meritum_worker.observability.adapters._pages import CassettePages
@@ -17,6 +17,7 @@ from meritum_worker.observability.adapters._postgres_runs import PostgresEvalRun
 from meritum_worker.observability.adapters._web_search import CassetteWebSearch
 
 __all__ = [
+    "BlobCaseSets",
     "CassetteCorpus",
     "CassetteInjection",
     "CassetteLlm",
@@ -24,6 +25,5 @@ __all__ = [
     "CassettePii",
     "CassetteReranker",
     "CassetteWebSearch",
-    "FileCaseSets",
     "PostgresEvalRuns",
 ]

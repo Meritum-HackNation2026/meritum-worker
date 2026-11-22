@@ -10,6 +10,12 @@ from pathlib import Path
 
 from httpx2 import AsyncClient
 from meritum_core.observability import build_app_repositories
+from meritum_core.shared.blobs import (
+    BlobProvider,
+    BlobSettings,
+    BlobStore,
+    build_blob_store,
+)
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
@@ -22,6 +28,7 @@ from meritum_worker.corpus.fact_check_constants import (
     FACT_CHECK_LANGUAGE,
 )
 from meritum_worker.observability.adapters import (
+    BlobCaseSets,
     CassetteCorpus,
     CassetteInjection,
     CassetteLlm,
@@ -29,7 +36,6 @@ from meritum_worker.observability.adapters import (
     CassettePii,
     CassetteReranker,
     CassetteWebSearch,
-    FileCaseSets,
     PostgresEvalRuns,
 )
 from meritum_worker.observability.cassette import Cassette
@@ -121,9 +127,9 @@ def build_eval_run_deps(
     database: DatabaseSettings,
     corpus_version: str,
     golden: Path,
-    uploads: Path,
+    blobs: BlobStore | None = None,
 ) -> EvalRunDeps:
-    """Ports of the `eval_run` workflow: the model, the app database and the files.
+    """Ports of the `eval_run` workflow: the model, the app database and blobs.
 
     Args:
         settings: The model to evaluate, usually ``LlmSettings()``.
@@ -131,20 +137,21 @@ def build_eval_run_deps(
             prd, in memory by default.
         corpus_version: The snapshot every check of the run searches.
         golden: The golden set's JSON file.
-        uploads: The directory of uploaded case files.
+        blobs: Where staff uploads are stored; ``MERITUM_BLOB_*`` when None.
 
     Returns:
         The workflow's ports.
 
     Features:
-        US-OBS-06, F-28, ADR-28
+        US-OBS-06, F-28, ADR-28, ADR-31
     """
     runs: EvalRunRepository = InMemoryEvalRuns()
     if database.provider is DatabaseProvider.POSTGRES and database.url is not None:
         runs = PostgresEvalRuns(database.url.get_secret_value())
+    store = blobs or build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
     return EvalRunDeps(
         runs=runs,
-        case_sets=FileCaseSets(golden, uploads),
+        case_sets=BlobCaseSets(golden, store),
         deps_for=build_eval_deps(settings, corpus_version),
         notifications=build_app_repositories(database).notifications,
     )

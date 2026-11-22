@@ -1,8 +1,9 @@
 """The `eval_run` workflow on the stub model and in-memory ports (US-OBS-06)."""
 
 import asyncio
+import json
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,12 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.jobs.contracts import EvalRunInput
 from meritum_core.notifications.fakes import InMemoryNotificationRepository
 from meritum_core.security.pii import NullPiiGate
+from meritum_core.shared.blobs import (
+    BlobKind,
+    BlobProvider,
+    BlobSettings,
+    build_blob_store,
+)
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
 from meritum_worker.checks import (
@@ -20,11 +27,13 @@ from meritum_worker.checks import (
     web_ports,
 )
 from meritum_worker.observability import (
+    EvalCaseSets,
     EvalRunDeps,
     GoldenSet,
     load_golden_set,
     run_eval_run,
 )
+from meritum_worker.observability.adapters import BlobCaseSets
 from meritum_worker.observability.fakes import InMemoryCaseSets, InMemoryEvalRuns
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,7 +57,7 @@ def _check_deps() -> CheckDeps:
 
 
 def _deps(
-    case_sets: InMemoryCaseSets | None = None,
+    case_sets: EvalCaseSets | None = None,
 ) -> tuple[EvalRunDeps, InMemoryEvalRuns, InMemoryNotificationRepository]:
     runs = InMemoryEvalRuns()
     inbox = InMemoryNotificationRepository()
@@ -104,32 +113,54 @@ def test_a_retried_workflow_does_not_notify_twice() -> None:
     assert len(asyncio.run(inbox.list_for("user_id", USER))) == 1
 
 
-def test_a_user_file_runs_the_same_metrics() -> None:
-    own = GoldenSet(
-        tuple(c for c in GOLDEN.root if c.related_case is None and c.injection is None)[
-            :12
-        ]
+async def _blobbed(cases: GoldenSet) -> tuple[BlobCaseSets, str]:
+    store = build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
+    data = json.dumps([c.model_dump(mode="json") for c in cases.root]).encode()
+    ref = await store.put(
+        data,
+        kind=BlobKind.DATASET,
+        content_type="application/json",
+        expires_at=datetime.now(UTC) + timedelta(days=1),
     )
-    sets = InMemoryCaseSets(golden=GOLDEN, files={"jury.csv": own})
+    return BlobCaseSets(ROOT / "evals" / "golden" / "cases.json", store), ref.blob_id
+
+
+def test_a_user_file_runs_the_same_metrics() -> None:
+    own = GoldenSet(GOLDEN.root[:30])
+    sets, blob_id = asyncio.run(_blobbed(own))
     deps, _, _ = _deps(sets)
     golden = asyncio.run(run_eval_run(_input(), deps)).run
     output = asyncio.run(
         run_eval_run(
-            _input(run_id="run-2", case_set="user_file", case_file="jury.csv"),
+            _input(
+                run_id="run-2",
+                case_set="user_file",
+                case_file="jury.json",
+                dataset_blob_id=blob_id,
+            ),
             deps,
         )
     )
-    assert output.run.case_file == "jury.csv"
+    assert output.run.case_file == "jury.json"
     assert output.run.metrics is not None
-    assert output.run.metrics.cases == 12
+    assert output.run.metrics.cases == 30
     assert golden.metrics is not None
     assert set(output.run.metrics.model_dump()) == set(golden.metrics.model_dump())
 
 
 def test_a_missing_file_ends_as_a_failed_run_and_still_notifies() -> None:
-    deps, runs, inbox = _deps()
+    store = build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
+    sets = BlobCaseSets(ROOT / "evals" / "golden" / "cases.json", store)
+    deps, runs, inbox = _deps(sets)
     output = asyncio.run(
-        run_eval_run(_input(case_set="user_file", case_file="absent.csv"), deps)
+        run_eval_run(
+            _input(
+                case_set="user_file",
+                case_file="absent.json",
+                dataset_blob_id="dataset_aabbccddeeff00112233445566778899",
+            ),
+            deps,
+        )
     )
     assert output.run.status == "failed"
     assert output.run.metrics is None

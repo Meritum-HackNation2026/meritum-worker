@@ -1,7 +1,8 @@
 """Steps of the evaluation run scenarios (worker#38); they call the public API."""
 
 import asyncio
-from datetime import UTC, datetime
+import json
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from behave import given, then, when
@@ -11,6 +12,12 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.jobs.contracts import EvalRunInput
 from meritum_core.notifications.fakes import InMemoryNotificationRepository
 from meritum_core.security.pii import NullPiiGate
+from meritum_core.shared.blobs import (
+    BlobKind,
+    BlobProvider,
+    BlobSettings,
+    build_blob_store,
+)
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
 from meritum_worker.checks import (
@@ -27,13 +34,15 @@ from meritum_worker.observability import (
     load_golden_set,
     run_eval_run,
 )
-from meritum_worker.observability.fakes import InMemoryCaseSets, InMemoryEvalRuns
+from meritum_worker.observability.adapters import BlobCaseSets
+from meritum_worker.observability.fakes import InMemoryEvalRuns
 
 ROOT = Path(__file__).resolve().parents[2]
-GOLDEN = load_golden_set(ROOT / "evals" / "golden" / "cases.json")
+GOLDEN_PATH = ROOT / "evals" / "golden" / "cases.json"
+GOLDEN = load_golden_set(GOLDEN_PATH)
 STUB_ANSWER = ROOT / "features" / "fixtures" / "llm_stub_answer.json"
 STAFF = "google:1234567890"
-OWN_CASES = 12
+OWN_CASES = 30
 
 
 def _check_deps() -> CheckDeps:
@@ -49,7 +58,7 @@ def _check_deps() -> CheckDeps:
     )
 
 
-def _setup(context: Context, case_sets: InMemoryCaseSets) -> None:
+def _setup(context: Context, case_sets: BlobCaseSets) -> None:
     context.runs = InMemoryEvalRuns()
     context.inbox = InMemoryNotificationRepository()
     context.deps = EvalRunDeps(
@@ -62,16 +71,35 @@ def _setup(context: Context, case_sets: InMemoryCaseSets) -> None:
     )
 
 
+def _golden_case_sets() -> BlobCaseSets:
+    store = build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
+    return BlobCaseSets(GOLDEN_PATH, store)
+
+
+async def _store_own_cases(cases: GoldenSet) -> tuple[BlobCaseSets, str]:
+    store = build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
+    data = json.dumps([c.model_dump(mode="json") for c in cases.root]).encode()
+    ref = await store.put(
+        data,
+        kind=BlobKind.DATASET,
+        content_type="application/json",
+        expires_at=datetime.now(UTC) + timedelta(days=1),
+    )
+    return BlobCaseSets(GOLDEN_PATH, store), ref.blob_id
+
+
 def _start(
     context: Context,
     run_id: str,
     case_set: EvalCaseSet,
     case_file: str | None = None,
+    dataset_blob_id: str | None = None,
 ) -> EvalRun:
     payload = EvalRunInput(
         run_id=run_id,
         case_set=case_set,
         case_file=case_file,
+        dataset_blob_id=dataset_blob_id,
         corpus_version="2026-11-20T10:00Z",
         user_id=STAFF,
     )
@@ -81,7 +109,7 @@ def _start(
 
 @given("backend zleca workflow przebiegu ewaluacji dla golden setu")
 def backend_orders_golden_run(context: Context) -> None:
-    _setup(context, InMemoryCaseSets(golden=GOLDEN))
+    _setup(context, _golden_case_sets())
 
 
 @when("przebieg się kończy")
@@ -114,19 +142,22 @@ def staff_user_is_notified(context: Context) -> None:
 
 @given("zestaw z pliku CSV zapisany przez backend")
 def csv_saved_by_backend(context: Context) -> None:
-    own = tuple(
-        c for c in GOLDEN.root if c.related_case is None and c.injection is None
-    )[:OWN_CASES]
-    _setup(
-        context,
-        InMemoryCaseSets(golden=GOLDEN, files={"jury.csv": GoldenSet(own)}),
-    )
+    own = GOLDEN.root[:OWN_CASES]
+    case_sets, blob_id = asyncio.run(_store_own_cases(GoldenSet(own)))
+    _setup(context, case_sets)
+    context.dataset_blob_id = blob_id
     context.golden_run = _start(context, "run-golden", "golden")
 
 
 @when("backend zleca przebieg na tym zestawie")
 def backend_orders_file_run(context: Context) -> None:
-    context.run = _start(context, "run-file", "user_file", "jury.csv")
+    context.run = _start(
+        context,
+        "run-file",
+        "user_file",
+        "jury.json",
+        context.dataset_blob_id,
+    )
 
 
 @then("przebieg liczy te same mierniki co na golden secie")
@@ -141,7 +172,7 @@ def same_metrics(context: Context) -> None:
 
 @given("dwa zapisane przebiegi")
 def two_stored_runs(context: Context) -> None:
-    _setup(context, InMemoryCaseSets(golden=GOLDEN))
+    _setup(context, _golden_case_sets())
     context.before = _start(context, "run-a", "golden")
     after = context.before.model_copy(update={"id": "run-b"})
     first, *rest = after.cases
