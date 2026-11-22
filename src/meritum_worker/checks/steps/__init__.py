@@ -11,6 +11,7 @@ from ._fetch_url import fetch_url
 from ._match_incidents import match_incidents
 from ._moderator_cases import moderator_cases
 from ._notify_done import notify_done
+from ._notify_evidence import notify_new_evidence
 from ._read_image import read_image
 from ._receive import receive
 from ._sanctions_warning import sanctions_warning
@@ -31,6 +32,7 @@ __all__ = [
     "match_incidents",
     "moderator_cases",
     "notify_done",
+    "notify_new_evidence",
     "read_image",
     "receive",
     "sanctions_warning",

@@ -260,12 +260,48 @@ async def readiness_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     """
     READINESS.input.model_validate(payload)
     report = await DBOS.run_step_async({"retries_allowed": False}, readiness_report)
+    await DBOS.run_step_async({"retries_allowed": True}, _announce_service, report)
     await DBOS.set_event_async(
         READINESS_KEY,
         report,
         serialization_type=WorkflowSerializationFormat.PORTABLE,
     )
     return report
+
+
+async def _announce_service(report: dict[str, Any]) -> None:
+    deps = check_deps()
+    if deps.moderation is not None:
+        await checks.notify_service_state(
+            READINESS.output.model_validate(report),
+            deps.moderation,
+            deps.notifications,
+            datetime.now(UTC),
+        )
+
+
+async def _announce_answers() -> int:
+    deps = check_deps()
+    if deps.moderation is None:
+        return 0
+    return await checks.notify_case_answers(
+        deps.moderation, deps.notifications, datetime.now(UTC)
+    )
+
+
+@DBOS.workflow(name=checks.ANSWER_NOTICE_WORKFLOW)
+async def case_answers_workflow(_scheduled_at: datetime, _context: object) -> None:
+    """Tell the askers of answered cases; started by the ANSWER_NOTICE_CRON schedule.
+
+    Args:
+        _scheduled_at: the schedule's time, unused.
+        _context: the schedule's context, unused.
+
+    Features:
+        US-POW-04, F-26
+    """
+    sent = await DBOS.run_step_async({"retries_allowed": True}, _announce_answers)
+    DBOS.logger.info("moderator_answer notifications saved: %s", sent)
 
 
 def _eval_run_deps(corpus_version: str) -> observability.EvalRunDeps:
@@ -512,6 +548,15 @@ def main() -> None:
                 "schedule_name": security.RETENTION_SCHEDULE_NAME,
                 "workflow_fn": retention_workflow,
                 "schedule": security.RETENTION_CRON,
+            }
+        ]
+    )
+    DBOS.apply_schedules(
+        [
+            {
+                "schedule_name": checks.ANSWER_NOTICE_WORKFLOW,
+                "workflow_fn": case_answers_workflow,
+                "schedule": checks.ANSWER_NOTICE_CRON,
             }
         ]
     )

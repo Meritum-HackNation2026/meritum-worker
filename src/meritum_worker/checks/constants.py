@@ -196,3 +196,9 @@ WEB_SEARCH_PRICES: Final = MappingProxyType(
 
 Vertex AI Search Standard: USD 1.50 per 1,000 queries (2026-11-22); stub is free.
 """
+
+ANSWER_NOTICE_WORKFLOW: Final = "case_answers"
+"""Name of the scheduled workflow that tells askers a moderator answered."""
+
+ANSWER_NOTICE_CRON: Final = "*/5 * * * *"
+"""Every five minutes; a repeated run replaces entries, so it adds none."""

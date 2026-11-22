@@ -5,9 +5,14 @@ Features:
 """
 
 from meritum_worker.moderation.cases import refer
-from meritum_worker.moderation.constants import PANEL_LINK, UNANSWERED_VERDICT
+from meritum_worker.moderation.constants import (
+    PANEL_LINK,
+    SIMILARITY_WINDOW,
+    UNANSWERED_VERDICT,
+)
 from meritum_worker.moderation.factory import build_moderation_deps
 from meritum_worker.moderation.fakes import InMemoryCheckResults, ScriptedEmbeddings
+from meritum_worker.moderation.grouping import similar_flags
 from meritum_worker.moderation.models import (
     CheckResults,
     ModerationDeps,
@@ -19,6 +24,7 @@ from meritum_worker.moderation.workflow import run_escalate_claim
 
 __all__ = [
     "PANEL_LINK",
+    "SIMILARITY_WINDOW",
     "UNANSWERED_VERDICT",
     "CheckResults",
     "InMemoryCheckResults",
@@ -30,4 +36,5 @@ __all__ = [
     "case_recipients",
     "refer",
     "run_escalate_claim",
+    "similar_flags",
 ]

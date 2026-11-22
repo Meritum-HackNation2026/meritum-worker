@@ -41,3 +41,9 @@ Funkcja: Sprawy moderatora powstają same i grupują podobne twierdzenia
     Gdy sprawdzenie kończy się brakiem dowodów w zwykłym temacie
     Wtedy Escalation ma state "created" i numer sprawy
     Oraz moderator dostaje powiadomienie "case_assigned" z linkiem "/panel"
+
+  Scenariusz: moderator odpowiada na sprawę, pytający dostaje powiadomienie
+    Zakładając sprawa "#S-1" z jednym sprawdzeniem, na którą moderator odpowiedział
+    Gdy worker rozsyła odpowiedzi moderatorów
+    Wtedy pytający dostaje powiadomienie "moderator_answer" z numerem sprawy "#S-1"
+    Oraz drugie rozesłanie nie dodaje następnego
