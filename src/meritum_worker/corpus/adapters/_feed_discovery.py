@@ -1,10 +1,11 @@
-"""Discovery through RSS, Atom and sitemaps for entries with ``ingest`` rss or sitemap.
+"""Discovery through RSS, Atom and sitemaps, and the news listings of gov.pl sections.
 
 Features:
     US-KOR-03, F-13
 """
 
 import logging
+from collections.abc import Iterable
 
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus.fetching import FetchPurpose, PageFetcherPort, PageFetchError
@@ -17,8 +18,10 @@ from meritum_worker.corpus.feeds import (
     FEED_UNREADABLE,
     FeedListing,
     feed_url,
+    govpl_listing_url,
     on_entry_site,
     parse_feed,
+    parse_govpl_listing,
 )
 
 _log = logging.getLogger(__name__)
@@ -27,11 +30,13 @@ _log = logging.getLogger(__name__)
 class FeedDiscovery:
     """DocumentDiscoveryPort that reads each entry's feed or sitemap.
 
-    Static entries keep their entry page. Feeds go through core's fetcher with
+    Static entries keep their entry page; a gov.pl section adds the articles its
+    news listing names. Feeds and listings go through core's fetcher with
     ``purpose=SOURCE``, so robots.txt, Content-Signal and the SSRF guard apply.
 
     Args:
-        fetcher: Core's fetcher on ``FeedTransport``, which reads XML as text.
+        fetcher: Core's fetcher on ``FeedTransport``, which reads XML and HTML
+            as text.
 
     Features:
         US-KOR-03, F-13
@@ -49,23 +54,28 @@ class FeedDiscovery:
 
         Returns:
             The listed pages of the entry's own site, newest first; a sitemap
-            index adds its children's.
+            index adds its children's. A static entry gives its entry page,
+            followed by the articles of a gov.pl section's news listing.
 
         Raises:
-            DiscoveryError: The feed or sitemap failed; a failed child of a
-                sitemap index is skipped instead.
-        """  # ruff: ignore[docstring-extraneous-exception]  # raised by _read
+            DiscoveryError: The feed, sitemap or news listing failed; a failed
+                child of a sitemap index is skipped instead.
+        """  # ruff: ignore[docstring-extraneous-exception]  # raised by _read and _fetch
         if entry.ingest not in FEED_METHODS:
-            return await self._entry_pages.pages(entry)
+            return await self._static_pages(entry)
         listing = await self._read(feed_url(entry))
         pages = list(listing.pages)
         for child in listing.sitemaps:
             pages += await self._child_pages(entry, child)
-        return [
-            page.model_copy(update={"url": url})
-            for page in pages
-            if (url := on_entry_site(entry, page.url)) is not None
-        ]
+        return _on_entry_site(entry, pages)
+
+    async def _static_pages(self, entry: CatalogEntry) -> list[DiscoveredPage]:
+        pages = await self._entry_pages.pages(entry)
+        listing = govpl_listing_url(entry)
+        if listing is None:
+            return pages
+        articles = parse_govpl_listing(await self._fetch(listing), listing)
+        return pages + _on_entry_site(entry, articles)
 
     async def _child_pages(
         self, entry: CatalogEntry, url: str
@@ -82,9 +92,23 @@ class FeedDiscovery:
 
     async def _read(self, url: str) -> FeedListing:
         try:
-            page = await self._fetcher.fetch(url, purpose=FetchPurpose.SOURCE)
-            return parse_feed(page.untrusted_text)
-        except PageFetchError as error:
-            raise DiscoveryError(url, error.reason.value) from error
+            return parse_feed(await self._fetch(url))
         except FeedUnreadableError as error:
             raise DiscoveryError(url, FEED_UNREADABLE) from error
+
+    async def _fetch(self, url: str) -> str:
+        try:
+            page = await self._fetcher.fetch(url, purpose=FetchPurpose.SOURCE)
+        except PageFetchError as error:
+            raise DiscoveryError(url, error.reason.value) from error
+        return page.untrusted_text
+
+
+def _on_entry_site(
+    entry: CatalogEntry, pages: Iterable[DiscoveredPage]
+) -> list[DiscoveredPage]:
+    return [
+        page.model_copy(update={"url": url})
+        for page in pages
+        if (url := on_entry_site(entry, page.url)) is not None
+    ]

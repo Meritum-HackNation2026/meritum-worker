@@ -49,6 +49,35 @@ FEED_MEDIA_TYPES: Final = frozenset(
 )
 """Media types of feeds and sitemaps, handed to core's fetcher as plain text."""
 
+LISTING_MEDIA_TYPES: Final = FEED_MEDIA_TYPES | {"text/html"}
+"""Media types the discovery fetcher hands over as plain text: feeds, sitemaps and
+the HTML news listings of gov.pl sections, whose links are read from the markup."""
+
+GOVPL_SECTION_PREFIX: Final = "www.gov.pl/web/"
+"""Domain prefix of a gov.pl section entry (``www.gov.pl/web/mswia``)."""
+
+GOVPL_LISTING_PATH: Final = "/aktualnosci"
+"""Path of a gov.pl section's news listing, relative to the section: static HTML
+with its 10 newest articles. gov.pl has no RSS, no sitemap and no Content-Signal;
+its robots.txt allows everything (checked 2026-11-22, worker#232)."""
+
+GOVPL_LISTING_URLS: Final = {
+    "www.gov.pl/web/obrona-narodowa": (
+        "https://www.gov.pl/web/obrona-narodowa/aktualnosci5"
+    ),
+}
+"""News listings of gov.pl sections outside ``GOVPL_LISTING_PATH``: MON's
+``/aktualnosci`` lists the premier's articles, its own news is ``/aktualnosci5``."""
+
+GOVPL_DATE_FORMAT: Final = "%d.%m.%Y"
+"""Date of an article tile on a gov.pl listing (``16.11.2026``)."""
+
+GOVPL_DATE_CLASS: Final = "date"
+"""Class of the ``span`` holding an article tile's date on a gov.pl listing."""
+
+GOVPL_TITLE_CLASS: Final = "title"
+"""Class of the ``div`` holding an article tile's link on a gov.pl listing."""
+
 FEED_AS_MEDIA_TYPE: Final = "text/plain"
 """What a feed's media type becomes, so core's fetcher returns the raw XML."""
 
