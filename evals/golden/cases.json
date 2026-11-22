@@ -742,5 +742,424 @@
     "expected_status": "technical_failure",
     "expected_behavior": "Komunikat o problemie technicznym po wyczerpaniu ponowień, bez werdyktu.",
     "fault": "llm"
+  },
+  {
+    "id": "A-ctx-teheran-nie-tel-awiw",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Na Facebooku krąży zdjęcie płonącego miasta podpisane „Tel Awiw! Widok zza okna!”. Czy to naprawdę Tel Awiw po ataku Iranu?",
+    "main_claim": "Zdjęcie z podpisem „Tel Awiw! Widok zza okna!” pokazuje Tel Awiw po irańskim ataku.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. Zdjęcie jest prawdziwe, ale pokazuje pożar składu paliw Shahran w Teheranie po izraelskim ataku w czerwcu 2025 r., a nie Tel Awiw. Odpowiedź przywraca miejsce i datę zdjęcia i podaje analizę Demagoga.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/kolejne-zdjecie-wyjete-z-kontekstu-to-teheran-a-nie-tel-awiw/",
+        "publisher": "Demagog",
+        "title": "Kolejne zdjęcie wyjęte z kontekstu. To Teheran, a nie Tel Awiw",
+        "quote": "Ta fotografia pochodzi z czerwca 2025 roku i przedstawia izraelski atak na bazy paliwowe w Teheranie"
+      },
+      {
+        "url": "https://www.brecorder.com/news/40367792/iran-says-shahran-oil-depot-targeted-in-israeli-attack",
+        "publisher": "Business Recorder",
+        "title": "Iran says Shahran oil depot targeted in Israeli attack",
+        "quote": "Iran said the Shahran oil depot in Tehran was targeted in an Israeli attack on Saturday"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-bukareszt-protest-2017",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Widziałem zdjęcie z Bukaresztu: tłum z latarkami, podobno Rumuni wyszli wczoraj protestować przeciw obostrzeniom covidowym. Prawda?",
+    "main_claim": "Zdjęcie tłumu w Bukareszcie pokazuje protest przeciw obostrzeniom covidowym z lutego 2021 r.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Zdjęcie jest autentyczne i pochodzi z Bukaresztu, ale zrobiono je 5 lutego 2017 r. podczas protestów przeciw korupcji, na długo przed pandemią. Odpowiedź przywraca datę i powód protestu i powołuje się na Demagoga, AFP Sprawdzam lub fakenews.pl.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/fotografia-z-protestow-przeciw-ograniczeniom-manipulacja/",
+        "publisher": "Demagog",
+        "title": "Fotografia z protestów przeciw ograniczeniom? Manipulacja!",
+        "quote": "Nie chodzi jednak o protest z 2021 roku, tylko z 2017."
+      },
+      {
+        "url": "https://sprawdzam.afp.com/zdjecie-nie-przedstawia-protestow-przeciwko-restrykcjom-w-czasie-pandemii-ale-manifestacje-przeciwko",
+        "publisher": "AFP Sprawdzam",
+        "title": "Zdjęcie nie przedstawia protestów przeciwko restrykcjom w czasie pandemii, ale manifestacje przeciwko korupcji w Rumunii w 2017 r.",
+        "quote": "Brak daty pod zdjęciem jest w tym przypadku manipulacją kontekstem."
+      },
+      {
+        "url": "https://fakenews.pl/spoleczenstwo/nie-zdjecia-z-madrytu-i-bukaresztu-nie-przedstawiaja-protestow-przeciw-obostrzeniom/",
+        "publisher": "Fakenews.pl",
+        "title": "Nie, zdjęcia z Madrytu i Bukaresztu nie przedstawiają protestów przeciw obostrzeniom",
+        "quote": "Manifestacje miały miejsce na początku lutego 2017 roku."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-paryz-zamieszki-2022",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "text": "Na Facebooku jest film z Paryża: przewrócone i płonące samochody, tłum na ulicy. Piszą, że to teraz, zamieszki Kurdów. Czy to aktualne?",
+    "main_claim": "Nagranie przewróconych i podpalonych samochodów pokazuje niedawne zamieszki w Paryżu.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. Nagranie jest prawdziwe, ale pochodzi z 24 grudnia 2022 r., z zamieszek po zabójstwie trzech osób przy kurdyjskim ośrodku kultury w Paryżu, i wielokrotnie wracało jako rzekomo aktualne. Odpowiedź podaje datę i okoliczności nagrania.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/zamieszki-w-paryzu-kurdowie-i-bledny-kontekst-to-nagranie-z-2022-roku/",
+        "publisher": "Demagog",
+        "title": "Zamieszki w Paryżu, Kurdowie i błędny kontekst. To nagranie z 2022 roku",
+        "quote": "Nagranie pochodzi z 2022 roku i pokazuje zamieszki mniejszości kurdyjskiej w Paryżu."
+      },
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.34TK27P",
+        "publisher": "AFP Sprawdzam",
+        "title": "Wideo pokazuje protesty w Paryżu w 2022 roku, a nie protesty podczas obecnych przygotowań do igrzysk olimpijskich",
+        "quote": "To nagranie jest nieaktualne i wyrwane z kontekstu."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-orlen-759-stare-zdjecie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Kolega wysłał zdjęcie pylonu Orlenu: benzyna 7,59 zł, diesel 7,99 zł, i napisał „zaczęło się”, czyli podwyżki po wyborach. To prawda?",
+    "main_claim": "Zdjęcie pylonu Orlenu z ceną 7,59 zł za benzynę pokazuje podwyżki cen paliw tuż po wyborach z 15 października 2023 r.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. Zdjęcie jest stare: krążyło już w lutym 2022 r., tuż po rosyjskiej inwazji na Ukrainę, a Orlen poinformował, że w tygodniu po wyborach takich cen nie odnotował na żadnej stacji. Odpowiedź przywraca datę zdjęcia i podaje analizę Konkret24.",
+    "sources": [
+      {
+        "url": "https://konkret24.tvn24.pl/polska/zaczelo-sie-paliwo-po-759-zl-nie-to-stare-zdjecie-st7394223",
+        "publisher": "Konkret24",
+        "title": "\"Zaczęło się\" paliwo po 7,59 zł? Nie, to stare zdjęcie",
+        "quote": "Zdjęcie rozsyłane przez internautów rzeczywiście nie jest nowe. W sieci pojawiło się w lutym 2022 roku"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-walbrzych-lampedusa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Na TikToku piszą, że to zdjęcie pokazuje migrantów przywiezionych przez niemiecką policję do Wałbrzycha. Czy to się zgadza?",
+    "main_claim": "Zdjęcie pokazuje migrantów przekazanych przez Niemcy do Wałbrzycha.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. Zdjęcie zrobiono 1 marca 2011 r. na włoskiej wyspie Lampedusa; przedstawia imigrantów z Tunezji czekających na ewakuację i nie ma związku z Wałbrzychem ani z przekazywaniem migrantów z Niemiec. Odpowiedź przywraca miejsce i datę zdjęcia.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/migranci-w-walbrzychu-to-stare-zdjecie-z-lampedusy/",
+        "publisher": "Demagog",
+        "title": "Migranci w Wałbrzychu? To stare zdjęcie z Lampedusy",
+        "quote": "Pochodzi ona z 1 marca 2011 roku, a wykonano ją na włoskiej wyspie Lampedusa."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-macron-gwizdy-rugby",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Joanna Lichocka wrzuciła nagranie, na którym wygwizdują Macrona, i napisała, że to z ceremonii zamknięcia igrzysk w Paryżu. Czy to prawda?",
+    "main_claim": "Nagranie pokazuje Emmanuela Macrona wygwizdanego podczas ceremonii zamknięcia igrzysk olimpijskich w Paryżu w sierpniu 2024 r.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nagranie jest prawdziwe, ale pochodzi z ceremonii otwarcia Pucharu Świata w Rugby we wrześniu 2023 r.; Macron nie przemawiał na zamknięciu igrzysk. Odpowiedź przywraca wydarzenie i datę nagrania i powołuje się na Demagoga, który ocenił wpis jako manipulację.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/macron-wygwizdany-podczas-olimpiady-to-nagranie-z-2023-roku/",
+        "publisher": "Demagog",
+        "title": "Macron wygwizdany podczas olimpiady? To nagranie z 2023 roku",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-czolgi-mannheim",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "mcp",
+    "text": "Węgierski portal pisze, że niemieckie czołgi jadące przez Polskę na Ukrainę mają na wagonie neonazistowskie oznaczenie 14/88. Czy to prawda?",
+    "main_claim": "Niemieckie czołgi wysyłane na Ukrainę przez Polskę jadą z neonazistowskim symbolem 14/88 na wagonie.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. Kadr pochodzi z nagrania pociągu z czołgami w Mannheim opublikowanego w marcu 2022 r., na którym nie ma żadnych nazistowskich znaków; obraz wyjęto z kontekstu i zmanipulowano. Odpowiedź przywraca pochodzenie nagrania i wskazuje analizę EUvsDisinfo.",
+    "sources": [
+      {
+        "url": "https://euvsdisinfo.eu/report/german-tanks-arrive-in-ukraine-with-neo-nazi-symbols/",
+        "publisher": "EUvsDisinfo",
+        "title": "Disinfo: German tanks arrive in Ukraine with neo-Nazi symbols",
+        "quote": "The video shows a train loaded with tanks, but there is no Nazi or any other signs painted on them."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-tusk-polskosc-nienormalnosc",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Na TikToku jest grafika z cytatem Donalda Tuska „polskość to nienormalność”. Czyli Tusk gardzi Polską?",
+    "main_claim": "Donald Tusk napisał, że „polskość to nienormalność”, wyrażając w ten sposób niechęć do Polski i Polaków.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Słowa padły, ale to ucięty fragment eseju „Polak rozłamany” z miesięcznika „Znak” z 1987 r., napisanego w odpowiedzi na pytanie „Czym jest polskość?”. W dalszej części Tusk pisze, że utożsamia się z tą postawą i że polskość pozostaje wspólnym świadomym wyborem. Odpowiedź przywraca źródło, rok i dalszy ciąg tekstu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/tusk-uwaza-ze-polskosc-to-nienormalnosc-manipulacja/",
+        "publisher": "Demagog",
+        "title": "Tusk uważa, że „polskość to nienormalność”? Manipulacja",
+        "quote": "W dalszej części tekstu Donald Tusk napisał, że akceptuje taką postawę i utożsamia się z nią."
+      },
+      {
+        "url": "https://www.miesiecznik.znak.com.pl/polskie-spoleczenstwo/6792011donald-tusk-polak-rozlamany/",
+        "publisher": "Miesięcznik Znak",
+        "title": "Donald Tusk: Polak rozłamany",
+        "quote": "Polskość to nienormalność – takie skojarzenie narzuca mi się z bolesną uporczywością"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-tusk-krasc-procedury",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "text": "Krąży rolka, w której Tusk w Sejmie mówi: „Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać”. Czyli premier uważa, że można kraść zgodnie z procedurami?",
+    "main_claim": "Donald Tusk jest autorem słów „Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać” i tak wyraża własny pogląd.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Tusk wypowiedział te słowa w Sejmie 17 stycznia 2024 r., ale jako cytat: przytoczył wypowiedź Marcina Horały z TVN24 z listopada 2023 r., żeby ją wyśmiać. Odpowiedź przywraca, kto jest autorem słów, i wskazuje stenogram Sejmu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/mozna-krasc-zgodnie-z-procedurami-slowa-donalda-tuska-wyrwane-z-kontekstu/",
+        "publisher": "Demagog",
+        "title": "Można kraść zgodnie z procedurami? Słowa Donalda Tuska wyrwane z kontekstu",
+        "quote": "Donald Tusk w swoim przemówieniu przytacza słowa innego polityka – Marcina Horały."
+      },
+      {
+        "url": "https://www.sejm.gov.pl/Sejm10.nsf/wypowiedz.xsp?posiedzenie=2&dzien=2&wyp=108",
+        "publisher": "Sejm RP",
+        "title": "Wypowiedzi na posiedzeniach Sejmu: Prezes Rady Ministrów Donald Tusk, posiedzenie nr 2 w dniu 17-01-2024",
+        "quote": "pan minister Horała powiedział, cytuję: Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać."
+      },
+      {
+        "url": "https://tvn24.pl/polska/marcin-horala-jezeli-ktos-cokolwiek-ukradl-niezgodnie-z-procedurami-to-oczywiscie-musi-oddac-donald-tusk-komentuje-st7426051",
+        "publisher": "TVN24",
+        "title": "Marcin Horała: jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami to oczywiście musi oddać. Donald Tusk komentuje",
+        "quote": "Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-tusk-rzecznik-izraela",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Berkowicz cytuje Tuska: „będę zawsze rzecznikiem interesów państwa Izrael”. Czy premier bezwarunkowo popiera Izrael?",
+    "main_claim": "Donald Tusk zadeklarował, że zawsze będzie rzecznikiem interesów Izraela, popierając w ten sposób działania Izraela w Gazie.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [],
+    "expected_behavior": "Cytat jest ucięty. Tusk mówił w Sierakowicach 22 września 2025 r. o wspieraniu Izraela w konfrontacji z terroryzmem, a w tej samej wypowiedzi nazwał to, co dzieje się w Gazie, absolutnie nie do zaakceptowania. Odpowiedź przywraca dalszą część wypowiedzi.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/donald-tusk-okresla-sie-rzecznikiem-interesow-izraela-to-niepelny-cytat/",
+        "publisher": "Demagog",
+        "title": "Donald Tusk określa się rzecznikiem interesów Izraela? To niepełny cytat",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-inflacja-grudzien-2022",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Rzecznik rządu pisze: inflacja w grudniu 2025 r. 2,4 proc., w grudniu 2022 r. 16,6 proc. Czyli to obecny rząd zbił inflację z 16,6 do 2,4 proc.?",
+    "main_claim": "Obecny rząd obniżył inflację z 16,6 proc. do 2,4 proc.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [],
+    "expected_behavior": "Obie liczby GUS są prawdziwe, ale porównanie jest wybiórcze: grudzień 2022 r. to jeden z najwyższych odczytów za poprzedniego rządu, a gdy obecny rząd zaczynał w grudniu 2023 r., inflacja wynosiła już 6,2 proc. Odpowiedź podaje punkt startowy z grudnia 2023 r. i przypomina, że inflacja spadała też w całej UE.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/inflacja-za-pis-i-obecnie-szlapka-manipuluje-danymi/",
+        "publisher": "Demagog",
+        "title": "Inflacja za PiS i obecnie. Szłapka manipuluje danymi",
+        "quote": "Manipulacja"
+      },
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/szybki-szacunek-wskaznika-cen-towarow-i-uslug-konsumpcyjnych-w-grudniu-2025-r-,21,38.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Szybki szacunek wskaźnika cen towarów i usług konsumpcyjnych w grudniu 2025 r.",
+        "quote": "wzrosły o 2,4% (wskaźnik cen 102,4)"
+      },
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/szybki-szacunek-wskaznika-cen-towarow-i-uslug-konsumpcyjnych-w-grudniu-2022-roku,21,8.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Szybki szacunek wskaźnika cen towarów i usług konsumpcyjnych w grudniu 2022 roku",
+        "quote": "wzrosły o 16,6% (wskaźnik cen 116,6)"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-zezwolenia-na-prace",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Nawrocki w debacie: w 2024 r. wydano cudzoziemcom o 3 tys. zezwoleń na pracę więcej niż w 2023 r., więc to rząd Tuska daje ich więcej niż PiS. Zgadza się?",
+    "main_claim": "Rząd Donalda Tuska wydaje cudzoziemcom więcej zezwoleń na pracę niż rządy PiS.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [],
+    "expected_behavior": "Wzrost z 2023 na 2024 r. był niewielki (o ok. 2,3 tys., 0,72 proc.), a w każdym roku 2018–2022 za rządów PiS wydano więcej zezwoleń niż w 2024 r. Odpowiedź pokazuje dłuższy okres porównania, a nie tylko ostatni rok poprzedniego rządu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/pozwolenia-na-prace-dla-cudzoziemcow-ktory-rzad-wydawal-ich-wiecej/",
+        "publisher": "Demagog",
+        "title": "Pozwolenia na pracę dla cudzoziemców. Który rząd wydawał ich więcej?",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-najlepszy-premier",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy to prawda, że Donald Tusk będzie najlepszym premierem w historii Polski?",
+    "main_claim": "Donald Tusk będzie najlepszym premierem w historii Polski.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "expected_behavior": "To opinia i prognoza zarazem, nie twierdzenie o faktach, więc nie da się jej potwierdzić ani obalić. Odpowiedź mówi to wprost, nie wydaje werdyktu prawda/fałsz i może zaproponować sprawdzenie konkretnych, mierzalnych twierdzeń o rządzie.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/metodologia/",
+        "publisher": "Demagog",
+        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
+        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-inflacja-spadnie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Ekonomista w telewizji mówi, że inflacja w Polsce na pewno spadnie w przyszłym roku. Prawda czy fałsz?",
+    "main_claim": "Inflacja w Polsce spadnie w przyszłym roku.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ],
+    "expected_behavior": "To prognoza o przyszłości, której dziś nie da się zweryfikować. Odpowiedź tak ją nazywa i nie wydaje werdyktu; może wskazać, że oficjalne projekcje, np. NBP, podają przedział niepewności, a nie pewny wynik.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/metodologia/",
+        "publisher": "Demagog",
+        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
+        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-ceny-mieszkan-2027",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Znajomy twierdzi, że w 2027 roku ceny mieszkań w Polsce spadną o połowę. Czy to prawda?",
+    "main_claim": "W 2027 r. ceny mieszkań w Polsce spadną o połowę.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ],
+    "expected_behavior": "To prognoza na przyszłość, więc nie można jej dziś potwierdzić ani nazwać fałszem, nawet jeśli wydaje się mało prawdopodobna. Odpowiedź mówi, że twierdzenie nie podlega weryfikacji, i nie przedstawia własnej prognozy jako faktu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/metodologia/",
+        "publisher": "Demagog",
+        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
+        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-cpk-najgorsza-inwestycja",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "text": "Polityk napisał, że Centralny Port Komunikacyjny to najgorsza inwestycja w historii Polski. Sprawdzisz to?",
+    "main_claim": "Centralny Port Komunikacyjny to najgorsza inwestycja w historii Polski.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "expected_behavior": "To ocena wartościująca, nie twierdzenie o faktach: „najgorsza” zależy od przyjętych kryteriów. Odpowiedź wyjaśnia, że nie wydaje werdyktu w sprawie opinii, i może zaproponować sprawdzenie konkretnych faktów, np. kosztów lub harmonogramu.",
+    "sources": [],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-najpiekniejsze-miasto",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "mcp",
+    "text": "Czy Wrocław jest najpiękniejszym miastem w Polsce?",
+    "main_claim": "Wrocław jest najpiękniejszym miastem w Polsce.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "expected_behavior": "To kwestia gustu, a nie fakt, więc nie podlega weryfikacji. Odpowiedź mówi to krótko i nie przypisuje opinii werdyktu prawda ani fałsz.",
+    "sources": [],
+    "checked_at": "2026-11-22"
   }
 ]
