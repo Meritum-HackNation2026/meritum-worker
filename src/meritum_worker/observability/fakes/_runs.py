@@ -42,38 +42,48 @@ class InMemoryEvalRuns:
 
 
 class InMemoryCaseSets:
-    """EvalCaseSets over a golden set and named files held in memory.
+    """EvalCaseSets over a golden set and datasets held in memory by blob id.
 
     Args:
         golden: the golden set.
-        files: uploaded case files by name.
+        datasets: uploaded case sets by blob id.
 
     Features:
-        US-OBS-06, US-POW-05, F-28
+        US-OBS-06, US-POW-05, F-28, ADR-31
     """
 
     def __init__(
-        self, golden: GoldenSet, files: Mapping[str, GoldenSet] | None = None
+        self, golden: GoldenSet, datasets: Mapping[str, GoldenSet] | None = None
     ) -> None:
         self._golden = golden
-        self._files: dict[str, GoldenSet] = dict(files or {})
+        self._datasets: dict[str, GoldenSet] = dict(datasets or {})
 
-    async def load(self, case_set: EvalCaseSet, case_file: str | None) -> GoldenSet:
-        """Give the golden set or the named file.
+    async def load(
+        self,
+        case_set: EvalCaseSet,
+        case_file: str | None,
+        *,
+        dataset_blob_id: str | None = None,
+    ) -> GoldenSet:
+        """Give the golden set or the dataset named by blob id.
 
         Args:
             case_set: the golden set or a user file.
-            case_file: the file's name; ignored for the golden set.
+            case_file: the file's name; ignored except in error messages.
+            dataset_blob_id: the blob id from ``EvalRunInput``.
 
         Returns:
             The cases.
 
         Raises:
-            LookupError: no file has that name.
+            LookupError: no dataset is named.
         """
         if case_set == "golden":
             return self._golden
-        cases = self._files.get(case_file or "")
+        if dataset_blob_id is None:
+            msg = "a user file run names the dataset blob"
+            raise LookupError(msg)
+        cases = self._datasets.get(dataset_blob_id)
         if cases is None:
             msg = f"no case file {case_file!r}"
             raise LookupError(msg)

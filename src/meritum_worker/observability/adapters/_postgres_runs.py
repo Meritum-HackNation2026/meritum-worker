@@ -1,7 +1,4 @@
-"""EvalRunRepository over one ``eval_runs`` table of the app schema.
-
-shortcut: the table is created here on first use, as one JSONB document per run;
-move it to a meritum-core app migration once the backend lists runs in SQL.
+"""EvalRunRepository over the ``eval_runs`` table from migration 0005 (core#124).
 
 Features:
     US-OBS-06, F-28, ADR-04
@@ -11,10 +8,7 @@ from meritum_core.checks.contracts import EvalRun
 from psycopg import AsyncConnection
 from psycopg.types.json import Jsonb
 
-from meritum_worker.observability.constants import (
-    CREATE_EVAL_RUNS_SQL,
-    UPSERT_EVAL_RUN_SQL,
-)
+from meritum_worker.observability.constants import UPSERT_EVAL_RUN_SQL
 
 
 class PostgresEvalRuns:
@@ -38,7 +32,6 @@ class PostgresEvalRuns:
             run: the run in its current state.
         """
         async with await AsyncConnection.connect(self._conninfo) as conn:
-            await conn.execute(CREATE_EVAL_RUNS_SQL)
             await conn.execute(
                 UPSERT_EVAL_RUN_SQL,
                 (
@@ -59,7 +52,6 @@ class PostgresEvalRuns:
             The run, or None.
         """
         async with await AsyncConnection.connect(self._conninfo) as conn:
-            await conn.execute(CREATE_EVAL_RUNS_SQL)
             cursor = await conn.execute(
                 "SELECT run FROM eval_runs WHERE id = %s", (run_id,)
             )

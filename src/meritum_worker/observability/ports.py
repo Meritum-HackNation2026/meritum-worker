@@ -45,18 +45,26 @@ class EvalCaseSets(Protocol):
         US-OBS-06, US-POW-05, F-28, ADR-28
     """
 
-    async def load(self, case_set: EvalCaseSet, case_file: str | None) -> GoldenSet:
+    async def load(
+        self,
+        case_set: EvalCaseSet,
+        case_file: str | None,
+        *,
+        dataset_blob_id: str | None = None,
+    ) -> GoldenSet:
         """Read and validate the cases of a run.
 
         Args:
             case_set: the golden set or a user file.
             case_file: the uploaded file's name; None for the golden set.
+            dataset_blob_id: the blob id from ``EvalRunInput``; only a user file
+                run has one.
 
         Returns:
             The validated cases.
 
         Raises:
-            LookupError: no file has that name.
-            ValueError: the file is not a valid case file.
+            LookupError: the dataset blob is missing or unnamed.
+            ValueError: the blob bytes are not a valid case file.
         """
         ...

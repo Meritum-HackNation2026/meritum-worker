@@ -356,15 +356,11 @@ async def case_answers_workflow(_scheduled_at: datetime, _context: object) -> No
 
 def _eval_run_deps(corpus_version: str) -> observability.EvalRunDeps:
     root = Path.cwd()
-    uploads = os.environ.get(
-        observability.EVAL_FILES_DIR_VAR, observability.DEFAULT_EVAL_FILES_DIR
-    )
     return observability.build_eval_run_deps(
         LlmSettings(),
         DatabaseSettings(),
         corpus_version,
         root / observability.DEFAULT_CASES_FILE,
-        root / uploads,
     )
 
 
@@ -386,14 +382,19 @@ async def eval_run_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     Features:
         US-OBS-06, US-POW-05, F-28, ADR-03
     """
-    deps = _eval_run_deps(EVAL_RUN.input.model_validate(payload).corpus_version)
+    job = EVAL_RUN.input.model_validate(payload)
+    deps = _eval_run_deps(job.corpus_version)
 
     async def start() -> str:
         return (await observability.start_eval_run(payload, deps)).model_dump_json()
 
     async def evaluate(running: str) -> str:
         run = EvalRun.model_validate_json(running)
-        return (await observability.evaluate_eval_run(run, deps)).model_dump_json()
+        return (
+            await observability.evaluate_eval_run(
+                run, deps, dataset_blob_id=job.dataset_blob_id
+            )
+        ).model_dump_json()
 
     async def finish(done: str) -> dict[str, Any]:
         run = EvalRun.model_validate_json(done)

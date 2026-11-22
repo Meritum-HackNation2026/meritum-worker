@@ -87,7 +87,12 @@ async def start_eval_run(payload: Mapping[str, object], deps: EvalRunDeps) -> Ev
     return run
 
 
-async def evaluate_eval_run(run: EvalRun, deps: EvalRunDeps) -> EvalRun:
+async def evaluate_eval_run(
+    run: EvalRun,
+    deps: EvalRunDeps,
+    *,
+    dataset_blob_id: str | None = None,
+) -> EvalRun:
     """Check every case and return the run as done, or failed when it cannot start.
 
     A case whose check fails stays in the metrics as a technical failure; only a
@@ -96,6 +101,7 @@ async def evaluate_eval_run(run: EvalRun, deps: EvalRunDeps) -> EvalRun:
     Args:
         run: the running run.
         deps: the ports.
+        dataset_blob_id: the blob id from ``EvalRunInput`` for a user file run.
 
     Returns:
         The finished run; nothing is stored yet.
@@ -104,7 +110,11 @@ async def evaluate_eval_run(run: EvalRun, deps: EvalRunDeps) -> EvalRun:
         US-OBS-06, F-28, ADR-28
     """
     try:
-        cases = await deps.case_sets.load(run.case_set, run.case_file)
+        cases = await deps.case_sets.load(
+            run.case_set,
+            run.case_file,
+            dataset_blob_id=dataset_blob_id,
+        )
     except LookupError, ValueError, OSError:
         return run.model_copy(update={"status": "failed", "finished_at": deps.clock()})
     runs = await run_eval(cases, deps.deps_for, deps.max_concurrency)
@@ -159,8 +169,10 @@ async def run_eval_run(
     Features:
         US-OBS-06, US-POW-05, F-28, ADR-28
     """
+    job = EvalRunInput.model_validate(payload)
     running = await start_eval_run(payload, deps)
-    return await finish_eval_run(await evaluate_eval_run(running, deps), deps)
+    done = await evaluate_eval_run(running, deps, dataset_blob_id=job.dataset_blob_id)
+    return await finish_eval_run(done, deps)
 
 
 def _done(
