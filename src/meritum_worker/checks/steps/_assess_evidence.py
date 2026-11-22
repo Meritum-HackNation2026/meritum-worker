@@ -24,19 +24,19 @@ type Pair = tuple[int, ExtractedClaim, SourceDocument]
 async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
     """Ask the model for the stance of every source on every fact, separately.
 
-    Each fact's date is fixed first with ``resolve_claim_date`` (core#41).
-    Each call sees one fact, its date and one source with the database's
-    metadata; never the question or another source. The sources are the
-    evidence found so far and the fact's reranked corpus passages, as
-    documents with link and domain from the corpus and publisher from the
-    catalogue (worker#162).
+    Each fact keeps the date extract_claims gave it: a step must not rewrite
+    claims, or the workflow cannot merge its state. Each call sees one fact,
+    its date and one source with the database's metadata; never the question
+    or another source. The sources are the evidence found so far and the
+    fact's reranked corpus passages, as documents with link and domain from
+    the corpus and publisher from the catalogue (worker#162).
 
     Args:
         state: the check so far; a state that already has a result passes on.
         deps: the ports; the model is called and the catalogue read.
 
     Returns:
-        The state with the dated claims, the passages' documents added to the
+        The state with the passages' documents added to the
         evidence, the proposed citations and the calls' usage.
 
     A model failure propagates; the workflow maps it to technical_failure.
@@ -46,9 +46,7 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
     """
     if state.result is not None:
         return state
-    today = state.job.received_at.date()
-    claims = [_claim_date(claim, state, today) for claim in state.claims]
-    facts = [claim for claim in claims if claim.is_fact]
+    facts = [claim for claim in state.claims if claim.is_fact]
     found = await _corpus_documents(state, deps)
     # extract_claims dated every fact; an undated one has no age to judge by.
     pairs = [
@@ -67,7 +65,6 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
     added = {d.source.id: d for documents in found.values() for d in documents}
     return state.model_copy(
         update={
-            "claims": claims,
             "evidence": [*state.evidence, *added.values()],
             "same_claim_reviews": [*state.same_claim_reviews, *same],
             "assessed": [*state.assessed, *assessed],
@@ -164,17 +161,3 @@ def _partial_notes(
         if missing
     }
     return [plain_text(note, LIMITATION_MAX_CHARS) for note in sorted(notes)]
-
-
-def _claim_date(
-    claim: ExtractedClaim, state: CheckState, today: date
-) -> ExtractedClaim:
-    if not claim.is_fact:
-        return claim
-    text_date = claim.claim_date if claim.claim_date_source == "text" else None
-    resolved, source = evidence.resolve_check_claim_date(
-        text_date, state.published_at, today=today
-    )
-    return claim.model_copy(
-        update={"claim_date": resolved, "claim_date_source": source}
-    )

@@ -1,6 +1,7 @@
 import asyncio
 import dataclasses
 from collections.abc import Callable
+from datetime import date
 from typing import Any, get_args
 
 import pytest
@@ -210,3 +211,31 @@ def test_check_input_from_a_newer_backend_runs(
     }
     output, _ = _run(newer, make_deps())
     assert output.result.check_id == "check-1"
+
+
+def test_claim_keeps_the_date_read_from_an_image_through_every_stage(
+    monkeypatch: pytest.MonkeyPatch,
+    payload: Payload,
+    make_deps: Callable[..., CheckDeps],
+) -> None:
+    # Dev check 01a20296: a date the model read from an image, with no page date,
+    # was re-dated to today in assess_evidence and its merge failed.
+    extract = steps.extract_claims
+
+    async def extract_claims(state: CheckState, deps: CheckDeps) -> CheckState:
+        state = await extract(state, deps)
+        dated = [
+            claim.model_copy(
+                update={
+                    "claim_date": date(2024, 9, 15),
+                    "claim_date_source": "input_published_at",
+                }
+            )
+            for claim in state.claims
+        ]
+        return state.model_copy(update={"claims": dated})
+
+    monkeypatch.setattr(steps, "extract_claims", extract_claims)
+    output, _ = _run(payload, make_deps())
+    (claim,) = output.result.claims
+    assert claim.claim_date == date(2024, 9, 15)
