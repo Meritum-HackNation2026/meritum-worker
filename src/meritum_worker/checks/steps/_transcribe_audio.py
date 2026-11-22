@@ -4,6 +4,8 @@ Features:
     US-SPR-11, F-08, ADR-30
 """
 
+from datetime import UTC, datetime
+
 from meritum_core.checks.transcription import (
     AudioTooLongError,
     UnsupportedAudioError,
@@ -14,16 +16,22 @@ from meritum_core.shared.blobs import BlobNotFoundError
 
 from meritum_worker.checks.constants import (
     AUDIO_TOO_LONG_MESSAGE,
+    CHECK_LINK,
+    LONG_AUDIO_SECONDS,
     MAX_TRANSCRIPT_CHARS,
     TRANSCRIBE_AUDIO_STEP,
     TRANSCRIPTION_FAILED_CODE,
     UNSUPPORTED_AUDIO_FORMAT_MESSAGE,
 )
 from meritum_worker.checks.models import CheckDeps, CheckState
+from meritum_worker.checks.notifications import save_notification
 
 
 async def transcribe_audio(state: CheckState, deps: CheckDeps) -> CheckState:
     """Transcribe ``audio_id`` through the core port; pasted text or no audio skips it.
+
+    A recording over LONG_AUDIO_SECONDS gets a check_progress notification:
+    saved before the batch transcription starts, since the citizen may leave.
 
     The transcript is masked like the input and cut to the length of a pasted
     text. An unsupported or too long recording ends as out_of_scope with what to
@@ -40,7 +48,7 @@ async def transcribe_audio(state: CheckState, deps: CheckDeps) -> CheckState:
         result that is not a verdict, or with the step marked skipped.
 
     Features:
-        US-SPR-11, F-08, ADR-30
+        US-SPR-11, US-POW-01, F-08, ADR-30
     """
     audio_id = state.job.request.audio_id
     if audio_id is None or state.has_text:
@@ -49,6 +57,8 @@ async def transcribe_audio(state: CheckState, deps: CheckDeps) -> CheckState:
         )
     try:
         info = inspect_audio(await deps.blobs.get(audio_id))
+        if info.duration_seconds > LONG_AUDIO_SECONDS:
+            await _notify_progress(state, deps)
         transcript = await deps.transcriber.transcribe(audio_id)
     except AudioTooLongError:
         result = state.with_message("out_of_scope", AUDIO_TOO_LONG_MESSAGE)
@@ -66,4 +76,19 @@ async def transcribe_audio(state: CheckState, deps: CheckDeps) -> CheckState:
             "transcript": masked.text[:MAX_TRANSCRIPT_CHARS],
             "audio_seconds": info.duration_seconds,
         }
+    )
+
+
+async def _notify_progress(state: CheckState, deps: CheckDeps) -> None:
+    job = state.job
+    await save_notification(
+        deps.notifications,
+        key=f"{state.check_id}:check_progress",
+        kind="check_progress",
+        link=CHECK_LINK.format(check_id=state.check_id),
+        now=datetime.now(UTC),
+        check_id=state.check_id,
+        # Exactly one recipient: the account when signed in, else the session.
+        user_id=job.user_id,
+        session_id=job.session_id if job.user_id is None else None,
     )
