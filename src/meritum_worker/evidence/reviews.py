@@ -10,19 +10,19 @@ from datetime import date
 from meritum_core.checks.contracts import ClaimReviewContext, ClaimReviewPremise
 from meritum_core.shared.llm import LlmPort, LlmUsage, Prompt
 
-from meritum_worker.evidence.constants import REVIEW_MATCH_INSTRUCTIONS
+from meritum_worker.evidence.constants import NO_CLAIM_DATE, REVIEW_MATCH_INSTRUCTIONS
 from meritum_worker.evidence.models import ReviewMatch
 
 
 async def review_matches(
-    llm: LlmPort, claim: str, claim_date: date, claim_reviewed: str
+    llm: LlmPort, claim: str, claim_date: date | None, claim_reviewed: str
 ) -> tuple[bool, LlmUsage]:
     """Ask the model whether the claim a fact-checker rated is ours.
 
     Args:
         llm: the language model.
         claim: our claim as extracted.
-        claim_date: the date our claim refers to.
+        claim_date: the date our claim refers to; None when the text states none.
         claim_reviewed: the rated claim, as the API returned it (untrusted).
 
     Returns:
@@ -35,7 +35,11 @@ async def review_matches(
     """
     prompt = Prompt(
         instructions=REVIEW_MATCH_INSTRUCTIONS,
-        data=(claim, claim_date.isoformat(), claim_reviewed),
+        data=(
+            claim,
+            claim_date.isoformat() if claim_date else NO_CLAIM_DATE,
+            claim_reviewed,
+        ),
     )
     answer = await llm.complete(prompt, ReviewMatch)
     return answer.output.same_claim, answer.usage

@@ -17,6 +17,7 @@ from meritum_worker.checks.steps import (
 from meritum_worker.corpus import FactCheckUnavailableError, FakeFactCheck
 from meritum_worker.corpus.adapters import GoogleFactCheck
 from meritum_worker.evidence import ClaimExplanation, RecordedLlm, ReviewMatch
+from meritum_worker.evidence.constants import NO_CLAIM_DATE, REVIEW_MATCH_INSTRUCTIONS
 
 FIXTURES = Path(__file__).resolve().parents[2] / "features" / "fixtures"
 EXPLAINED = ClaimExplanation(
@@ -119,3 +120,20 @@ def test_no_key_fails_the_same_way() -> None:
         api=FakeFactCheck(failure=FactCheckUnavailableError("no_api_key")),
     )
     assert done.failed_steps == ["search_fact_checks"]
+
+
+def test_an_older_rating_matches_a_claim_that_states_no_date() -> None:
+    llm = RecordedLlm({}, ReviewMatch(same_claim=True))
+    ports: CheckDeps = dataclasses.replace(
+        deps(llm), catalog=load_catalog(), fact_check=_api("fact_check_demagog.json")
+    )
+    undated = state_with(CLAIM, [], claim_date_source="today")
+
+    async def go() -> CheckState:
+        return await assess_evidence(await search_fact_checks(undated, ports), ports)
+
+    asyncio.run(go())
+
+    [match] = [p for p in llm.prompts if p.instructions == REVIEW_MATCH_INSTRUCTIONS]
+    assert match.data[1] == NO_CLAIM_DATE
+    assert "even if it is older" in REVIEW_MATCH_INSTRUCTIONS

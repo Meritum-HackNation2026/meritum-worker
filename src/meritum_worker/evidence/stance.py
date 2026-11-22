@@ -10,12 +10,16 @@ from meritum_core.checks.contracts import Validity
 from meritum_core.evidence import CitationDraft, SourceDocument
 from meritum_core.shared.llm import LlmPort, LlmUsage, Prompt
 
-from meritum_worker.evidence.constants import STANCE_INSTRUCTIONS, UNKNOWN_DATE
+from meritum_worker.evidence.constants import (
+    NO_CLAIM_DATE,
+    STANCE_INSTRUCTIONS,
+    UNKNOWN_DATE,
+)
 from meritum_worker.evidence.models import StanceJudgement
 
 
 def stance_prompt(
-    claim: str, claim_date: date, document: SourceDocument, validity: Validity
+    claim: str, claim_date: date | None, document: SourceDocument, validity: Validity
 ) -> Prompt:
     """Build the stance prompt from the pair and the database's metadata only.
 
@@ -24,7 +28,8 @@ def stance_prompt(
 
     Args:
         claim: the claim as extracted.
-        claim_date: the date the claim refers to.
+        claim_date: the date the claim refers to; None when the text states
+            none, so the claim is about the present.
         document: the source with its database metadata and full text.
         validity: the validity of the source's catalogue entry.
 
@@ -39,7 +44,7 @@ def stance_prompt(
         instructions=STANCE_INSTRUCTIONS,
         data=(
             claim,
-            claim_date.isoformat(),
+            claim_date.isoformat() if claim_date else NO_CLAIM_DATE,
             published.isoformat() if published else UNKNOWN_DATE,
             validity,
             document.text,
@@ -50,7 +55,7 @@ def stance_prompt(
 async def assess_stance(
     llm: LlmPort,
     claim: str,
-    claim_date: date,
+    claim_date: date | None,
     document: SourceDocument,
     validity: Validity,
 ) -> tuple[CitationDraft | None, LlmUsage, str]:
@@ -59,7 +64,7 @@ async def assess_stance(
     Args:
         llm: the language model.
         claim: the claim as extracted.
-        claim_date: the date the claim refers to.
+        claim_date: the date the claim refers to; None when the text states none.
         document: the source with its database metadata and full text.
         validity: the validity of the source's catalogue entry.
 

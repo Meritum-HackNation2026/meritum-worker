@@ -3,6 +3,7 @@
 from datetime import UTC, date, datetime
 
 from meritum_core.checks import CheckRequest
+from meritum_core.checks.contracts import ClaimDateSource
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.evidence import SourceDocument
 from meritum_core.jobs.contracts import CheckInput
@@ -39,6 +40,7 @@ def state_with(
     evidence: list[SourceDocument],
     claim: str = CLAIM,
     claim_date: date = date(2026, 1, 1),
+    claim_date_source: ClaimDateSource = "text",
 ) -> CheckState:
     job = CheckInput(
         request=CheckRequest(channel="web", text=text),
@@ -50,6 +52,6 @@ def state_with(
         kind="fact",
         explanation="Twierdzenie o kwocie, które da się sprawdzić.",
         claim_date=claim_date,
-        claim_date_source="text",
+        claim_date_source=claim_date_source,
     )
     return CheckState(check_id="check-1", job=job, claims=[fact], evidence=evidence)
