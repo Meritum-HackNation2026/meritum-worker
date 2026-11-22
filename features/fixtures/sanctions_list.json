@@ -1,0 +1,18 @@
+{
+  "entities": [
+    {
+      "entity": "Przykładowa Agencja Informacyjna",
+      "domains": ["agencja-sankcyjna.example"],
+      "basis_url": "https://eur-lex.europa.eu/eli/reg/2022/350/oj",
+      "listed_on": "2022-03-02",
+      "delisted_on": null
+    },
+    {
+      "entity": "Dawny Podmiot Medialny",
+      "domains": ["dawny-podmiot.example"],
+      "basis_url": "https://eur-lex.europa.eu/eli/reg/2022/350/oj",
+      "listed_on": "2022-03-02",
+      "delisted_on": "2025-06-01"
+    }
+  ]
+}

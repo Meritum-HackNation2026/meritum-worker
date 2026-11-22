@@ -34,7 +34,15 @@ from meritum_core.shared.database.adapters import apply_migrations
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings, build_llm
 
-from meritum_worker import checks, corpus, jobs, moderation, observability, security
+from meritum_worker import (
+    checks,
+    corpus,
+    evidence,
+    jobs,
+    moderation,
+    observability,
+    security,
+)
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
 from meritum_worker.corpus.adapters import apply_corpus_migrations
 
@@ -171,6 +179,48 @@ def euvsdisinfo_sync_step() -> dict[str, Any]:
     if report.missing_env:
         DBOS.logger.warning("EUvsDisinfo sync skipped, missing %s", report.missing_env)
     return report.model_dump(mode="json")
+
+
+@DBOS.workflow(
+    name=evidence.SANCTIONS_WORKFLOW,
+    serialization_type=WorkflowSerializationFormat.PORTABLE,
+)
+def sanctions_refresh_workflow() -> int:
+    """Refresh the local EU sanctions list copy; started by hand or a schedule.
+
+    Returns:
+        How many entries the new copy holds; 0 and nothing written when
+        ``MERITUM_SANCTIONS_LIST_URL`` or ``MERITUM_SANCTIONS_LIST_PATH`` is unset.
+
+    Features:
+        US-ZRD-07, F-34
+    """
+    return sanctions_refresh_step()
+
+
+@DBOS.step(retries_allowed=True)
+def sanctions_refresh_step() -> int:
+    """Download the list and replace the copy; an invalid download writes nothing.
+
+    Returns:
+        How many entries the copy holds.
+
+    Features:
+        US-ZRD-07, F-34
+    """
+    url = os.environ.get("MERITUM_SANCTIONS_LIST_URL", "")
+    path = os.environ.get("MERITUM_SANCTIONS_LIST_PATH", "")
+    if not url or not path:
+        DBOS.logger.warning("sanctions refresh skipped: URL or PATH unset")
+        return 0
+
+    async def download() -> bytes:
+        async with httpx2.AsyncClient(follow_redirects=True) as http:
+            reply = await http.get(url)
+            reply.raise_for_status()
+            return reply.content
+
+    return asyncio.run(evidence.refresh_sanctions(download, Path(path)))
 
 
 @DBOS.workflow(

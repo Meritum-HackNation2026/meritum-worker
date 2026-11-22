@@ -42,3 +42,6 @@ FAKE_USAGE: Final = LlmUsage(
 
 FAKE_FETCHED_AT: Final = datetime(2026, 11, 1, tzinfo=UTC)
 """When the fake test documents were fetched."""
+
+SANCTIONS_WORKFLOW: Final = "refresh_sanctions_list"
+"""Name of the DBOS workflow that refreshes the local copy of the EU sanctions list."""

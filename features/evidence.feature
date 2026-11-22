@@ -36,3 +36,9 @@ Funkcja: Wymowa cytatów i werdykt z reguły core
     Gdy system ustala ważność dowodów
     Wtedy starszy dowód ma validity superseded i nie liczy się do siły ani rozbieżności
     Oraz werdykt to "false" z techniką outdated
+
+  Scenariusz: link do podmiotu z listy sankcji UE dostaje neutralne ostrzeżenie
+    Zakładając sprawdzany link prowadzi do domeny podmiotu z aktualnym wpisem na liście sankcji UE
+    Gdy system buduje wynik
+    Wtedy source_warning ma code "eu_sanctioned_entity", nazwę podmiotu i basis_url do wpisu
+    Oraz werdykt jest taki sam jak bez ostrzeżenia
