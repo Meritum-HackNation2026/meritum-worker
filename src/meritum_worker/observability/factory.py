@@ -104,11 +104,10 @@ def build_replay_deps(cassette: Cassette) -> DepsFor:
 
 
 def _base(settings: LlmSettings) -> CheckDeps:
-    # An evaluation opens no moderator cases: it reads no DBOS history either.
     deps = build_check_deps(
         settings, DatabaseSettings(provider=DatabaseProvider.MEMORY)
     )
-    return replace(deps, moderation=None)
+    return replace(deps, moderation=None)  # no moderator cases, no DBOS history
 
 
 def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckDeps:
