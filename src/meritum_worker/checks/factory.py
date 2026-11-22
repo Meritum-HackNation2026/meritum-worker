@@ -24,11 +24,14 @@ from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.settings import ResearchSettings
 from meritum_worker.corpus import (
+    CorpusLivePages,
     FactCheckPort,
     FactCheckProvider,
     FactCheckSettings,
     FakeFactCheck,
+    build_ingest_deps,
     build_reranker,
+    ingestion_enabled,
 )
 from meritum_worker.corpus.adapters import GoogleFactCheck
 from meritum_worker.moderation import build_moderation_deps
@@ -70,6 +73,7 @@ def build_check_deps(
     embeddings = build_embeddings(EmbeddingsSettings())
     catalog = load_catalog()
     search = WebSearchSettings()
+    injection = build_detector(llm, InjectionGateSettings())
     return CheckDeps(
         llm=llm,
         records=app.records,
@@ -79,7 +83,7 @@ def build_check_deps(
         transcriber=build_transcriber(TranscriptionSettings(), store),
         notifications=app.notifications,
         web_search=build_web_search(search, catalog),
-        injection=build_detector(llm, InjectionGateSettings()),
+        injection=injection,
         catalog=catalog,
         corpus=build_corpus_search(CorpusSettings(), embeddings),
         reranker=build_reranker(),
@@ -87,6 +91,12 @@ def build_check_deps(
         moderation=build_moderation_deps(app, embeddings, os.environ),
         web_search_provider=search.provider.value,
         fact_check=build_fact_check(FactCheckSettings()),
+        # Only where the role may write the shared corpus schema (infra/004).
+        live_pages=CorpusLivePages(
+            build_ingest_deps(CorpusSettings(), embeddings, injection), catalog
+        )
+        if ingestion_enabled(os.environ)
+        else None,
     )
 
 

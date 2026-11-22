@@ -15,6 +15,8 @@ async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
     Each fact is a Polish and an English query, masked before they leave. A page with an
     instruction is dropped: its ``source_dropped`` event goes to the record
     and its address to the limitations. A check with no fact skips the step.
+    Pages past quarantine also go to ``deps.live_pages``, when the worker has
+    one, for the next corpus snapshot (worker#90).
 
     Args:
         state: the check so far; a state that already has a result passes on.
@@ -45,6 +47,9 @@ async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
         catalog=deps.catalog,
     )
     found = await corpus.search_live(facts, ports)
+    if deps.live_pages is not None:
+        # The check answers on its own snapshot; these pages join the next one.
+        await deps.live_pages.enqueue(found.pages)
     return state.model_copy(
         update={
             "web_search_calls": state.web_search_calls + found.calls,

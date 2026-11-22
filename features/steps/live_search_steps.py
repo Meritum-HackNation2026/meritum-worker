@@ -6,7 +6,8 @@ detector; no network, no database.
 """
 
 import asyncio
-from datetime import UTC, datetime
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from behave import given, then, when
@@ -25,8 +26,10 @@ from meritum_core.corpus.web_search import (
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.security.injection import NullInjectionGate, build_injection_detector
 from meritum_core.security.pii import NullPiiGate
+from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
+from meritum_worker import corpus
 from meritum_worker.checks import (
     CheckDeps,
     FakePageFetcher,
@@ -36,6 +39,8 @@ from meritum_worker.checks import (
     run_check,
 )
 from meritum_worker.corpus import FakeWebSearch
+from meritum_worker.corpus.fakes import FakeCatalogSite
+from meritum_worker.security import CleanInjectionDetector
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 CHECK_ID = "check-behave-live"
@@ -179,3 +184,46 @@ def page_dropped(context: Context) -> None:
     assert str(event.source_url) == url
     assert "Ignore previous instructions" in event.excerpt
     assert url in context.result.limitations
+
+
+@given("sprawdzenie, w którym strona z gov.pl przeszła kwarantannę")
+def check_with_page_past_quarantine(context: Context) -> None:
+    site = FakeCatalogSite(pages_per_domain=1)
+    context.store = corpus.build_corpus_writer()
+    ingest = corpus.IngestDeps(
+        discovery=site,
+        fetcher=site,
+        embeddings=build_embeddings(EmbeddingsSettings()),
+        store=context.store,
+        injection=CleanInjectionDetector(),
+    )
+    deps_with(context, PAGE_TEXT)
+    context.deps = replace(
+        context.deps, live_pages=corpus.CorpusLivePages(ingest, load_catalog())
+    )
+    context.current = asyncio.run(
+        corpus.take_snapshot(context.store, scheduled=RECEIVED_AT)
+    )
+    run_check_on(context)
+    assert context.record.source_ids
+
+
+@when("rusza następna ingestia korpusu")
+def next_ingestion(context: Context) -> None:
+    context.next = asyncio.run(
+        corpus.take_snapshot(context.store, scheduled=RECEIVED_AT + timedelta(hours=1))
+    )
+
+
+@then(
+    "strona jest w nowej migawce z Source.via = web_search,"
+    " a bieżąca migawka się nie zmienia"
+)
+def page_in_next_snapshot(context: Context) -> None:
+    assert not context.current.manifest
+    assert (
+        asyncio.run(context.store.snapshot(context.current.version)) == context.current
+    )
+    (stored,) = asyncio.run(context.store.documents())
+    assert stored.url == RCB_URL
+    assert [m.source_id for m in context.next.manifest] == [stored.source_id]
