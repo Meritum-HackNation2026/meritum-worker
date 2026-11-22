@@ -223,3 +223,9 @@ def test_only_opinions_are_done_with_model_limitations_even_if_it_judged_them(
 def test_extraction_prompt_keeps_reasons_inside_the_claim() -> None:
     assert "reason given for a claim" in EXTRACTION_INSTRUCTIONS
     assert "rule or decision already made" in EXTRACTION_INSTRUCTIONS
+
+
+def test_extraction_prompt_turns_a_yes_no_question_into_its_claim() -> None:
+    # Benchmark worker#170: "Czy X?" ended needs_clarification with no claims.
+    assert "yes/no question" in EXTRACTION_INSTRUCTIONS
+    assert "Sejm ma 460 posłów" in EXTRACTION_INSTRUCTIONS
