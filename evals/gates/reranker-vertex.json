@@ -1,0 +1,13 @@
+{
+  "name": "reranker-vertex",
+  "gate": "reranker",
+  "runs_on": {
+    "provider": "vertex",
+    "model": "semantic-ranker-default",
+    "version": "semantic-ranker-default-004",
+    "region": "global",
+    "price_per_call_usd": 0.001
+  },
+  "with_reranker": "../reports/eval-reranker-vertex.json",
+  "without_reranker": "../reports/eval-reranker-none.json"
+}

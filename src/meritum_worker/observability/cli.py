@@ -20,6 +20,7 @@ from meritum_worker.observability.constants import (
     EVAL_NAME,
 )
 from meritum_worker.observability.factory import build_eval_deps
+from meritum_worker.observability.gates import GATES_COMMAND, gates_eval
 from meritum_worker.observability.runner import run_eval
 from meritum_worker.observability.scoring import score_runs
 
@@ -27,12 +28,18 @@ from meritum_worker.observability.scoring import score_runs
 def meritum_eval(argv: Sequence[str] | None = None) -> None:
     """Evaluate the model from ``MERITUM_LLM_*`` on a case file.
 
+    ``meritum-eval gates`` compares the gates before the LLM instead (ADR-35).
+
     Args:
         argv: Command-line arguments; ``sys.argv`` when None.
 
     Features:
         US-OBS-04, US-OBS-05, F-27, ADR-28
     """
+    argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == GATES_COMMAND:
+        gates_eval(argv[1:])
+        return
     parser = argparse.ArgumentParser(prog=EVAL_NAME)
     parser.add_argument("--cases", type=Path, default=Path(DEFAULT_CASES_FILE))
     parser.add_argument(

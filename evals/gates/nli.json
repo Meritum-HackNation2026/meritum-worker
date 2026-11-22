@@ -1,0 +1,12 @@
+{
+  "name": "nli-wymowa",
+  "gate": "nli",
+  "runs_on": {
+    "provider": "do wyboru",
+    "model": "wielojęzyczny model NLI",
+    "version": "do uzupełnienia przy przebiegu",
+    "region": "do uzupełnienia przy przebiegu",
+    "price_per_call_usd": 0
+  },
+  "calls": "../reports/nli-calls.json"
+}
