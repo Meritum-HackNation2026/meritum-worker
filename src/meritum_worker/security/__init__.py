@@ -21,6 +21,7 @@ from meritum_worker.security.factory import (
     build_retention_deps,
 )
 from meritum_worker.security.fakes import CleanInjectionDetector, InMemoryWorkflowStore
+from meritum_worker.security.guard import ScreenedLlm
 from meritum_worker.security.models import (
     RetentionDeps,
     RetentionReport,
@@ -48,6 +49,7 @@ __all__ = [
     "RemovedCaseChecks",
     "RetentionDeps",
     "RetentionReport",
+    "ScreenedLlm",
     "StoredWorkflow",
     "WorkflowStore",
     "about_checks",

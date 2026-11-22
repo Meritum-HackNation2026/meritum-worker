@@ -6,11 +6,13 @@ Features:
 """
 
 import asyncio
+from dataclasses import replace
 from typing import Protocol
 
 from meritum_core.checks import AnalysisStatus, AnalysisStep, CheckResult
 from meritum_core.jobs.contracts import CHECK, CONTRACT_VERSION, CheckOutput
 
+from meritum_worker import security
 from meritum_worker.checks import steps
 from meritum_worker.checks.constants import STEP_TIMEOUTS
 from meritum_worker.checks.errors import provider_failure
@@ -111,12 +113,15 @@ async def run_check(
             parallel steps changed one field (a pipeline bug).
 
     Features:
-        US-SPR-01, US-SPR-02, US-OBS-01, US-KOR-04, F-13, F-22, ADR-03
+        US-SPR-01, US-SPR-02, US-OBS-01, US-KOR-04, US-BEZ-01, F-13, F-19, F-22,
+        ADR-03
     """
     job = CHECK.input.model_validate(payload)
     if job.contract_version != CONTRACT_VERSION:
         msg = f"unsupported contract_version {job.contract_version}"
         raise ValueError(msg)
+    # The one path to the model: every prompt passes the detector (US-BEZ-01).
+    deps = replace(deps, llm=security.ScreenedLlm(deps.llm, deps.injection))
     state = CheckState(check_id=check_id, job=job)
     stages = pipeline()
     progress = {code: _step(code, "pending") for stage in stages for code, _ in stage}

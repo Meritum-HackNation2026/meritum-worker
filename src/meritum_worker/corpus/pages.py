@@ -18,6 +18,7 @@ from meritum_worker.corpus.constants import (
     EMBED_BATCH,
     EMPTY_TEXT,
     ENTRY_NOT_INGESTIBLE,
+    INJECTION_FOUND,
     PASSAGE_CHECKSUM_CHARS,
     SOURCE_ID_HASH_CHARS,
     SOURCE_ID_PREFIX,
@@ -49,16 +50,17 @@ async def store_page(
     Args:
         page: The fetched page.
         entry: The page's catalogue entry (publisher, licence).
-        deps: The ports; only ``embeddings`` and ``store`` are used.
+        deps: The ports; ``injection``, ``embeddings`` and ``store`` are used.
         now: The page's ``fetched_at``.
         url: The URL it was fetched from; ``page.url`` when None.
 
     Returns:
         One added, updated or unchanged document, or one failure; a page of an
-        excluded or TDM-reserved entry is always a failure.
+        excluded or TDM-reserved entry, or one carrying an instruction for the
+        model, is always a failure.
 
     Features:
-        US-KOR-02, US-KOR-05, F-10, F-12, ADR-21
+        US-KOR-02, US-KOR-05, US-BEZ-01, F-10, F-12, F-19, ADR-21
     """
     url = url or page.url
     text = page.untrusted_text.strip()
@@ -68,6 +70,8 @@ async def store_page(
         return failed_page(entry, url, TDM_RESERVED)
     if not text:
         return failed_page(entry, url, EMPTY_TEXT)
+    if (await deps.injection.scan(text)).detected:
+        return failed_page(entry, url, INJECTION_FOUND)
     document = _document(entry, url, text, now)
     previous = await deps.store.document(document.source_id)
     if previous is not None and previous.checksum == document.checksum:

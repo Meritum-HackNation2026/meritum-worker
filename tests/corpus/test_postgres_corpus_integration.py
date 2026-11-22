@@ -20,6 +20,7 @@ from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_worker import corpus
 from meritum_worker.corpus.adapters import apply_corpus_migrations
 from meritum_worker.corpus.fakes import FakeCatalogSite
+from meritum_worker.security import CleanInjectionDetector
 
 NOW = datetime(2026, 11, 20, 9, 30, tzinfo=UTC)
 ANY_ROW = (
@@ -71,7 +72,11 @@ def test_new_snapshot_adds_documents_and_the_old_one_replays(
     store = corpus.build_corpus_writer(settings)
     site = FakeCatalogSite(pages_per_domain=3)
     deps = corpus.IngestDeps(
-        discovery=site, fetcher=site, embeddings=embeddings, store=store
+        discovery=site,
+        fetcher=site,
+        embeddings=embeddings,
+        store=store,
+        injection=CleanInjectionDetector(),
     )
     search = build_corpus_search(settings, embeddings)
     query = "komunikat urzędowy"
@@ -129,6 +134,7 @@ def test_documents_keep_catalog_metadata_and_full_text(
         fetcher=site,
         embeddings=build_embeddings(EmbeddingsSettings()),
         store=store,
+        injection=CleanInjectionDetector(),
     )
     report = asyncio.run(corpus.ingest_catalog([ENTRY], deps, now=NOW))
     assert report == corpus.IngestReport(added=2)

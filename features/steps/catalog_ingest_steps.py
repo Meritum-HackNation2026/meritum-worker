@@ -11,6 +11,7 @@ from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 
 from meritum_worker import corpus
 from meritum_worker.corpus.fakes import FakeCatalogSite
+from meritum_worker.security import CleanInjectionDetector
 
 PAGES_PER_DOMAIN = 8
 NOW = datetime(2026, 11, 20, 9, 30, tzinfo=UTC)
@@ -42,6 +43,7 @@ def start(context: Context, entries: list[CatalogEntry]) -> None:
         fetcher=context.site,
         embeddings=build_embeddings(EmbeddingsSettings()),
         store=context.store,
+        injection=CleanInjectionDetector(),
     )
 
 

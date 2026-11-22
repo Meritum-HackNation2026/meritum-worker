@@ -13,6 +13,7 @@ from typing import Protocol, runtime_checkable
 
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus.fetching import PageFetcherPort
+from meritum_core.security.injection import InjectionDetectorPort
 from meritum_core.shared.embeddings import EmbeddingsPort
 
 from meritum_worker.corpus.documents import (
@@ -226,12 +227,14 @@ class IngestDeps:
         fetcher: The SSRF-safe fetcher from core; honours robots.txt and Content-Signal.
         embeddings: Multilingual embeddings for passages.
         store: The corpus writer.
+        injection: The detector every page is scanned with before it is stored.
 
     Features:
-        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+        US-KOR-02, US-KOR-05, US-BEZ-01, F-10, F-12, F-19, ADR-32
     """
 
     discovery: DocumentDiscoveryPort
     fetcher: PageFetcherPort
     embeddings: EmbeddingsPort
     store: CorpusWriterPort
+    injection: InjectionDetectorPort

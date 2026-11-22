@@ -16,6 +16,7 @@ from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 
 from meritum_worker import corpus, main
 from meritum_worker.corpus.fakes import FakeCatalogSite
+from meritum_worker.security import CleanInjectionDetector
 
 SCHEDULED = datetime(2026, 11, 20, 10, 0, tzinfo=UTC)
 ENTRY = CatalogEntry(
@@ -67,6 +68,7 @@ def test_ingest_workflow_stores_the_pages_of_each_due_entry(
         fetcher=site,
         embeddings=build_embeddings(EmbeddingsSettings()),
         store=corpus.build_corpus_writer(),
+        injection=CleanInjectionDetector(),
     )
     catalog = (
         ENTRY,
