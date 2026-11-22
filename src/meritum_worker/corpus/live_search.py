@@ -124,13 +124,41 @@ async def search_live(
     async with asyncio.timeout_at(deadline):
         slots = asyncio.Semaphore(MAX_PARALLEL_CLAIMS)
         found = await asyncio.gather(*(_ask(query, ports, slots) for query in asked))
-    urls = dict.fromkeys(c.url for candidates in found for c in candidates)
+    urls = [c.url for candidates in found for c in candidates]
+    return await _admitted(urls, ports, deadline, calls=len(asked))
+
+
+async def admit_pages(urls: Sequence[str], ports: LiveSearchPorts) -> LiveSearchResult:
+    """Fetch and scan fact-check articles the catalogue allows, like search results.
+
+    An address outside the catalogue or on an excluded domain (Demagog, AFP
+    Sprawdzam) is never fetched; the rest follows ``search_live``: the
+    SSRF-safe fetcher, robots.txt, Content-Signal, quarantine, one deadline
+    of ``WEB_SEARCH_TIMEOUT``.
+
+    Args:
+        urls: Links of fact-checks the rating pointed to.
+        ports: The fetcher, detector and catalogue.
+
+    Returns:
+        The pages that passed quarantine and the dropped ones; ``calls`` is 0.
+
+    Features:
+        US-KOR-01, US-KOR-04, F-13, F-14, ADR-07, ADR-12, ADR-34
+    """
+    deadline = asyncio.get_running_loop().time() + WEB_SEARCH_TIMEOUT.total_seconds()
+    return await _admitted(urls, ports, deadline, calls=0)
+
+
+async def _admitted(
+    urls: Sequence[str], ports: LiveSearchPorts, deadline: float, *, calls: int
+) -> LiveSearchResult:
     quarantine = _Quarantine(ports, deadline)
-    scanned = await asyncio.gather(*map(quarantine.admit, urls))
+    scanned = await asyncio.gather(*map(quarantine.admit, dict.fromkeys(urls)))
     # Two results may redirect to one page: it is one document, kept once.
     documents = {s.source.id: s for s in scanned if isinstance(s, SourceDocument)}
     return LiveSearchResult(
-        calls=len(asked),
+        calls=calls,
         documents=list(documents.values()),
         dropped=[s for s in scanned if isinstance(s, InjectionEvent)],
     )

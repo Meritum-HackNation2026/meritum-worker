@@ -7,11 +7,11 @@ Features:
 import asyncio
 from datetime import date
 
-from meritum_core.checks.contracts import Validity
-from meritum_core.evidence import CitationDraft, SourceDocument
+from meritum_core.checks.contracts import ClaimReviewPremise, Validity
+from meritum_core.evidence import CitationDraft, SourceDocument, rate_review
 from meritum_core.shared.llm import LlmUsage
 
-from meritum_worker import evidence
+from meritum_worker import corpus, evidence
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
 from meritum_worker.checks.usage import model_usage
 
@@ -58,12 +58,31 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
         if draft is not None
     ]
     usages = [model_usage(usage) for _, usage in answers]
+    compared = await asyncio.gather(
+        *(_compared(deps, facts, f) for f in state.fact_checks)
+    )
+    usages += [model_usage(usage) for _, usage in compared if usage is not None]
+    same = [i for i, (same, _) in enumerate(compared) if same]
     return state.model_copy(
         update={
             "claims": claims,
+            "same_claim_reviews": [*state.same_claim_reviews, *same],
             "assessed": [*state.assessed, *assessed],
             "models": [*state.models, *usages],
         }
+    )
+
+
+async def _compared(
+    deps: CheckDeps, facts: list[ExtractedClaim], finding: corpus.ClaimReviewFinding
+) -> tuple[bool, LlmUsage | None]:
+    # Only a rating that could be a premise needs the comparison; the rest is context.
+    rated = rate_review(finding.found, cache_control=finding.cache_control)
+    fact = facts[finding.fact] if finding.fact < len(facts) else None
+    if not isinstance(rated.evidence, ClaimReviewPremise) or fact is None:
+        return False, None
+    return await evidence.review_matches(
+        deps.llm, fact.claim, fact.claim_date or date.min, finding.claim_reviewed
     )
 
 

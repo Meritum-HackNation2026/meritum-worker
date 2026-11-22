@@ -6,6 +6,7 @@ Features:
 
 import os
 
+from httpx2 import AsyncClient
 from meritum_core.checks.transcription import TranscriptionSettings, build_transcriber
 from meritum_core.corpus import CorpusSettings, build_corpus_search
 from meritum_core.corpus.catalog import load_catalog
@@ -22,7 +23,14 @@ from meritum_worker.checks.adapters import DbosCheckRuntime
 from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.settings import ResearchSettings
-from meritum_worker.corpus import build_reranker
+from meritum_worker.corpus import (
+    FactCheckPort,
+    FactCheckProvider,
+    FactCheckSettings,
+    FakeFactCheck,
+    build_reranker,
+)
+from meritum_worker.corpus.adapters import GoogleFactCheck
 from meritum_worker.moderation import build_moderation_deps
 from meritum_worker.security import InjectionGateSettings, build_detector
 
@@ -35,7 +43,8 @@ def build_check_deps(
     """Build the model, repositories, fetcher, masking, transcription and web search.
 
     Web search reads ``MERITUM_WEB_SEARCH_*`` (stub by default); the injection
-    detector reads ``MERITUM_INJECTION_GATE_*``.
+    detector reads ``MERITUM_INJECTION_GATE_*``; fact-check search
+    ``MERITUM_FACT_CHECK_*`` (stub by default).
 
     Args:
         settings: LLM settings, usually ``LlmSettings()`` from ``MERITUM_LLM_*``.
@@ -77,6 +86,7 @@ def build_check_deps(
         corpus_version=ResearchSettings().corpus_version,
         moderation=build_moderation_deps(app, embeddings, os.environ),
         web_search_provider=search.provider.value,
+        fact_check=build_fact_check(FactCheckSettings()),
     )
 
 
@@ -90,3 +100,23 @@ def build_check_runtime() -> CheckRuntime:
         US-SPR-01, F-22, ADR-03
     """
     return DbosCheckRuntime()
+
+
+def build_fact_check(
+    settings: FactCheckSettings, http_client: AsyncClient | None = None
+) -> FactCheckPort:
+    """Build the search named by ``MERITUM_FACT_CHECK_PROVIDER``.
+
+    Args:
+        settings: Usually ``FactCheckSettings()``, from the environment.
+        http_client: HTTP client (a recorded API in tests); None: the adapter's own.
+
+    Returns:
+        The Google API, or the default stub that finds no review.
+
+    Features:
+        US-KOR-01, F-14, ADR-24, ADR-34
+    """
+    if settings.provider is FactCheckProvider.GOOGLE:
+        return GoogleFactCheck(settings.api_key.get_secret_value(), http_client)
+    return FakeFactCheck()

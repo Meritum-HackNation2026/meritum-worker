@@ -12,9 +12,11 @@ from meritum_worker.evidence.models import (
     AssessedCitation,
     ClaimExplanation,
     Judgement,
+    ReviewMatch,
     StanceJudgement,
     VerifiedCitation,
 )
+from meritum_worker.evidence.reviews import review_matches, split_reviews
 from meritum_worker.evidence.stance import assess_stance, stance_prompt
 from meritum_worker.evidence.verdict import (
     judge,
@@ -28,12 +30,15 @@ __all__ = [
     "ClaimExplanation",
     "Judgement",
     "RecordedLlm",
+    "ReviewMatch",
     "StanceJudgement",
     "VerifiedCitation",
     "assess_stance",
     "document",
     "judge",
     "resolve_check_claim_date",
+    "review_matches",
+    "split_reviews",
     "stance_prompt",
     "with_validity",
 ]

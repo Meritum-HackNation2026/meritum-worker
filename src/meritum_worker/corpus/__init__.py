@@ -33,7 +33,17 @@ from meritum_worker.corpus.documents import (
     IngestReport,
     ManifestEntry,
 )
-from meritum_worker.corpus.errors import EuvsDisinfoUnavailableError, MissingTokenError
+from meritum_worker.corpus.errors import (
+    EuvsDisinfoUnavailableError,
+    FactCheckUnavailableError,
+    MissingTokenError,
+)
+from meritum_worker.corpus.fact_check_ports import FactCheckPort
+from meritum_worker.corpus.fact_checks import (
+    ClaimReviewFinding,
+    FactCheckSearch,
+    search_fact_checks,
+)
 from meritum_worker.corpus.factory import (
     build_corpus_retention,
     build_corpus_writer,
@@ -45,7 +55,7 @@ from meritum_worker.corpus.factory import (
     build_reranker,
     run_euvsdisinfo_sync,
 )
-from meritum_worker.corpus.fakes import FakeWebSearch
+from meritum_worker.corpus.fakes import FakeFactCheck, FakeWebSearch
 from meritum_worker.corpus.ingest import (
     due_entries,
     ingest_catalog,
@@ -59,12 +69,15 @@ from meritum_worker.corpus.language import detect_language
 from meritum_worker.corpus.live_search import (
     LiveSearchPorts,
     LiveSearchResult,
+    admit_pages,
     search_live,
 )
 from meritum_worker.corpus.models import (
     Entry,
     EuvsArticle,
     EuvsCase,
+    FactCheckAnswer,
+    FactCheckHit,
     StoredEntry,
     SyncReport,
 )
@@ -87,7 +100,12 @@ from meritum_worker.corpus.removals import (
     PublisherRemovalRequest,
 )
 from meritum_worker.corpus.reranking import Reranking, rerank_passages
-from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
+from meritum_worker.corpus.settings import (
+    FactCheckProvider,
+    FactCheckSettings,
+    RerankerProvider,
+    RerankerSettings,
+)
 from meritum_worker.corpus.sync import catalog_entry, missing_env, sync_euvsdisinfo
 
 __all__ = [
@@ -105,6 +123,7 @@ __all__ = [
     "TOKEN_ENV",
     "WEB_SEARCH_MARGIN",
     "WEB_SEARCH_TIMEOUT",
+    "ClaimReviewFinding",
     "CorpusRetentionPort",
     "CorpusSnapshot",
     "CorpusWriterPort",
@@ -118,6 +137,14 @@ __all__ = [
     "EuvsCopyPort",
     "EuvsDisinfoPort",
     "EuvsDisinfoUnavailableError",
+    "FactCheckAnswer",
+    "FactCheckHit",
+    "FactCheckPort",
+    "FactCheckProvider",
+    "FactCheckSearch",
+    "FactCheckSettings",
+    "FactCheckUnavailableError",
+    "FakeFactCheck",
     "FakeWebSearch",
     "ImportReport",
     "IngestDeps",
@@ -134,6 +161,7 @@ __all__ = [
     "Reranking",
     "StoredEntry",
     "SyncReport",
+    "admit_pages",
     "build_corpus_retention",
     "build_corpus_writer",
     "build_document_discovery",
@@ -155,6 +183,7 @@ __all__ = [
     "missing_env",
     "rerank_passages",
     "run_euvsdisinfo_sync",
+    "search_fact_checks",
     "search_live",
     "store_page",
     "sync_euvsdisinfo",

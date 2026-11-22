@@ -16,7 +16,7 @@ from meritum_core.checks.contracts import (
     ModelUsage,
     ai_marker_for,
 )
-from meritum_core.evidence import compute_verdict_changes
+from meritum_core.evidence import compute_verdict_changes, rate_review
 from meritum_core.shared.llm import Prompt
 from pydantic import ValidationError
 
@@ -30,6 +30,7 @@ from meritum_worker.checks.constants import (
     UNRESOLVED_MAX_CHARS,
     VERDICT_LABELS,
 )
+from meritum_worker.checks.fact_check_constants import FACT_CHECK_UNAVAILABLE_NOTE
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
 from meritum_worker.checks.usage import model_usage
 
@@ -88,7 +89,7 @@ def _result_from_draft(
         # One result per fact, or the answer cannot be tied to its claims.
         return state.technical_failure()
     # Skipped claims and dropped sources: what the check could not cover.
-    skipped: list[LimitationCode] = ["corpus_scope"] * len(state.limitations)
+    skipped: list[LimitationCode] = [_code(text) for text in state.limitations]
     answered = list(map(_answered, facts, judged, draft.claims, strict=True))
     unverifiable = [_not_verifiable(c) for c in state.claims if not c.is_fact]
     return CheckResult(
@@ -108,6 +109,14 @@ def _result_from_draft(
     )
 
 
+def _code(text: str) -> LimitationCode:
+    return (
+        "fact_check_unavailable"
+        if text == FACT_CHECK_UNAVAILABLE_NOTE
+        else "corpus_scope"
+    )
+
+
 def _draft_code(state: CheckState, facts: list[ExtractedClaim]) -> LimitationCode:
     # Facts searched with nothing found in the corpus or on the web.
     return "no_publications" if facts and not state.evidence else "corpus_scope"
@@ -121,19 +130,36 @@ def _judge(
 ) -> evidence.Judgement:
     citations = [v.citation for v in state.citations if v.fact == index]
     # extract_claims dated every fact; the contract rejects one it did not.
+    rated = [
+        (
+            i in state.same_claim_reviews,
+            rate_review(f.found, cache_control=f.cache_control),
+        )
+        for i, f in enumerate(state.fact_checks)
+        if f.fact == index
+    ]
+    premises, context = evidence.split_reviews([(s, r.evidence) for s, r in rated])
     return evidence.judge(
-        citations, catalog=catalog, claim_date=fact.claim_date or date.min
+        citations,
+        catalog=catalog,
+        claim_date=fact.claim_date or date.min,
+        reviews=premises,
+        review_context=context,
     )
 
 
 def _described(fact: ExtractedClaim, judged: evidence.Judgement) -> str:
     # Source fragments go to the model as data, so it can explain them.
-    quotes = (
+    quotes = [
         f"- {STANCE_LABELS[c.stance]}, {c.source.publisher}: {c.fragment}"
         for c in judged.citations
+    ]
+    ratings = (
+        f"- {STANCE_LABELS[r.stance]}, {r.publisher}: ocena {r.rating}, {r.title}"
+        for r in judged.claim_review_premises
     )
     return "\n".join(
-        (fact.claim, f"verdict: {VERDICT_LABELS[judged.verdict]}", *quotes)
+        (fact.claim, f"verdict: {VERDICT_LABELS[judged.verdict]}", *quotes, *ratings)
     )
 
 
@@ -147,6 +173,7 @@ def _answered(
         judged.verdict,
         judged.citations,
         claim_date=claim_date,
+        reviews=judged.claim_review_premises,
         unresolved=written.unresolved,
     )
     return ClaimResult.model_validate(

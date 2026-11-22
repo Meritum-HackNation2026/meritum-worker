@@ -1,0 +1,27 @@
+{
+  "claims": [
+    {
+      "text": "PAP usunęła depeszę o wypowiedzi posła przed wyborami 15 października 2023",
+      "claimant": "Internauci",
+      "claimDate": "2023-10-16T00:00:00Z",
+      "claimReview": [
+        {
+          "publisher": {"name": "Demagog", "site": "demagog.org.pl"},
+          "url": "https://demagog.org.pl/fact_checks/pap-nie-usunela-depeszy",
+          "title": "PAP nie usunęła depeszy o wypowiedzi posła",
+          "reviewDate": "2023-10-18T10:00:00Z",
+          "textualRating": "Fałsz",
+          "languageCode": "pl"
+        },
+        {
+          "publisher": {"name": "Nieznany blog", "site": "blog.example.com"},
+          "url": "https://blog.example.com/ocena",
+          "title": "Ocena bloga",
+          "reviewDate": "2023-10-19T10:00:00Z",
+          "textualRating": "Fałsz",
+          "languageCode": "pl"
+        }
+      ]
+    }
+  ]
+}

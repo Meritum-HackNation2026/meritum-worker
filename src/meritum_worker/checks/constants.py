@@ -244,9 +244,7 @@ WEB_SEARCH_PRICES: Final = MappingProxyType(
         ),
     }
 )
-"""Usage entry of one web search per provider; cost_usd is the price of one call.
+"""Usage of one web search per provider; cost_usd is one call (US-OBS-02, F-23).
 
-Vertex AI Search, Search Standard edition: USD 1.50 per 1,000 queries,
-https://cloud.google.com/generative-ai-app-builder/pricing (read 2026-11-22).
-The stub costs nothing. A provider missing here costs 0 (US-OBS-02, F-23).
+Vertex AI Search Standard: USD 1.50 per 1,000 queries (2026-11-22); stub is free.
 """

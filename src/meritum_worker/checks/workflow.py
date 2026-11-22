@@ -214,6 +214,8 @@ def _outcome(code: str, before: CheckState, after: CheckState) -> str:
     # The code whose steps turned the check into a technical failure is "failed".
     if _failed(after) and not _failed(before):
         return "failed"
+    if code in after.failed_steps:
+        return "failed"
     return "skipped" if code in after.skipped_steps else "done"
 
 
