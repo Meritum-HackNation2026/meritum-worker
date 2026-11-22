@@ -6,6 +6,7 @@ detector; no network, no database.
 """
 
 import asyncio
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -37,7 +38,7 @@ from meritum_worker.checks import (
     corpus_ports,
     run_check,
 )
-from meritum_worker.corpus import FakeWebSearch, LivePagesPort
+from meritum_worker.corpus import FakeWebSearch
 from meritum_worker.corpus.fakes import FakeCatalogSite
 from meritum_worker.security import CleanInjectionDetector
 
@@ -59,7 +60,6 @@ def deps_with(
     *,
     url: str = RCB_URL,
     name: str = "rcb",
-    live_pages: LivePagesPort | None = None,
 ) -> None:
     llm = build_llm(
         LlmSettings(
@@ -82,7 +82,6 @@ def deps_with(
         web_search=web_search or build_web_search(search, catalog),
         injection=build_injection_detector(llm=llm, gate=NullInjectionGate()),
         catalog=catalog,
-        live_pages=live_pages,
         **audio_ports(),
         **corpus_ports(),
     )
@@ -198,15 +197,14 @@ def check_with_page_past_quarantine(context: Context) -> None:
         store=context.store,
         injection=CleanInjectionDetector(),
     )
-    deps_with(
-        context,
-        PAGE_TEXT,
-        live_pages=corpus.CorpusLivePages(ingest, load_catalog()),
+    deps_with(context, PAGE_TEXT)
+    context.deps = replace(
+        context.deps, live_pages=corpus.CorpusLivePages(ingest, load_catalog())
     )
     context.current = asyncio.run(
         corpus.take_snapshot(context.store, scheduled=RECEIVED_AT)
     )
-    _run(context)
+    run_check_on(context)
     assert context.record.source_ids
 
 
