@@ -135,14 +135,12 @@ def build_corpus_retention(
         settings: As for ``build_corpus_writer``; None or memory: an empty corpus.
 
     Returns:
-        The PostgreSQL retention or an in-memory writer.
-
-    Raises:
-        ValueError: postgres without a database URL (settings built unvalidated).
+        The PostgreSQL retention or an in-memory writer; postgres without a
+        database URL raises ValueError, as in ``build_corpus_writer``.
 
     Features:
         US-KOR-05, F-10, ADR-13
-    """  # ruff: ignore[docstring-extraneous-exception]  # raised by _postgres_url
+    """
     url = _postgres_url(settings)
     return MemoryCorpusWriter() if url is None else PostgresCorpusRetention(url)
 
