@@ -173,3 +173,12 @@ def test_an_input_that_is_not_an_eval_run_is_refused() -> None:
     deps, _, _ = _deps()
     with pytest.raises(ValueError, match="run_id"):
         asyncio.run(run_eval_run({"case_set": "golden"}, deps))
+
+
+def test_an_alternative_verdict_is_stored_as_a_correct_case() -> None:
+    first = next(c for c in GOLDEN.root if c.expected_verdict == "false")
+    case = first.model_copy(update={"acceptable_verdicts": ("insufficient_evidence",)})
+    deps, _, _ = _deps(InMemoryCaseSets(golden=GoldenSet([case])))
+    [stored] = asyncio.run(run_eval_run(_input(), deps)).run.cases
+    assert stored.predicted == "insufficient_evidence"
+    assert stored.outcome == "correct"

@@ -41,7 +41,7 @@ Walidacja odrzuca plik, gdy:
 - `acceptable_verdicts` stoi bez `expected_verdict`, powtarza go albo wymienia ten sam werdykt dwa razy,
 - `checked_at` nie jest datą ISO.
 
-Werdykt z `acceptable_verdicts` liczy się w ocenie przypadku jako `correct`, a w macro-F1 i we wstrzymaniu jako trafienie oczekiwanej klasy. W raporcie przy przypadku zostaje werdykt, który system faktycznie zwrócił. W pliku CSV kolumna `acceptable_verdicts` trzyma listę w JSON, tak jak `sources`. Id przypadków nie powtarzają się między `golden/cases.json` a `golden/fact-checks.json`.
+Werdykt z `acceptable_verdicts` liczy się w ocenie przypadku jako `correct`, a w macro-F1 i we wstrzymaniu jako trafienie oczekiwanej klasy. W raporcie przy przypadku zostaje werdykt, który system faktycznie zwrócił. W zapisanym przebiegu (`EvalRun` z kontraktu core) taki przypadek ma w `expected` trafioną alternatywę, bo kontrakt wylicza wynik z `expected` i `predicted`. W pliku CSV kolumna `acceptable_verdicts` trzyma listę w JSON, tak jak `sources`. Id przypadków nie powtarzają się między `golden/cases.json` a `golden/fact-checks.json`.
 
 Przypadek `B-org-nagranie-moskwa` nie ma `url`: film z analizy Demagoga wrzuciła na Facebooka osoba prywatna, a do repozytorium nie trafiają linki do profili osób prywatnych. Pytanie opisuje nagranie słowami, a źródłem jest analiza Demagoga.
 
