@@ -117,7 +117,11 @@ async def sync_euvsdisinfo(
     if not cases or not articles:
         msg = "EUvsDisinfo returned no cases or no articles; copy left as it was"
         raise EuvsDisinfoUnavailableError(msg)
-    stored = {s.entry.key: s for s in await store.entries()}
+    stored = {
+        s.entry.key: s
+        for s in await store.entries()
+        if s.entry.database == "euvsdisinfo"  # organiser incidents stay
+    }
     fresh = [e for e in fetched if _is_fresh(e, stored.get(e.key))]
     keys = {e.key for e in fetched}
     gone = [k for k, s in stored.items() if s.deleted_at is None and k not in keys]

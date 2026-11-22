@@ -186,3 +186,25 @@ def test_empty_cases_scan_leaves_the_copy() -> None:
         sync(server, store)
     assert all(s.deleted_at is None for s in asyncio.run(store.entries()))
     assert asyncio.run(store.flagged_domains()) != {}
+
+
+def test_sync_keeps_the_organiser_incidents() -> None:
+    server, store = FakeEuvsDisinfoServer(TOKEN), corpus.build_euvsdisinfo_copy()
+    server.seed(cases=2, articles=1)
+    incident = corpus.organiser.OrganiserIncident.model_validate(
+        {
+            "id": "x",
+            "title": "T",
+            "description": "D",
+            "date": "2026-11-20",
+            "license": "CC BY 4.0",
+            "topics": "a",
+        }
+    )
+    asyncio.run(
+        corpus.organiser.import_incidents(
+            [incident], store, build_embeddings(EmbeddingsSettings())
+        )
+    )
+    assert sync(server, store).deleted == 0
+    assert by_key(store)["organiser:x"].deleted_at is None

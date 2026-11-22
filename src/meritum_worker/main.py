@@ -173,6 +173,59 @@ def euvsdisinfo_sync_step() -> dict[str, Any]:
     return report.model_dump(mode="json")
 
 
+@DBOS.workflow(
+    name=corpus.IMPORT_WORKFLOW,
+    serialization_type=WorkflowSerializationFormat.PORTABLE,
+)
+def organiser_import_workflow(path: str) -> dict[str, Any]:
+    """Import one organiser's file (incidents or source list); started by hand.
+
+    Args:
+        path: The JSON or CSV file on the worker's disk.
+
+    Returns:
+        The ``ImportReport`` JSON; only ``disabled`` where ingestion is off.
+
+    Features:
+        US-KOR-02, US-ZRD-08, F-10, F-11, ADR-32
+    """
+    return organiser_import_step(path)
+
+
+@DBOS.step(retries_allowed=True)
+def organiser_import_step(path: str) -> dict[str, Any]:
+    """Run ``corpus.import_organiser_file`` as one step; a rerun is idempotent.
+
+    Args:
+        path: The JSON or CSV file on the worker's disk.
+
+    Returns:
+        The ``ImportReport`` JSON.
+
+    Features:
+        US-KOR-02, F-10, F-11
+    """
+    report = asyncio.run(
+        corpus.import_organiser_file(
+            Path(path),
+            corpus.build_organiser_file(),
+            _euvs_copy(),
+            build_embeddings(EmbeddingsSettings()),
+            env=os.environ,
+        )
+    )
+    if report.disabled:
+        DBOS.logger.warning("organiser import off: corpus is not writable here")
+    for record in report.skipped:
+        DBOS.logger.warning(
+            "organiser record %s skipped: %s (%s)",
+            record.id,
+            record.reason,
+            record.detail,
+        )
+    return report.model_dump(mode="json")
+
+
 async def readiness_report() -> dict[str, Any]:
     """Check this process's variables and providers (`observability.check_readiness`).
 

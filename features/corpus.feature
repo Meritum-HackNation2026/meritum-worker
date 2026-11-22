@@ -52,3 +52,14 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Gdy mija termin kolejnej migawki (np. co godzinę)
     Wtedy powstaje nowa corpus_version z tymi dokumentami
     I sprawdzenia z poprzednią wersją dalej się odtwarzają
+
+  Scenariusz: import bazy incydentów
+    Zakładając plik bazy incydentów od organizatora z 50 wpisami z datą, licencją i zakresem tematycznym
+    Gdy workflow importu kończy przebieg
+    Wtedy 50 incydentów jest w korpusie z database "organiser", z embeddingami wielojęzycznymi opisu
+    I ponowny import tego samego pliku niczego nie duplikuje
+
+  Scenariusz: wpis bez licencji
+    Zakładając wpis bez pola licencji
+    Gdy workflow importu go czyta
+    Wtedy wpis jest pominięty z zapisanym powodem, a pozostałe są zaimportowane

@@ -74,9 +74,14 @@ class Entry(BaseModel):
         description: Case summary or article text; embedded for search.
         fact: The case's fact text; None for articles.
         domains: Domains the case links to as disinformation.
+        database: Where the entry comes from: the EUvsDisinfo sync or the
+            organiser's incident file; each writer touches only its own.
+        license: Licence from the organiser's file; None for EUvsDisinfo.
+        retention_days: Retention from the organiser's file, if it gives one.
+        topics: Thematic scope from the organiser's file.
 
     Features:
-        US-KOR-08, F-11
+        US-KOR-08, US-KOR-02, F-11
     """
 
     model_config = ConfigDict(frozen=True)
@@ -89,6 +94,10 @@ class Entry(BaseModel):
     description: str
     fact: str | None = None
     domains: tuple[str, ...] = ()
+    database: Literal["euvsdisinfo", "organiser"] = "euvsdisinfo"
+    license: str | None = None
+    retention_days: int | None = None
+    topics: tuple[str, ...] = ()
 
 
 class StoredEntry(BaseModel):

@@ -10,6 +10,7 @@ from ._memory import MemoryEuvsCopy
 from ._memory_corpus import MemoryCorpusWriter
 from ._migrations import apply_corpus_migrations
 from ._openrouter_ranking import OpenRouterReranker
+from ._organiser_file import OrganiserFile
 from ._postgres import PostgresEuvsCopy
 from ._postgres_corpus import PostgresCorpusWriter
 from ._vertex_ranking import VertexReranker
@@ -21,6 +22,7 @@ __all__ = [
     "MemoryCorpusWriter",
     "MemoryEuvsCopy",
     "OpenRouterReranker",
+    "OrganiserFile",
     "PostgresCorpusWriter",
     "PostgresEuvsCopy",
     "VertexReranker",

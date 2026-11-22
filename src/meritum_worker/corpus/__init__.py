@@ -4,8 +4,8 @@ Public API: the ingestion, sync and live search, their ports, models, errors and
 factories.
 
 Features:
-    US-KOR-08, US-KOR-02, US-KOR-04, US-KOR-05, F-10, F-11, F-12, F-13, ADR-19,
-    ADR-26, ADR-32
+    US-KOR-08, US-KOR-02, US-KOR-04, US-KOR-05, US-ZRD-08, F-10, F-11, F-12, F-13,
+    ADR-19, ADR-26, ADR-32
 """
 
 from meritum_worker.corpus.chunking import chunk_text
@@ -40,6 +40,7 @@ from meritum_worker.corpus.factory import (
     build_euvsdisinfo_client,
     build_euvsdisinfo_copy,
     build_ingest_deps,
+    build_organiser_file,
     build_reranker,
     run_euvsdisinfo_sync,
 )
@@ -65,6 +66,11 @@ from meritum_worker.corpus.models import (
     StoredEntry,
     SyncReport,
 )
+from meritum_worker.corpus.organiser import (
+    IMPORT_WORKFLOW,
+    ImportReport,
+    import_organiser_file,
+)
 from meritum_worker.corpus.pages import store_page
 from meritum_worker.corpus.ports import (
     CorpusWriterPort,
@@ -78,6 +84,7 @@ from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
 from meritum_worker.corpus.sync import catalog_entry, missing_env, sync_euvsdisinfo
 
 __all__ = [
+    "IMPORT_WORKFLOW",
     "INGEST_SCHEDULE",
     "INGEST_STEP_PREFIX",
     "INGEST_WORKFLOW",
@@ -104,6 +111,7 @@ __all__ = [
     "EuvsDisinfoPort",
     "EuvsDisinfoUnavailableError",
     "FakeWebSearch",
+    "ImportReport",
     "IngestDeps",
     "IngestFailure",
     "IngestReport",
@@ -121,10 +129,12 @@ __all__ = [
     "build_euvsdisinfo_client",
     "build_euvsdisinfo_copy",
     "build_ingest_deps",
+    "build_organiser_file",
     "build_reranker",
     "catalog_entry",
     "chunk_text",
     "due_entries",
+    "import_organiser_file",
     "ingest_catalog",
     "ingest_pages",
     "ingestible",
