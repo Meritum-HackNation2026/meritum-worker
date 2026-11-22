@@ -5,6 +5,7 @@ import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
+import httpx2
 import pytest
 from meritum_core.jobs.contracts import ReadinessReport
 
@@ -66,6 +67,43 @@ def test_euvsdisinfo_probe_asks_the_server(token: str, unavailable: list[str]) -
     probes = build_readiness_probes({"EUVSDISINFO_MCP_API_KEY": token}, server.client())
     report = _check({"MERITUM_LLM_PROVIDER": "stub"}, probes)
     assert report.unavailable_providers == unavailable
+
+
+def _fact_check_env(key: str | None) -> dict[str, str]:
+    env = {"MERITUM_FACT_CHECK_PROVIDER": "google"}
+    return env if key is None else {**env, "MERITUM_FACT_CHECK_API_KEY": key}
+
+
+def _fact_check_probes(status: int, key: str | None) -> dict[str, Probe]:
+    def reply(request: httpx2.Request) -> httpx2.Response:
+        ok = request.headers.get("X-Goog-Api-Key") == "good-key"
+        return httpx2.Response(status if ok else 403, json={})
+
+    client = httpx2.AsyncClient(transport=httpx2.MockTransport(reply))
+    return build_readiness_probes(_fact_check_env(key), client)
+
+
+@pytest.mark.parametrize(
+    ("status", "key", "unavailable"),
+    [
+        (200, "good-key", []),
+        (200, "bad-key", ["fact_check"]),
+        (200, None, ["fact_check"]),
+        (429, "good-key", ["fact_check"]),
+    ],
+)
+def test_fact_check_probe_degrades_on_bad_key_or_quota(
+    status: int, key: str | None, unavailable: list[str]
+) -> None:
+    probes = _fact_check_probes(status, key)
+    del probes["euvsdisinfo"]  # its own tests cover it
+    report = _check({"MERITUM_LLM_PROVIDER": "stub", **_fact_check_env(key)}, probes)
+    assert (report.missing_env, report.unavailable_providers) == ([], unavailable)
+
+
+def test_stub_fact_check_has_no_probe() -> None:
+    probes = build_readiness_probes({}, FakeEuvsDisinfoServer(TOKEN).client())
+    assert "fact_check" not in probes
 
 
 def test_missing_token_makes_euvsdisinfo_unavailable(

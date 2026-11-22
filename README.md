@@ -69,7 +69,7 @@ Wymagane zmienne (lista w `src/meritum_worker/observability/constants.py`):
 | Ścieżka | `MERITUM_ENV` | Zmienne |
 | --- | --- | --- |
 | lokalnie | `local` (domyślnie) | tylko zmienne modelu |
-| publiczne demo | `dev`, `prd` | `MERITUM_DATABASE_URL` i zmienne modelu; `EUVSDISINFO_MCP_API_KEY` jest opcjonalny (bez niego `euvsdisinfo` jest w `unavailable_providers`, a sprawdzenia działają na lokalnej kopii) |
+| publiczne demo | `dev`, `prd` | `MERITUM_DATABASE_URL` i zmienne modelu; `EUVSDISINFO_MCP_API_KEY` jest opcjonalny (bez niego `euvsdisinfo` jest w `unavailable_providers`, a sprawdzenia działają na lokalnej kopii); przy `MERITUM_FACT_CHECK_PROVIDER=google` klucz `MERITUM_FACT_CHECK_API_KEY` też jest opcjonalny: raport wysyła jedno darmowe zapytanie, a brak, odrzucony klucz lub limit dają `fact_check` w `unavailable_providers` (stan degraded, nigdy not_ready) |
 
 | `MERITUM_LLM_PROVIDER` | Zmienne modelu |
 | --- | --- |
@@ -180,7 +180,7 @@ Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration test
 
 ## Oceny fact-checkerów (Google Fact Check Tools API)
 
-Krok `search_fact_checks` szuka ocen ClaimReview dla każdego twierdzenia, które jest faktem (zamaskowane, jedno proste zapytanie). Dostawcę wybiera `MERITUM_FACT_CHECK_PROVIDER` (`stub` domyślnie: bez ocen; `google`), klucz to `MERITUM_FACT_CHECK_API_KEY`, wysyłany w nagłówku `X-Goog-Api-Key`, nigdy w adresie. Wydawcę rozpoznajemy po domenie z katalogu (Demagog też, choć jego stron nie pobieramy). Ocena sygnatariusza IFCN/EFCSN jest przesłanką tylko wtedy, gdy model uzna, że oceniane twierdzenie ma ten sam temat, liczby i datę; inaczej zostaje kontekstem z linkiem. Awaria, limit albo brak klucza kończy krok stanem `failed` i daje ograniczenie `fact_check_unavailable`; pusty wynik to brak oceny. API dopasowuje frazy dosłownie, więc trafianie poprawia [worker#84](https://github.com/Meritum-HackNation2026/meritum-worker/issues/84). Raport gotowości o braku klucza dodaje worker#27.
+Krok `search_fact_checks` szuka ocen ClaimReview dla każdego twierdzenia, które jest faktem (zamaskowane, jedno proste zapytanie). Dostawcę wybiera `MERITUM_FACT_CHECK_PROVIDER` (`stub` domyślnie: bez ocen; `google`), klucz to `MERITUM_FACT_CHECK_API_KEY`, wysyłany w nagłówku `X-Goog-Api-Key`, nigdy w adresie. Wydawcę rozpoznajemy po domenie z katalogu (Demagog też, choć jego stron nie pobieramy). Ocena sygnatariusza IFCN/EFCSN jest przesłanką tylko wtedy, gdy model uzna, że oceniane twierdzenie ma ten sam temat, liczby i datę; inaczej zostaje kontekstem z linkiem. Awaria, limit albo brak klucza kończy krok stanem `failed` i daje ograniczenie `fact_check_unavailable`; pusty wynik to brak oceny. API dopasowuje frazy dosłownie, więc trafianie poprawia [worker#84](https://github.com/Meritum-HackNation2026/meritum-worker/issues/84). Raport gotowości sprawdza klucz jednym darmowym zapytaniem (dostawca `fact_check`, [worker#99](https://github.com/Meritum-HackNation2026/meritum-worker/issues/99)).
 
 ## Reranker fragmentów
 

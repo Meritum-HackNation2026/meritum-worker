@@ -82,7 +82,8 @@ REQUIRED_ENV: Final = {
 }
 """Variables each path needs, before the model's; README lists the same.
 
-The EUvsDisinfo token is optional: without it the provider is only unavailable (#102).
+The EUvsDisinfo token and the Fact Check API key (``MERITUM_FACT_CHECK_API_KEY``) are
+optional: without them the provider is only unavailable (#102, #99).
 """
 
 LLM_PROVIDER_VAR: Final = "MERITUM_LLM_PROVIDER"
@@ -97,6 +98,12 @@ LLM_REQUIRED_ENV: Final = {
 
 EUVSDISINFO_PROBE: Final = "euvsdisinfo"
 """Provider name of the EUvsDisinfo MCP server in the readiness report."""
+
+FACT_CHECK_PROBE: Final = "fact_check"
+"""Provider name of the Fact Check Tools API in the readiness report."""
+
+FACT_CHECK_PROBE_QUERY: Final = "szczepionki"
+"""Plain query of the probe; the API answers it free of charge (quota only)."""
 
 RETRIEVAL_TOP_K: Final = 1
 """Ranks that count as a hit; the stand-in corpus has about a dozen documents, so
