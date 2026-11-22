@@ -47,6 +47,11 @@ REVIEW_MATCH_INSTRUCTIONS: Final = (
     " period; any difference in a number, a person, a place or a date means false."
     " When our claim's date is given as not stated, our claim is about the"
     " present and a rating of the same statement matches even if it is older."
+    " The rated claim is also the same when it makes our statement more"
+    " generally (Szczepionki powodują autyzm for a claim about COVID-19"
+    " vaccines) or with an added detail such as a ranking, a reason or who said"
+    " it (Szwecja jest pierwszym krajem, który zlikwidował gotówkę for Szwecja"
+    " zlikwidowała gotówkę)."
 )
 """Instructions of the call that decides whether a rating is about our claim."""
 

@@ -137,3 +137,9 @@ def test_an_older_rating_matches_a_claim_that_states_no_date() -> None:
     [match] = [p for p in llm.prompts if p.instructions == REVIEW_MATCH_INSTRUCTIONS]
     assert match.data[1] == NO_CLAIM_DATE
     assert "even if it is older" in REVIEW_MATCH_INSTRUCTIONS
+
+
+def test_a_rating_of_a_broader_or_more_detailed_claim_is_about_ours() -> None:
+    # worker#227: without the rule the model matched such pairs in 1 of 3 calls.
+    assert "more generally" in REVIEW_MATCH_INSTRUCTIONS
+    assert "with an added detail" in REVIEW_MATCH_INSTRUCTIONS
