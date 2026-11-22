@@ -5,6 +5,7 @@ Zestaw: `evals/golden/fact-checks.json` (64 przypadki). Przebieg przez API dev (
 | Przebieg | Raport | Trafność | Macro-F1 | Precyzja cytatów | Pokrycie źródeł | Wstrzymania | Oceny fact-checkerów | Błędy techniczne | p50 / p95 [s] | Koszt 100 [USD] |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 0, bazowy (22.11, 03:08 UTC) | `fact-checks-2026-11-22-0-bazowy.json` | 0,41 | 0,46 | 0,45 | 0,09 | 0,63 | 0,50 | 10/64 | 39 / 64 | 0,43 |
+| 1 (22.11, 03:47 UTC, `--fresh`) | `fact-checks-2026-11-22-1.json` | 0,58 | 0,54 | 0,43 | 0,21 | 0,43 | 0,88 | 11/64 | 47 / 67 | 0,54 |
 
 ## Przebieg 0: gdzie gubią się werdykty
 
@@ -26,3 +27,25 @@ Zestaw: `evals/golden/fact-checks.json` (64 przypadki). Przebieg przez API dev (
 - core#149 (PR #151) i infra#61 (PR #62, apply 22.11): katalog i Vertex AI Search obejmują gov.pl/web/rodzina, gov.pl/web/finanse, podatki.gov.pl, zus.pl, stat.gov.pl i prezydent.pl; wzorce gov.pl/web wspólne, 41 z 50.
 - worker#187 (PR #189): pytanie tak/nie niesie twierdzenie, o które pyta.
 - worker#190 (PR #191): worker na core z katalogiem i regułą ocen.
+
+## Przebieg 1: co zostało
+
+27 z 64 przypadków ma zły wynik (ranking ze stanu DBOS na dev):
+
+| Etap | Przypadki | Co się dzieje |
+|---|---|---|
+| reguły werdyktu przy cytatach `context` | 16 | źródło nie rozstrzyga: propozycja rządu zamiast rozporządzenia, inny rok, kwota bez słowa „brutto”; wymowa `context` jest wtedy zgodna z regułą „nic ponad źródła” (sprawdzone na modelu: przy fragmencie z rozstrzygającą informacją ocena wymowy daje `refutes`/`supports`, 14 z 14 prób) |
+| błąd techniczny w `write_answer` | 7 | instrukcja pozwalała na pustą listę ograniczeń, a kontrakt core odrzuca wynik `done` bez ograniczeń; poprawka worker#194 (PR #196) weszła po tym przebiegu |
+| błąd techniczny przed sprawdzeniem | 3 | POST odrzucony w czasie redeployu dev (scalenie PR #192 w trakcie przebiegu); nie scalać do `develop` w czasie pomiaru |
+| ekstrakcja | 3 | „Ile to jest 17 razy 23?” i przepis kulinarny dają `needs_clarification` zamiast `out_of_scope`; „Od stycznia nie zapłacisz w sklepie gotówką.” zostaje prognozą |
+| wymowa: źródła nie na temat | 5 | wyniki PKW i prezydent.pl obok tematu (frekwencja, liczba senatorów, stolica) |
+
+## Kandydaci na przebieg 2 (od najważniejszego)
+
+1. Tekst strony przycięty do pierwszych 4000 znaków (`MAX_PAGE_TEXT_CHARS`, `corpus/live_search.py`): strony gov.pl i ZUS zaczynają się od menu i baneru cookies, więc rozstrzygające zdanie często nie trafia do oceny wymowy. Zamiast początku strony wybrać fragmenty najbliższe twierdzeniu (np. `chunk_text` i dopasowanie słów kluczowych albo reranker), w tym samym limicie znaków.
+2. Fragmenty z migawki korpusu w ocenie dowodów (worker#162, inny właściciel): akty z ELI (rozporządzenia o płacy minimalnej, Konstytucja) rozstrzygają większość przypadków z kategorii `numbers` i `true`.
+3. Surowe adresy stron odrzuconych przez detektor wstrzyknięć trafiają do ograniczeń widocznych dla obywatela (`search_web`, `search_fact_checks`); zastąpić je ogólnym ograniczeniem.
+4. Ekstrakcja: obliczenia, przepisy kulinarne i tłumaczenia jako `out_of_scope`.
+5. Progi podobieństwa ocen fact-checkerów (0,8 / 0,6, worker#84): na dev są już ustawione `MERITUM_EMBEDDINGS_*`, więc da się je stroić na przypadkach `fact_checked`.
+
+Wyszukiwarka po core#149 i infra#61 zwraca już rozstrzygające strony (np. gov.pl/web/rodzina „Minimalne wynagrodzenie za pracę”, wskaźniki ZUS, rozdział Konstytucji na prezydent.pl, obwieszczenie PKW); przebieg 1 mógł zacząć się, zanim Vertex AI Search zaindeksował nowe wzorce.
