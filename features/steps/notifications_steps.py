@@ -7,16 +7,15 @@ recorded Fact Check Tools API reply; no network, no database.
 
 import asyncio
 from dataclasses import replace
-from datetime import UTC, date, datetime, timedelta
+from datetime import date
 from pathlib import Path
 
 import httpx2
 from behave import given, then, when
 from behave.runner import Context
-from meritum_core.checks.contracts import CheckRecord
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
-from meritum_core.corpus import Passage
 from meritum_core.corpus.catalog import load_catalog
+from meritum_core.jobs.contracts import EscalateClaimInput
 from meritum_core.moderation.fakes import (
     InMemoryHighRiskTopicRepository,
     InMemoryModeratorCaseRepository,
@@ -25,8 +24,16 @@ from meritum_core.moderation.fakes import (
 from meritum_core.notifications.fakes import InMemoryNotificationRepository
 from meritum_core.security.pii import NullPiiGate
 from pydantic import SecretStr
+from recheck_support import (
+    ASKED_AT,
+    CLAIM,
+    OLD_CHECK,
+    SCHEDULED,
+    new_passage,
+    old_record,
+    store_with_new_document,
+)
 
-from meritum_worker import corpus
 from meritum_worker.checks import (
     AnswerDraft,
     CheckDeps,
@@ -47,20 +54,17 @@ from meritum_worker.moderation import (
     InMemoryCheckResults,
     ModerationDeps,
     ScriptedEmbeddings,
+    run_escalate_claim,
 )
 from meritum_worker.notifications import (
     RecheckDeps,
     announce_recheck,
     plan_rechecks,
+    recheck_input,
 )
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
-SCHEDULED = datetime(2026, 1, 8, 10, 0, tzinfo=UTC)
-ASKED_AT = SCHEDULED - timedelta(days=3)
-OLD_CHECK = "check-unanswered-1"
 SESSION = "session-recheck-1"
-CLAIM = "PAP usunęła depeszę o wypowiedzi posła przed wyborami 15 października 2023"
-SOURCE = "gov.pl/komunikat-pap"
 FACT = ExtractedClaim(
     claim=CLAIM,
     kind="fact",
@@ -68,6 +72,7 @@ FACT = ExtractedClaim(
     claim_date=date(2023, 10, 15),
     claim_date_source="text",
 )
+UNANSWERED = "insufficient_evidence"
 FIXTURE_OF = {"fałszywe": "fact_check_demagog.json"}
 """The recorded API reply giving each verdict; any other finds no rating."""
 
@@ -77,24 +82,7 @@ def unanswered_claim(context: Context) -> None:
     context.records = InMemoryCheckRecordRepository()
     context.results = InMemoryCheckResults()
     context.results.add(OLD_CHECK, ASKED_AT, [(CLAIM, True)])
-    asyncio.run(
-        context.records.save(
-            CheckRecord(
-                check_id=OLD_CHECK,
-                session_id=SESSION,
-                channel="web",
-                received_at=ASKED_AT,
-                answered_at=ASKED_AT,
-                question_masked=CLAIM,
-                status="done",
-                verdicts=["insufficient_evidence"],
-                source_ids=[],
-                models=[],
-                corpus_version="2026-01-05T10:00Z",
-                retention_until=ASKED_AT + timedelta(days=30),
-            )
-        )
-    )
+    asyncio.run(context.records.save(old_record(SESSION)))
     context.inbox = InMemoryNotificationRepository()
     context.verdict = "fałszywe"
 
@@ -102,25 +90,6 @@ def unanswered_claim(context: Context) -> None:
 @given('ponowne sprawdzenie znowu daje "brak wystarczających dowodów"')
 def same_verdict(context: Context) -> None:
     context.verdict = "brak wystarczających dowodów"
-
-
-def _store_with_new_document() -> corpus.CorpusWriterPort:
-    store = corpus.build_corpus_writer()
-    previous = SCHEDULED - timedelta(hours=1)
-    asyncio.run(corpus.take_snapshot(store, scheduled=previous))
-    document = corpus.Document(
-        source_id=SOURCE,
-        url="https://www.gov.pl/web/komunikat-pap",
-        domain="gov.pl",
-        publisher_id="kprm",
-        license="public",
-        fetched_at=SCHEDULED - timedelta(minutes=30),
-        checksum="0" * 64,
-        full_text="PAP nie usunęła depeszy o wypowiedzi posła.",
-    )
-    asyncio.run(store.save_document(document, []))
-    asyncio.run(corpus.take_snapshot(store, scheduled=SCHEDULED))
-    return store
 
 
 def _check_deps(context: Context, moderation: ModerationDeps) -> CheckDeps:
@@ -163,18 +132,11 @@ def _check_deps(context: Context, moderation: ModerationDeps) -> CheckDeps:
 
 
 def _recheck(context: Context) -> None:
-    passage = Passage(
-        passage_id="p-new",
-        source_id=SOURCE,
-        text="PAP nie usunęła depeszy o wypowiedzi posła.",
-        published_on=None,
-        fetched_at=SCHEDULED - timedelta(minutes=30),
-    )
     deps = RecheckDeps(
         results=context.results,
         records=context.records,
-        corpus=FakeCorpusSearch([passage]),
-        snapshots=_store_with_new_document(),
+        corpus=FakeCorpusSearch([new_passage()]),
+        snapshots=store_with_new_document(),
         inbox=context.inbox,
     )
     moderation = ModerationDeps(
@@ -185,14 +147,18 @@ def _recheck(context: Context) -> None:
         embeddings=ScriptedEmbeddings({}),
         results=context.results,
     )
+    context.moderation = moderation
     check_deps = _check_deps(context, moderation)
     context.plans = asyncio.run(plan_rechecks(SCHEDULED, deps, SCHEDULED))
     for plan in context.plans:
-        payload = plan.job.model_dump(mode="json")
+        job = asyncio.run(recheck_input(plan, context.records, SCHEDULED))
+        assert job is not None
+        payload = job.model_dump(mode="json")
         output = asyncio.run(
             run_check(payload, plan.check_id, check_deps, InlineCheckRuntime())
         )
         asyncio.run(announce_recheck(plan, output.result, deps, SCHEDULED))
+        context.outputs = [*getattr(context, "outputs", []), output]
 
 
 @when(
@@ -224,3 +190,35 @@ def session_notified(context: Context) -> None:
 def nobody_notified(context: Context) -> None:
     assert len(context.plans) == 1
     assert asyncio.run(context.inbox.list_for("session_id", SESSION)) == []
+
+
+@given('wynik ponownego sprawdzenia z werdyktem "brak wystarczających dowodów"')
+def unanswered_recheck(context: Context) -> None:
+    unanswered_claim(context)
+    same_verdict(context)
+    _recheck(context)
+    # DBOS keeps the recheck's output like any check's; the results read it there.
+    for output in context.outputs:
+        result = output.result
+        claims = [(c.claim, c.verdict == UNANSWERED) for c in result.claims]
+        context.results.add(result.check_id, SCHEDULED, claims)
+
+
+@when("użytkownik przekazuje to twierdzenie moderatorom")
+def refer_recheck(context: Context) -> None:
+    [plan] = context.plans
+    payload = EscalateClaimInput(
+        check_id=plan.check_id, claim_index=0, reason="recommended_clicked"
+    ).model_dump(mode="json")
+    context.escalation = asyncio.run(run_escalate_claim(payload, context.moderation))
+
+
+@then("powstaje sprawa z tym twierdzeniem")
+def case_with_claim(context: Context) -> None:
+    [plan] = context.plans
+    escalation = context.escalation.escalation
+    assert escalation.state == "created"
+    assert escalation.case_id is not None
+    case = asyncio.run(context.moderation.cases.get(escalation.case_id))
+    assert case is not None
+    assert [(c.claim, c.check_ids) for c in case.claims] == [(CLAIM, [plan.check_id])]

@@ -11,6 +11,7 @@ from meritum_core.checks import SubjectKind
 from meritum_worker.security.constants import (
     AUDIO_ID_FIELD,
     CHECK_ID_FIELD,
+    OLD_CHECK_ID_FIELD,
     REQUEST_FIELD,
     WORKFLOW_PAGE,
 )
@@ -53,6 +54,25 @@ def about_checks(payload: Payload, check_ids: Collection[str]) -> bool:
     """
     check_id = None if payload is None else payload.get(CHECK_ID_FIELD)
     return isinstance(check_id, str) and check_id in check_ids
+
+
+def repeats_checks(payload: Payload, check_ids: Collection[str]) -> bool:
+    """Whether a recheck's input names one of the checks, new or earlier.
+
+    Args:
+        payload: the workflow's input.
+        check_ids: the checks being deleted.
+
+    Returns:
+        True when its ``check_id`` or ``old_check_id`` is one of them.
+
+    Features:
+        US-BEZ-05, US-POW-03, F-20, F-39
+    """
+    if payload is None:
+        return False
+    found = (payload.get(CHECK_ID_FIELD), payload.get(OLD_CHECK_ID_FIELD))
+    return any(isinstance(i, str) and i in check_ids for i in found)
 
 
 def audio_id(payload: Payload) -> str | None:

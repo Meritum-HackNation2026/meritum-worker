@@ -178,16 +178,40 @@ def test_erasure_by_channel_user_hash_drops_their_checks_and_audio(
     assert not audio.exists()
 
 
-def test_erasure_drops_every_named_check_workflow_of_the_person() -> None:
-    store = InMemoryWorkflowStore()
-    store.add("chk_1", "check", {"channel_user_hash": HASH}, created_at=NOW)
-    store.add("chk_2", "recheck_claim", {"channel_user_hash": HASH}, created_at=NOW)
-    deps = build_retention_deps(
+def _recheck(check_id: str, old_check_id: str) -> dict[str, object]:
+    return {
+        "old_check_id": old_check_id,
+        "check_id": check_id,
+        "corpus_version": "2026-11-21T02:00Z",
+        "claim": "Płaca minimalna wynosi 4806 zł",
+    }
+
+
+def _erasure_deps(store: InMemoryWorkflowStore) -> RetentionDeps:
+    return build_retention_deps(
         DatabaseSettings(provider="memory"),
         None,
         workflows=store,
-        check_workflows=("check", "recheck_claim"),
+        recheck_workflows=("recheck_claim",),
     )
+
+
+def test_erasure_drops_the_rechecks_of_the_persons_checks() -> None:
+    store = InMemoryWorkflowStore()
+    store.add("chk_1", "check", {"channel_user_hash": HASH}, created_at=NOW)
+    store.add("re_1", "recheck_claim", _recheck("re_1", "chk_1"), created_at=NOW)
+    store.add("re_2", "recheck_claim", _recheck("re_2", "chk_9"), created_at=NOW)
+    payload = {"kind": "channel_user_hash", "value": HASH}
+    asyncio.run(erase_subject(payload, _erasure_deps(store)))
+    assert store.ids() == {"re_2"}
+
+
+def test_erasure_drops_a_recheck_whose_own_record_names_the_person() -> None:
+    # The earlier check already left by retention; the recheck saved a record.
+    store = InMemoryWorkflowStore()
+    store.add("re_1", "recheck_claim", _recheck("re_1", "chk_gone"), created_at=NOW)
+    deps = _erasure_deps(store)
+    asyncio.run(deps.app.records.save(_record("re_1", HASH)))
     payload = {"kind": "channel_user_hash", "value": HASH}
     asyncio.run(erase_subject(payload, deps))
     assert store.ids() == set()

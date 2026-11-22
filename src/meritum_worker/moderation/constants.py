@@ -9,6 +9,7 @@ from datetime import timedelta
 from typing import Final
 
 from meritum_core.checks.contracts import CaseReason
+from meritum_core.jobs.contracts import CHECK
 
 SIMILARITY_THRESHOLD: Final = 0.85
 """Cosine similarity of two claim embeddings above which the claims may be the
@@ -26,6 +27,14 @@ HISTORY_LIMIT: Final = 500
 
 UNANSWERED_VERDICT: Final = "insufficient_evidence"
 """The verdict of a claim without an answer."""
+
+RECHECK_CLAIM_WORKFLOW: Final = "recheck_claim"
+"""DBOS name of one recheck after a new snapshot: the `check` workflow body with
+its own CheckRecord (US-POW-03). Its result is a check's result like any other."""
+
+CHECK_RESULT_WORKFLOWS: Final = (CHECK.name, RECHECK_CLAIM_WORKFLOW)
+"""DBOS names of the workflows whose output is a ``CheckOutput``: moderators get
+the claims of both, and both count as earlier unanswered claims."""
 
 SUMMARY_MAX_CHARS: Final = 300
 """Longest ``ModeratorCase.summary``."""

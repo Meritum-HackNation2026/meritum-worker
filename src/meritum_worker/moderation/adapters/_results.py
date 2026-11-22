@@ -1,4 +1,4 @@
-"""CheckResults over the `check` workflows DBOS keeps.
+"""CheckResults over the `check` and `recheck_claim` workflows DBOS keeps.
 
 Call it only from a DBOS step or outside a workflow, like ``DbosWorkflowStore``.
 
@@ -11,10 +11,14 @@ from datetime import datetime
 
 from dbos import DBOS, WorkflowStatus
 from meritum_core.checks import CheckResult
-from meritum_core.jobs.contracts import CHECK, CheckOutput
+from meritum_core.jobs.contracts import CheckOutput
 from pydantic import ValidationError
 
-from meritum_worker.moderation.constants import HISTORY_LIMIT, UNANSWERED_VERDICT
+from meritum_worker.moderation.constants import (
+    CHECK_RESULT_WORKFLOWS,
+    HISTORY_LIMIT,
+    UNANSWERED_VERDICT,
+)
 from meritum_worker.moderation.models import PastClaim
 
 
@@ -28,8 +32,11 @@ def _result(status: WorkflowStatus) -> CheckResult | None:
 class DbosCheckResults:
     """Reads finished checks with ``DBOS.list_workflows_async``.
 
+    A recheck after a new snapshot is a check too: its claims reach the
+    moderators and join the unanswered history.
+
     Features:
-        US-MOD-01, US-MOD-02, F-24
+        US-MOD-01, US-MOD-02, US-POW-03, F-24, F-39
     """
 
     async def claim(self, check_id: str, claim_index: int) -> str | None:  # ruff: ignore[no-self-use]  # CheckResults is an instance protocol
@@ -43,7 +50,9 @@ class DbosCheckResults:
             The claim text, or None.
         """
         found = await DBOS.list_workflows_async(
-            workflow_ids=[check_id], name=CHECK.name, load_input=False
+            workflow_ids=[check_id],
+            name=list(CHECK_RESULT_WORKFLOWS),
+            load_input=False,
         )
         result = _result(found[0]) if found else None
         if result is None or claim_index >= len(result.claims):
@@ -60,7 +69,7 @@ class DbosCheckResults:
             The claims, latest check first.
         """
         found = await DBOS.list_workflows_async(
-            name=CHECK.name,
+            name=list(CHECK_RESULT_WORKFLOWS),
             status="SUCCESS",
             start_time=since.isoformat(),
             limit=HISTORY_LIMIT,

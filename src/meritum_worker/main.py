@@ -458,7 +458,8 @@ def _retention_deps() -> security.RetentionDeps:
         DatabaseSettings(),
         blobs,
         corpus=documents,
-        check_workflows=(CHECK.name, notifications.RECHECK_CLAIM_WORKFLOW),
+        check_workflows=(CHECK.name,),
+        recheck_workflows=(notifications.RECHECK_CLAIM_WORKFLOW,),
     )
 
 
@@ -642,23 +643,39 @@ async def _announce_recheck(plan: dict[str, Any], output: dict[str, Any]) -> boo
     )
 
 
+async def _recheck_input(plan: dict[str, Any]) -> dict[str, Any] | None:
+    job = await notifications.recheck_input(
+        notifications.Recheck.model_validate(plan),
+        check_deps().records,
+        datetime.now(UTC),
+    )
+    return None if job is None else job.model_dump(mode="json")
+
+
 @DBOS.workflow(name=notifications.RECHECK_CLAIM_WORKFLOW)
-async def recheck_claim_workflow(
-    payload: dict[str, Any], corpus_version: str
-) -> dict[str, Any]:
+async def recheck_claim_workflow(plan: dict[str, Any]) -> dict[str, Any] | None:
     """Check one unanswered claim again on the new snapshot; its own CheckRecord.
 
+    The input names no asker; a step reads it from the earlier record, so the
+    workflow leaves DBOS with the person on ``delete_subject`` (US-BEZ-05).
+
     Args:
-        payload: the `CheckInput` JSON object of the new check.
-        corpus_version: the new snapshot, searched instead of the pinned one.
+        plan: the `Recheck` JSON object.
 
     Returns:
-        The `CheckOutput` JSON object.
+        The `CheckOutput` JSON object, or None when the asker was erased.
 
     Features:
-        US-POW-03, F-39, ADR-29
+        US-POW-03, US-BEZ-05, F-20, F-39, ADR-29
     """
-    deps = replace(check_deps(), corpus_version=corpus_version)
+    input_step: StepOptions = {
+        "name": notifications.RECHECK_INPUT_STEP,
+        "retries_allowed": True,
+    }
+    payload = await DBOS.run_step_async(input_step, _recheck_input, plan)
+    if payload is None:
+        return None
+    deps = replace(check_deps(), corpus_version=plan["corpus_version"])
     output = await checks.run_check(
         payload, DBOS.workflow_id or "", deps, build_check_runtime()
     )
@@ -692,10 +709,10 @@ async def recheck_workflow(scheduled: datetime) -> int:
     sent = 0
     for plan in await DBOS.run_step_async(plan_step, _plan_rechecks, scheduled):
         with SetWorkflowID(plan["check_id"]):
-            handle = await DBOS.start_workflow_async(
-                recheck_claim_workflow, plan["job"], plan["corpus_version"]
-            )
+            handle = await DBOS.start_workflow_async(recheck_claim_workflow, plan)
         output = await handle.get_result()
+        if output is None:
+            continue
         sent += await DBOS.run_step_async(
             announce_step, _announce_recheck, plan, output
         )
