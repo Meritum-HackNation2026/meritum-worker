@@ -17,11 +17,12 @@ FEED_URLS: Final = {
     "ec.europa.eu/commission/presscorner": (
         "https://ec.europa.eu/commission/presscorner/api/rss?language=pl"
     ),
-    "www.nato.int": "https://www.nato.int/sitemap.xml",
+    "www.nato.int": "https://www.nato.int/sitemap-index.xml",
     "pkw.gov.pl": "https://pkw.gov.pl/sitemaps/sitemap_1.xml",
 }
 """Feed or sitemap of a catalogue domain, from the catalogue section of core's README;
-the catalogue contract has no field for it."""
+the catalogue contract has no field for it. NATO's ``sitemap.xml`` is 10 MB, past
+core's 5 MB limit, so its sitemap index is read instead (worker#220)."""
 
 FEED_HOST_FIXES: Final = {"pkw.gov.pl": {"baza57-loc.pl": "https://pkw.gov.pl"}}
 """Hosts a publisher's own sitemap names by mistake, per catalogue domain: PKW's

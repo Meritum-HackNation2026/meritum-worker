@@ -197,3 +197,21 @@ def test_pkw_sitemap_pages_on_its_internal_host_move_to_pkw_gov_pl() -> None:
         "https://pkw.gov.pl/aktualnosci",
         "https://pkw.gov.pl/kbw/petycje/2021-r",
     ]
+
+
+def test_a_failing_child_sitemap_is_skipped_and_the_others_are_read() -> None:
+    server = FakeFeedServer()
+    server.serve(
+        "https://mapa.gov.pl/sitemap.xml", xml("sitemap_index.xml"), "text/xml"
+    )
+    server.serve("https://mapa.gov.pl/sitemap-nowe.xml", xml("sitemap.xml"), "text/xml")
+    server.answer("https://mapa.gov.pl/sitemap-stare.xml", 500)
+    pages = asyncio.run(server.discovery().pages(entry("mapa.gov.pl", "sitemap")))
+    assert len(pages) == 3
+
+
+def test_nato_is_read_from_its_sitemap_index() -> None:
+    assert (
+        feed_url(entry("www.nato.int", "sitemap"))
+        == "https://www.nato.int/sitemap-index.xml"
+    )

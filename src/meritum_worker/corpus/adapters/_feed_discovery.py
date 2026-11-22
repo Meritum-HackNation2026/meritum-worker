@@ -4,6 +4,8 @@ Features:
     US-KOR-03, F-13
 """
 
+import logging
+
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus.fetching import FetchPurpose, PageFetcherPort, PageFetchError
 
@@ -18,6 +20,8 @@ from meritum_worker.corpus.feeds import (
     on_entry_site,
     parse_feed,
 )
+
+_log = logging.getLogger(__name__)
 
 
 class FeedDiscovery:
@@ -48,19 +52,33 @@ class FeedDiscovery:
             index adds its children's.
 
         Raises:
-            DiscoveryError: The feed, or a child sitemap, failed.
+            DiscoveryError: The feed or sitemap failed; a failed child of a
+                sitemap index is skipped instead.
         """  # ruff: ignore[docstring-extraneous-exception]  # raised by _read
         if entry.ingest not in FEED_METHODS:
             return await self._entry_pages.pages(entry)
         listing = await self._read(feed_url(entry))
         pages = list(listing.pages)
         for child in listing.sitemaps:
-            pages += (await self._read(child)).pages
+            pages += await self._child_pages(entry, child)
         return [
             page.model_copy(update={"url": url})
             for page in pages
             if (url := on_entry_site(entry, page.url)) is not None
         ]
+
+    async def _child_pages(
+        self, entry: CatalogEntry, url: str
+    ) -> tuple[DiscoveredPage, ...]:
+        # One child sitemap past the size limit (NATO's is 10 MB) or down must not
+        # cost the entry the pages of its other children.
+        try:
+            return (await self._read(url)).pages
+        except DiscoveryError as error:
+            _log.warning(
+                "sitemap %s of %s skipped: %s", url, entry.domain, error.reason
+            )
+            return ()
 
     async def _read(self, url: str) -> FeedListing:
         try:
