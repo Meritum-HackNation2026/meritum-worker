@@ -58,6 +58,12 @@ def says_no_result_is_not_no_change(context: Context) -> None:
     assert NO_CHANGE in (_claim(context).unresolved or "")
 
 
+@then('"co zmieniłoby werdykt" nie powtarza ogólnej formułki o podpisanej wypowiedzi')
+def no_generic_named_source(context: Context) -> None:
+    # unresolved already names the source this claim needs.
+    assert "needs_named_source" not in _claim(context).would_change_verdict
+
+
 @then('werdykt to "{verdict}", a unresolved mówi, że nie wiadomo, czy strajk się odbył')
 def strike_unknown(context: Context, verdict: str) -> None:
     claim = _claim(context)
