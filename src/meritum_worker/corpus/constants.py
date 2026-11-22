@@ -159,8 +159,8 @@ MAX_PARALLEL_CLAIMS: Final = 3
 WEB_RESULTS_PER_QUERY: Final = 3
 """Catalogue addresses asked per search; each is fetched and scanned in quarantine."""
 
-WEB_PAGE_MAX_CHARS: Final = 4000
-"""Longest page text kept as evidence and scanned: the limit of a pasted text."""
+MAX_PAGE_TEXT_CHARS: Final = 4000
+"""Longest page text checked and scanned: the limit of a pasted text."""
 
 WEB_SOURCE_ID_PREFIX: Final = "web-"
 """Prefix of the id of a page found by live search, followed by its URL's hash."""

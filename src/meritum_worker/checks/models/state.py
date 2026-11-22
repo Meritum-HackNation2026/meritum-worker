@@ -4,129 +4,27 @@ Features:
     US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, F-07, F-22
 """
 
-from dataclasses import dataclass
 from datetime import date
-from typing import Annotated, Literal
+from typing import Literal
 
-from meritum_core.checks import CheckRecordRepository, CheckResult, InjectionEvent
+from meritum_core.checks import CheckResult, InjectionEvent
 from meritum_core.checks.constants import MIN_TEXT_CHARS
-from meritum_core.checks.contracts import (
-    CatalogEntry,
-    ClaimDateSource,
-    FailureCode,
-    ModelUsage,
-)
-from meritum_core.checks.transcription import TranscriptionPort
-from meritum_core.corpus import CorpusSearchPort, RankedPassage, RerankerPort
-from meritum_core.corpus.fetching import PageFetcherPort
-from meritum_core.corpus.web_search import WebSearchPort
+from meritum_core.checks.contracts import FailureCode, ModelUsage
+from meritum_core.corpus import RankedPassage
 from meritum_core.evidence.models import SourceDocument
 from meritum_core.jobs.contracts import CheckInput
-from meritum_core.notifications import NotificationRepository
-from meritum_core.security.injection import InjectionDetectorPort
-from meritum_core.security.pii import PiiGatePort
-from meritum_core.shared.blobs import BlobStore
-from meritum_core.shared.llm import LlmPort
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from meritum_worker.checks.constants import (
     NO_CORPUS_VERSION,
     TECHNICAL_FAILURE_CODE,
     TECHNICAL_FAILURE_MESSAGE,
 )
-from meritum_worker.evidence import (
-    AssessedCitation,
-    VerifiedCitation,
-)
-from meritum_worker.moderation import ModerationDeps
-
-
-class ExtractedClaim(BaseModel):
-    """One claim the model found in the input, before any evidence is searched.
-
-    Attributes:
-        claim: the claim as written in the input.
-        kind: fact (gets checked), opinion or prediction (not verifiable).
-        explanation: why the claim is that kind, in Polish.
-        claim_date: the date the claim refers to; None until the step dates it.
-        claim_date_source: where the claim date was taken from.
-
-    Features:
-        US-SPR-03, US-SPR-06, US-ZRD-05, F-07
-    """
-
-    model_config = ConfigDict(frozen=True)
-
-    claim: Annotated[str, Field(min_length=5, max_length=500)]
-    kind: Literal["fact", "opinion", "prediction"]
-    explanation: Annotated[str, Field(min_length=10, max_length=800)]
-    claim_date: date | None = None
-    claim_date_source: ClaimDateSource | None = None
-
-    @property
-    def is_fact(self) -> bool:
-        """Whether the claim gets checked; opinions and predictions do not."""
-        return self.kind == "fact"
-
-
-class ClaimExtraction(BaseModel):
-    """What the model answers in extract_claims.
-
-    Attributes:
-        out_of_scope: the request is not about information (e.g. „napisz wiersz”).
-        claims: every claim in the input, in order; empty when there is none.
-
-    Features:
-        US-SPR-03, US-SPR-06, US-ZRD-05, F-07
-    """
-
-    out_of_scope: bool
-    claims: list[ExtractedClaim]
-
+from meritum_worker.checks.models.claims import ExtractedClaim
+from meritum_worker.evidence import AssessedCitation, VerifiedCitation
 
 type NotAVerdict = Literal["needs_clarification", "out_of_scope", "technical_failure"]
 """Check statuses that carry a message instead of claims."""
-
-
-@dataclass(frozen=True, slots=True)
-class CheckDeps:
-    """Ports the steps call; built once by `checks.factory`.
-
-    Attributes:
-        llm: the language model, from the core LLM factory.
-        records: where the CheckRecord is saved.
-        pages: the SSRF-safe page fetcher, from the core fetching factory.
-        pii: the personal-data masking gate for pages, transcripts and web queries.
-        blobs: the store holding uploaded recordings (ADR-31).
-        transcriber: transcription over the same store (ADR-30).
-        notifications: the inbox the end of a long check is announced in.
-        web_search: live web search, limited to catalogue domains.
-        injection: the detector pages found by web search are scanned with.
-        catalog: the loaded source catalogue.
-        corpus: hybrid search of the corpus snapshots, called in process (ADR-32).
-        reranker: the gate passages pass before stance assessment (ADR-35).
-        corpus_version: the snapshot checks search; NO_CORPUS_VERSION skips it.
-        moderation: the ports of moderator cases; None skips the cases step.
-
-    Features:
-        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
-        US-POW-01, US-KOR-04, F-06, F-08, F-09, F-12, F-13, F-22
-    """
-
-    llm: LlmPort
-    records: CheckRecordRepository
-    pages: PageFetcherPort
-    pii: PiiGatePort
-    blobs: BlobStore
-    transcriber: TranscriptionPort
-    notifications: NotificationRepository
-    web_search: WebSearchPort
-    injection: InjectionDetectorPort
-    catalog: tuple[CatalogEntry, ...]
-    corpus: CorpusSearchPort
-    reranker: RerankerPort
-    corpus_version: str
-    moderation: ModerationDeps | None = None
 
 
 class CheckState(BaseModel):
