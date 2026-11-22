@@ -4,6 +4,7 @@ Features:
     US-OBS-07, US-OBS-04, F-27, ADR-28
 """
 
+from meritum_worker.observability.adapters._api_checks import ApiChecks
 from meritum_worker.observability.adapters._blob_case_sets import BlobCaseSets
 from meritum_worker.observability.adapters._corpus import (
     CassetteCorpus,
@@ -17,6 +18,7 @@ from meritum_worker.observability.adapters._postgres_runs import PostgresEvalRun
 from meritum_worker.observability.adapters._web_search import CassetteWebSearch
 
 __all__ = [
+    "ApiChecks",
     "BlobCaseSets",
     "CassetteCorpus",
     "CassetteInjection",

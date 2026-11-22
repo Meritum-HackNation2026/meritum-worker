@@ -14,11 +14,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from meritum_core.shared.embeddings import build_embeddings
-from meritum_core.shared.llm import LlmSettings
+from meritum_core.shared.llm import LlmSettings, build_llm
 from pydantic import ValidationError
 
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cassette import Cassette, EvalMode
+from meritum_worker.observability.citation_judge import judge_citations
 from meritum_worker.observability.comparison import (
     ModelComparison,
     ModelConfig,
@@ -30,9 +31,14 @@ from meritum_worker.observability.constants import (
     DEFAULT_MAX_CONCURRENCY,
     EVAL_NAME,
 )
-from meritum_worker.observability.factory import build_eval_deps, build_replay_deps
+from meritum_worker.observability.factory import (
+    build_api_checks,
+    build_eval_deps,
+    build_replay_deps,
+)
 from meritum_worker.observability.gates import GATES_COMMAND, gates_eval
 from meritum_worker.observability.models import GoldenSet
+from meritum_worker.observability.report import EvalReport
 from meritum_worker.observability.retrieval import (
     EmbeddingsComparison,
     EmbeddingsConfig,
@@ -40,7 +46,7 @@ from meritum_worker.observability.retrieval import (
     load_embeddings_config,
     score_retrieval,
 )
-from meritum_worker.observability.runner import DepsFor, run_eval
+from meritum_worker.observability.runner import DepsFor, run_cases, run_eval
 from meritum_worker.observability.scoring import score_runs
 
 
@@ -78,6 +84,13 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
     parser.add_argument("--mode", type=EvalMode, default=EvalMode.LIVE)
     parser.add_argument("--cassette", type=Path, help="needed by record and replay")
     parser.add_argument("--corpus-version", help="snapshot every check is pinned to")
+    parser.add_argument("--api", help="origin of a deployed API to check the cases on")
+    parser.add_argument(
+        "--judge", action="store_true", help="judge citations with MERITUM_LLM_*"
+    )
+    parser.add_argument(
+        "--fresh", action="store_true", help="bypass the API's result cache"
+    )
     args = parser.parse_args(argv)
     try:
         cases = load_eval_cases(args.cases)
@@ -97,6 +110,8 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
         report = asyncio.run(
             _compare(cases, args.cases, models, embeddings, args.max_concurrency)
         )
+    elif args.api:
+        report = asyncio.run(_through_api(cases, args, args.max_concurrency))
     else:
         deps_for, recorded = _deps(parser, args)
         report = score_runs(
@@ -130,6 +145,21 @@ async def _compare(
         for c in embeddings
     ]
     return compare_embeddings(scores, str(cases_file), now)
+
+
+async def _through_api(
+    cases: GoldenSet, args: argparse.Namespace, concurrency: int
+) -> EvalReport:
+    checks = build_api_checks(args.api, fresh=args.fresh)
+    try:
+        runs = await run_cases(cases, checks.check, concurrency)
+    finally:
+        await checks.aclose()
+    report = score_runs(runs)
+    if not args.judge:
+        return report
+    precision = await judge_citations(runs, build_llm(LlmSettings()))
+    return report.model_copy(update={"citation_precision": precision})
 
 
 def _deps(

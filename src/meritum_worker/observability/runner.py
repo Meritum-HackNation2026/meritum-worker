@@ -6,7 +6,7 @@ Features:
 
 import hashlib
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 
 from meritum_core.checks import SESSIONLESS_CHANNELS, CheckRequest, CheckResult
@@ -26,6 +26,8 @@ from meritum_worker.observability.report import CaseRun
 
 type DepsFor = Callable[[GoldenCase], CheckDeps]
 """The ports a case's check runs on (a forced fault swaps one)."""
+type CaseTask = Callable[[GoldenCase], Awaitable[CaseRun]]
+"""Checks one case and never raises: in process or through a deployed API."""
 
 
 async def run_eval(
@@ -46,9 +48,34 @@ async def run_eval(
     """
 
     async def task(case: GoldenCase) -> CaseRun:
+        return await _check(case, deps_for(case))
+
+    return await run_cases(cases, task, max_concurrency)
+
+
+async def run_cases(
+    cases: GoldenSet, check: CaseTask, max_concurrency: int
+) -> list[CaseRun]:
+    """Run every case through ``check`` with pydantic-evals.
+
+    A screenshot-only case ends ``out_of_scope`` without a check (no OCR here).
+
+    Args:
+        cases: The validated case file.
+        check: Checks one case; ``ApiChecks.check`` for a deployed API.
+        max_concurrency: Most cases checked at once.
+
+    Returns:
+        One run per case, in file order.
+
+    Features:
+        US-OBS-04, US-OBS-05, F-27, ADR-28
+    """
+
+    async def task(case: GoldenCase) -> CaseRun:
         if case.text is None and case.url is None:
             return _screenshot_only(case)
-        return await _check(case, deps_for(case))
+        return await check(case)
 
     dataset = Dataset[GoldenCase, CaseRun, None](
         name=EVAL_NAME,
