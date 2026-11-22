@@ -50,8 +50,10 @@ class RetentionDeps:
         removed_checks: the ids of checks dropped from moderator cases.
         corpus: the catalogue documents, whose full texts expire.
         archives: the page copies' registry and files.
-        check_workflows: the names of workflows started with a ``CheckInput``:
-            the `check` workflow and the recheck after a new snapshot.
+        check_workflows: the names of workflows started with a ``CheckInput``.
+        recheck_workflows: the names of workflows started with a check's id
+            and the earlier check it repeats, without the asker: the recheck
+            after a new snapshot reads who asked from the earlier record.
 
     Features:
         US-BEZ-05, US-POW-03, US-POW-04, US-KOR-05, F-10, F-20, F-39, ADR-13
@@ -64,6 +66,7 @@ class RetentionDeps:
     corpus: CorpusRetentionPort
     archives: ArchiveDeps
     check_workflows: tuple[str, ...] = (CHECK.name,)
+    recheck_workflows: tuple[str, ...] = ()
 
 
 class RetentionReport(BaseModel):

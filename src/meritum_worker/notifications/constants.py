@@ -10,11 +10,11 @@ from typing import Final
 RECHECK_WORKFLOW: Final = "recheck_unanswered"
 """DBOS name of the workflow the snapshot workflow starts after each snapshot."""
 
-RECHECK_CLAIM_WORKFLOW: Final = "recheck_claim"
-"""DBOS name of one recheck: the `check` workflow body on the new snapshot."""
-
 RECHECK_PLAN_STEP: Final = "plan rechecks"
 """DBOS step that picks the claims to check again."""
+
+RECHECK_INPUT_STEP: Final = "recheck input"
+"""DBOS step of one recheck that reads the earlier asker from their record."""
 
 RECHECK_ANNOUNCE_STEP: Final = "announce recheck"
 """DBOS step that saves ``new_evidence`` when a recheck changed the verdict."""

@@ -13,7 +13,7 @@ from collections.abc import Collection
 from datetime import datetime
 from uuid import NAMESPACE_URL, uuid5
 
-from meritum_core.checks import CheckRequest, CheckResult
+from meritum_core.checks import CheckRecordRepository, CheckRequest, CheckResult
 from meritum_core.checks.contracts import CheckRecord
 from meritum_core.jobs.contracts import CheckInput
 
@@ -71,8 +71,40 @@ async def plan_rechecks(
             continue
         unseen = {s for s, at in fresh.items() if at > record.received_at}
         if unseen and await _finds(past, record, unseen, version, deps):
-            plans.append(_recheck(past, record, version, now))
+            plans.append(_recheck(past, version))
     return plans
+
+
+async def recheck_input(
+    recheck: Recheck, records: CheckRecordRepository, now: datetime
+) -> CheckInput | None:
+    """Build the new check's input: the claim, from the earlier asker.
+
+    The asker comes from the earlier record at the time of the recheck, so a
+    person erased after the plan is not checked again.
+
+    Args:
+        recheck: the planned recheck.
+        records: the check records.
+        now: when the new check arrives.
+
+    Returns:
+        The input, or None when the earlier record is gone.
+
+    Features:
+        US-POW-03, US-BEZ-05, F-20, F-39
+    """
+    record = await records.get(recheck.old_check_id)
+    if record is None:
+        return None
+    # The same asker as before: a channel without sessions keeps its user hash.
+    return CheckInput(
+        request=CheckRequest(channel=record.channel, text=recheck.claim),
+        session_id=record.session_id,
+        user_id=record.user_id,
+        channel_user_hash=record.channel_user_hash,
+        received_at=now,
+    )
 
 
 async def announce_recheck(
@@ -142,23 +174,13 @@ async def _finds(
     return any(p.source_id in unseen for p in found)
 
 
-def _recheck(
-    past: PastClaim, record: CheckRecord, version: str, now: datetime
-) -> Recheck:
+def _recheck(past: PastClaim, version: str) -> Recheck:
     key = RECHECK_KEY.format(
         old_check_id=past.check_id, claim=past.claim, corpus_version=version
-    )
-    # The same asker as before: a channel without sessions keeps its user hash.
-    job = CheckInput(
-        request=CheckRequest(channel=record.channel, text=past.claim),
-        session_id=record.session_id,
-        user_id=record.user_id,
-        channel_user_hash=record.channel_user_hash,
-        received_at=now,
     )
     return Recheck(
         old_check_id=past.check_id,
         check_id=uuid5(NAMESPACE_URL, key).hex,
         corpus_version=version,
-        job=job,
+        claim=past.claim,
     )

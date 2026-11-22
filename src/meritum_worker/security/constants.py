@@ -100,7 +100,10 @@ BLOB_PROVIDER_ENV: Final = "MERITUM_BLOB_PROVIDER"
 """Environment variable naming the blob store; a worker without it has no files."""
 
 CHECK_ID_FIELD: Final = "check_id"
-"""Field of an ``EscalateClaimInput`` that names its check."""
+"""Field of an ``EscalateClaimInput`` or a recheck that names its check."""
+
+OLD_CHECK_ID_FIELD: Final = "old_check_id"
+"""Field of a recheck that names the earlier check it repeats."""
 
 REQUEST_FIELD: Final = "request"
 """Field of a ``CheckInput`` holding the ``CheckRequest``."""

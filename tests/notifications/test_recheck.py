@@ -15,6 +15,7 @@ from meritum_worker.notifications import (
     RecheckDeps,
     announce_recheck,
     plan_rechecks,
+    recheck_input,
 )
 
 SCHEDULED = datetime(2026, 1, 8, 10, 0, tzinfo=UTC)
@@ -117,9 +118,32 @@ def test_a_similar_new_document_plans_one_recheck_of_the_claim() -> None:
     assert plan.old_check_id == "old-1"
     assert plan.corpus_version == "2026-01-08T10:00Z"
     assert plan.check_id != "old-1"
-    assert plan.job.request.text == CLAIM
-    assert plan.job.session_id == "session-old-1"
-    assert plan.job.received_at == SCHEDULED
+    assert plan.claim == CLAIM
+
+
+def test_the_plan_does_not_name_the_asker() -> None:
+    [plan] = _world().plan()
+    assert "session-old-1" not in plan.model_dump_json()
+
+
+def test_the_recheck_reads_the_asker_from_the_earlier_record() -> None:
+    world = _world()
+    [plan] = world.plan()
+    later = SCHEDULED + timedelta(minutes=5)
+    job = asyncio.run(recheck_input(plan, world.records, later))
+    assert job is not None
+    assert (job.request.text, job.session_id, job.received_at) == (
+        CLAIM,
+        "session-old-1",
+        later,
+    )
+
+
+def test_no_recheck_input_once_the_asker_was_erased() -> None:
+    world = _world()
+    [plan] = world.plan()
+    asyncio.run(world.records.delete_subject("session_id", "session-old-1"))
+    assert asyncio.run(recheck_input(plan, world.records, SCHEDULED)) is None
 
 
 def test_the_same_snapshot_plans_the_same_check_id() -> None:
@@ -174,7 +198,9 @@ def test_a_discord_question_is_rechecked_for_the_same_hashed_user() -> None:
     world.snapshots(old=[], new=["gov-new"])
     world.found = [_passage("gov-new")]
     [plan] = world.plan()
-    assert (plan.job.session_id, plan.job.channel_user_hash) == (HASH, HASH)
+    job = asyncio.run(recheck_input(plan, world.records, SCHEDULED))
+    assert job is not None
+    assert (job.session_id, job.channel_user_hash) == (HASH, HASH)
 
 
 def _result(plan: Recheck, verdict: str) -> CheckResult:
