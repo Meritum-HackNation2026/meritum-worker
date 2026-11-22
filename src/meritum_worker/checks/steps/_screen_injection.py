@@ -8,12 +8,15 @@ Features:
     US-BEZ-01, US-SPR-01, US-OBS-01, F-19, F-22, ADR-12, ADR-23
 """
 
+from collections.abc import Iterable
+
 from meritum_core.checks import InjectionEvent
 from meritum_core.security.injection import instruction_removed
 
 from meritum_worker.checks.constants import (
     INJECTION_EXCERPT_MAX_CHARS,
     LIMITATION_MAX_CHARS,
+    SOURCE_DROPPED_NOTE,
 )
 from meritum_worker.checks.models import CheckDeps, CheckState
 
@@ -44,7 +47,6 @@ async def screen_injection(state: CheckState, deps: CheckDeps) -> CheckState:
         if scan.detected:
             first = scan.spans[0]
             excerpt = page_text[first.start : first.end][:INJECTION_EXCERPT_MAX_CHARS]
-            url = str(request.url)
             events.append(
                 InjectionEvent(
                     location="source",
@@ -53,7 +55,8 @@ async def screen_injection(state: CheckState, deps: CheckDeps) -> CheckState:
                     excerpt=excerpt,
                 )
             )
-            page_text, limitations = None, [*limitations, url[:LIMITATION_MAX_CHARS]]
+            page_text = None
+            limitations = [*limitations, *dropped_page_notes(events[-1:])]
     if not events:
         return state
     job = state.job.model_copy(
@@ -68,6 +71,24 @@ async def screen_injection(state: CheckState, deps: CheckDeps) -> CheckState:
             "injection_events": [*state.injection_events, *events],
         }
     )
+
+
+def dropped_page_notes(events: Iterable[InjectionEvent]) -> list[str]:
+    """One plain sentence per host of the dropped pages, in order.
+
+    Args:
+        events: the ``source_dropped`` events.
+
+    Returns:
+        The limitations; the addresses stay in the events.
+
+    Features:
+        US-BEZ-01, US-OBS-01, F-22
+    """
+    hosts = dict.fromkeys(e.source_url.host for e in events if e.source_url is not None)
+    return [
+        SOURCE_DROPPED_NOTE.format(host=host)[:LIMITATION_MAX_CHARS] for host in hosts
+    ]
 
 
 async def _cleaned(
