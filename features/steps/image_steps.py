@@ -29,7 +29,7 @@ from meritum_worker.checks import (
     run_check,
     web_ports,
 )
-from meritum_worker.checks.constants import IMAGE_DATE_NOTE
+from meritum_worker.checks.image.constants import IMAGE_DATE_NOTE
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 RECEIVED_AT = datetime(2026, 11, 20, 12, 0, tzinfo=UTC)

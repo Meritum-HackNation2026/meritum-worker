@@ -14,7 +14,7 @@ from meritum_core.checks.ocr import (
 from meritum_core.security.pii import mask_personal_data
 from meritum_core.shared.blobs import BlobNotFoundError
 
-from meritum_worker.checks.constants import (
+from meritum_worker.checks.image.constants import (
     IMAGE_DATE_NOTE,
     IMAGE_SEARCH_NOT_RUN_NOTE,
     IMAGE_SEARCHED_NOTE,

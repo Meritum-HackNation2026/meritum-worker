@@ -8,7 +8,7 @@ from meritum_core.jobs.contracts import CheckInput
 from meritum_core.shared.blobs import BlobKind
 
 from meritum_worker.checks import CheckDeps, CheckState, image_ports, png
-from meritum_worker.checks.constants import IMAGE_DATE_NOTE, READ_IMAGE_STEP
+from meritum_worker.checks.image.constants import IMAGE_DATE_NOTE, READ_IMAGE_STEP
 from meritum_worker.checks.steps import read_image
 
 TEXT = "Od 1 grudnia zakaz wjazdu aut spalinowych do Warszawy. Opublikowano 12.11.2026."
