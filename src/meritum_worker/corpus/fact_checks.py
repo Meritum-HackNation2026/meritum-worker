@@ -214,8 +214,7 @@ def _finding(
 
 def _contract_rating(rating: str) -> str | None:
     # A rating longer than ClaimReviewPremise/Context take is cut at a word with
-    # an ellipsis: still the fact-checker's link and words, as context (its stance
-    # comes from the full-rating table, so a cut rating is never a premise).
+    # an ellipsis; core reads its stance from the verdict before the explanation.
     if len(rating) <= REVIEW_RATING_MAX_CHARS:
         return rating
     cut = rating[: REVIEW_RATING_MAX_CHARS - 1].rsplit(" ", 1)[0]
