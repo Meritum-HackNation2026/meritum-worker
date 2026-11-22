@@ -83,7 +83,12 @@ def pipeline() -> tuple[tuple[Lane, ...], ...]:
         (
             (
                 "save_record",
-                (steps.moderator_cases, steps.notify_done, steps.save_record),
+                (
+                    steps.moderator_cases,
+                    steps.notify_new_evidence,
+                    steps.notify_done,
+                    steps.save_record,
+                ),
             ),
         ),
     )
