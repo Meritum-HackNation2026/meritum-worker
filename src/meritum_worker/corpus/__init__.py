@@ -4,10 +4,19 @@ Public API: the ingestion, sync and live search, their ports, models, errors and
 factories.
 
 Features:
-    US-KOR-08, US-KOR-02, US-KOR-04, US-KOR-05, US-ZRD-08, F-10, F-11, F-12, F-13,
-    ADR-19, ADR-26, ADR-32
+    US-KOR-08, US-KOR-02, US-KOR-04, US-KOR-05, US-KOR-07, US-ZRD-08, F-10, F-11, F-12,
+    F-13, F-38, ADR-19, ADR-26, ADR-32
 """
 
+from meritum_worker.corpus.archive import archive_page, delete_archive, read_archive
+from meritum_worker.corpus.archive_constants import ARCHIVE_RATE_LIMIT
+from meritum_worker.corpus.archive_models import (
+    ArchiveCopy,
+    ArchiveOutcome,
+    ArchiveRefusal,
+    ArchiveRequest,
+)
+from meritum_worker.corpus.archive_ports import ArchiveDeps, ArchiveRegistry
 from meritum_worker.corpus.chunking import chunk_text
 from meritum_worker.corpus.constants import (
     INGEST_SCHEDULE,
@@ -35,6 +44,7 @@ from meritum_worker.corpus.documents import (
     ManifestEntry,
 )
 from meritum_worker.corpus.errors import (
+    ArchiveAccessDeniedError,
     DiscoveryError,
     EuvsDisinfoUnavailableError,
     FactCheckUnavailableError,
@@ -112,6 +122,7 @@ from meritum_worker.corpus.settings import (
 from meritum_worker.corpus.sync import catalog_entry, missing_env, sync_euvsdisinfo
 
 __all__ = [
+    "ARCHIVE_RATE_LIMIT",
     "IMPORT_WORKFLOW",
     "INGEST_SCHEDULE",
     "INGEST_STEP_PREFIX",
@@ -126,6 +137,13 @@ __all__ = [
     "TOKEN_ENV",
     "WEB_SEARCH_MARGIN",
     "WEB_SEARCH_TIMEOUT",
+    "ArchiveAccessDeniedError",
+    "ArchiveCopy",
+    "ArchiveDeps",
+    "ArchiveOutcome",
+    "ArchiveRefusal",
+    "ArchiveRegistry",
+    "ArchiveRequest",
     "ClaimReviewFinding",
     "CorpusLivePages",
     "CorpusRetentionPort",
@@ -169,6 +187,7 @@ __all__ = [
     "StoredEntry",
     "SyncReport",
     "admit_pages",
+    "archive_page",
     "build_corpus_retention",
     "build_corpus_writer",
     "build_document_discovery",
@@ -179,6 +198,7 @@ __all__ = [
     "build_reranker",
     "catalog_entry",
     "chunk_text",
+    "delete_archive",
     "detect_language",
     "due_entries",
     "import_organiser_file",
@@ -188,6 +208,7 @@ __all__ = [
     "ingestion_enabled",
     "is_due",
     "missing_env",
+    "read_archive",
     "rerank_passages",
     "run_euvsdisinfo_sync",
     "search_fact_checks",

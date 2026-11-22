@@ -58,3 +58,13 @@ class DiscoveryError(Exception):
         super().__init__(f"{url}: {reason}")
         self.url = url
         self.reason = reason
+
+
+class ArchiveAccessDeniedError(Exception):
+    """No such archived copy, or the person may not read or delete it.
+
+    Both cases look the same, so a stranger learns nothing about other copies.
+
+    Features:
+        US-KOR-07, F-38
+    """
