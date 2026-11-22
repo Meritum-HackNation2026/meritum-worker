@@ -14,6 +14,7 @@ from xml.etree.ElementTree import Element  # nosec B405  # ruff: ignore[suspicio
 
 from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError, fromstring
+from meritum_core.checks.contracts import SourceVia
 
 from meritum_worker.corpus.documents import DiscoveredPage
 from meritum_worker.corpus.errors import FeedUnreadableError
@@ -95,14 +96,16 @@ def _text(element: Element, tag: str) -> str:
     return (found.text or "").strip() if found is not None else ""
 
 
-def _page(url: str, published_on: date | None) -> DiscoveredPage | None:
+def _page(
+    url: str, published_on: date | None, via: SourceVia = "corpus"
+) -> DiscoveredPage | None:
     if not url.startswith(("http://", "https://")):
         return None
-    return DiscoveredPage(url=url, published_on=published_on)
+    return DiscoveredPage(url=url, published_on=published_on, via=via)
 
 
 def _rss_item(item: Element) -> DiscoveredPage | None:
-    return _page(_text(item, "link"), _rfc822_date(_text(item, "pubDate")))
+    return _page(_text(item, "link"), _rfc822_date(_text(item, "pubDate")), "rss")
 
 
 def _atom_entry(entry: Element) -> DiscoveredPage | None:
@@ -110,7 +113,7 @@ def _atom_entry(entry: Element) -> DiscoveredPage | None:
     alternate = [link for link in links if link.get("rel", "alternate") == "alternate"]
     url = alternate[0].get("href", "").strip() if alternate else ""
     stamp = _text(entry, f"{ATOM_NS}published") or _text(entry, f"{ATOM_NS}updated")
-    return _page(url, _iso_date(stamp))
+    return _page(url, _iso_date(stamp), "rss")
 
 
 def _located(element: Element) -> DiscoveredPage | None:

@@ -18,7 +18,7 @@ from meritum_core.corpus.web_search import catalog_entry_for
 from meritum_core.shared.embeddings import EmbeddingsUnavailableError
 
 from meritum_worker.corpus.constants import EMBEDDINGS_UNAVAILABLE
-from meritum_worker.corpus.documents import IngestReport
+from meritum_worker.corpus.documents import DiscoveredPage, IngestReport
 from meritum_worker.corpus.pages import failed_page, store_page
 from meritum_worker.corpus.ports import IngestDeps
 
@@ -88,7 +88,10 @@ class CorpusLivePages:
             if entry is None:
                 continue
             try:
-                report += await store_page(page, entry, self._deps, now=now)
+                found = DiscoveredPage(url=page.url, via="web_search")
+                report += await store_page(
+                    page, entry, self._deps, now=now, found=found
+                )
             except EmbeddingsUnavailableError:
                 report += failed_page(entry, page.url, EMBEDDINGS_UNAVAILABLE)
         return report

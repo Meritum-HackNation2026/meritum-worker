@@ -61,6 +61,16 @@ def test_sitemap_reads_loc_and_lastmod() -> None:
     ]
 
 
+def test_feed_items_come_by_rss_and_sitemap_pages_by_the_corpus() -> None:
+    """Gherkin: dokument z kanału RSS zapisuje drogę pozyskania (worker#154)."""
+    listed = [parse_feed(xml(n)).pages for n in ("rss.xml", "atom.xml", "sitemap.xml")]
+    assert [{p.via for p in pages} for pages in listed] == [
+        {"rss"},
+        {"rss"},
+        {"corpus"},
+    ]
+
+
 def test_sitemap_index_lists_children_newest_first() -> None:
     listing = parse_feed(xml("sitemap_index.xml"))
     assert listing.pages == ()
