@@ -27,5 +27,8 @@
   "InjectionClassification": {
     "injected": false,
     "instructions": []
+  },
+  "StanceJudgement": {
+    "relevant": false
   }
 }

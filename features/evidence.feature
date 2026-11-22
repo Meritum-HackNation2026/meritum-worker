@@ -1,7 +1,38 @@
 # language: pl
-Funkcja: Wiek i ważność dowodów w workerze
+Funkcja: Wymowa cytatów i werdykt z reguły core
 
-  Scenariusz: stary dowód nie przeważa nad świeżym
-    Zakładając twierdzenie z datą i dwa dowody, stary z expires i świeży
-    Gdy worker liczy siłę dowodów i werdykt
-    Wtedy wiek i ważność dowodów liczone są od daty twierdzenia funkcjami z core#41
+  Scenariusz: cytat, którego nie ma w źródle, nie trafia do odpowiedzi
+    Zakładając model wskazał jedyny fragment, którego nie ma dosłownie w tekście źródła
+    Gdy system weryfikuje cytaty
+    Wtedy fragment nie trafia do odpowiedzi
+    Oraz twierdzenie bez cytatu dostaje werdykt "insufficient_evidence" z opisem braków i bez siły
+
+  Scenariusz: szacunek i pozycja budżetu to nie sprzeczność (scenariusz C)
+    Zakładając przesłanka, że 650 mln zł to wydatki na transport zbiorowy w 2023 r., a 700 mln zł to przybliżenie z wypowiedzi polityka
+    Gdy system ustala wymowę i werdykt
+    Wtedy wynik nie jest "insufficient_evidence" z powodu sprzecznych źródeł
+    Oraz wyjaśnienie mówi, że jedna liczba to szacunek z wypowiedzi, a druga konkretna pozycja i rok
+
+  Scenariusz: brak dowodów nazywa potrzebne źródło (scenariusz D)
+    Zakładając pytanie o bilety w Pcimiu i brak dowodów w korpusie, sieci i indeksie fact-checkerów
+    Gdy system pisze odpowiedź
+    Wtedy werdykt to "insufficient_evidence", a unresolved nazywa komunikat lokalnego organizatora transportu
+    Oraz odpowiedź mówi, że brak wyniku w bazie nie oznacza, że zmiany nie było
+
+  Scenariusz: zapowiedź o nieznanym wyniku (scenariusz A)
+    Zakładając strona o strajku zapowiedzianym na 20 listopada 2026 r.
+    Gdy system ustala werdykt
+    Wtedy werdykt to "insufficient_evidence", a unresolved mówi, że nie wiadomo, czy strajk się odbył
+    Oraz zapowiedź nie jest potwierdzeniem, że wydarzenie się odbyło
+
+  Scenariusz: sprzeczne wiarygodne źródła
+    Zakładając ważne w dacie twierdzenia cytaty wspierające i obalające od różnych publisher_id
+    Gdy system ustala werdykt
+    Wtedy werdykt to "insufficient_evidence" bez siły
+    Oraz wynik ma cytaty obu stron
+
+  Scenariusz: starszy dowód zastąpiony nowszym urzędowym
+    Zakładając twierdzenie z claim_date 2026-11-01 i starszy dowód wspierający z 2025 roku oraz nowszy urzędowy dowód obalający z 2026-03-01 od tego samego wydawcy
+    Gdy system ustala ważność dowodów
+    Wtedy starszy dowód ma validity superseded i nie liczy się do siły ani rozbieżności
+    Oraz werdykt to "false" z techniką outdated
