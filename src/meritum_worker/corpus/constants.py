@@ -7,8 +7,8 @@ Features:
 from datetime import timedelta
 from typing import Final
 
-EUVSDISINFO_MCP_URL: Final = "https://euvsdisinfo-mcp-server.vercel.app/mcp"
-"""Streamable HTTP endpoint of the EUvsDisinfo MCP server (Vercel, USA; ADR-14)."""
+EUVSDISINFO_MCP_URL: Final = "https://mcp.euvsd.info/mcp"
+"""Streamable HTTP endpoint of the EUvsDisinfo MCP server (ADR-14)."""
 
 TOKEN_ENV: Final = "EUVSDISINFO_MCP_API_KEY"  # ruff: ignore[hardcoded-password-string]  # a variable name
 """Environment variable with the token EUvsDisinfo issues on request (worker#9)."""
