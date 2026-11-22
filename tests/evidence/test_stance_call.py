@@ -68,3 +68,20 @@ def test_opinions_and_a_check_without_sources_make_no_stance_call() -> None:
     asyncio.run(assess_evidence(no_sources, deps(llm)))
 
     assert llm.prompts == []
+
+
+def test_support_missing_a_part_of_the_claim_is_only_context() -> None:
+    gross = "Od 1 stycznia płaca minimalna wynosi 4806 zł miesięcznie."
+    llm = RecordedLlm(
+        {
+            gross: StanceJudgement(
+                relevant=True, fragment=gross, stance="supports", missing="brutto"
+            )
+        }
+    )
+    state = state_with("Płaca wynosi 4806 zł brutto", [document("a", gross)])
+
+    out = asyncio.run(assess_evidence(state, deps(llm)))
+
+    assert [a.draft.stance for a in out.assessed] == ["context"]
+    assert out.limitations[-1].startswith("Nie potwierdzono: brutto.")

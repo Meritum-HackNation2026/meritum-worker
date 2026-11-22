@@ -12,6 +12,8 @@ from meritum_core.evidence import CitationDraft, SourceDocument, rate_review
 from meritum_core.shared.llm import LlmUsage
 
 from meritum_worker import corpus, evidence
+from meritum_worker.checks.answers import plain_text
+from meritum_worker.checks.constants import LIMITATION_MAX_CHARS, PARTIAL_SUPPORT_NOTE
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
 from meritum_worker.checks.usage import model_usage
 
@@ -54,10 +56,11 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
     )
     assessed = [
         evidence.AssessedCitation(fact=index, draft=draft)
-        for (index, _, _), (draft, _) in zip(pairs, answers, strict=True)
+        for (index, _, _), (draft, _, _) in zip(pairs, answers, strict=True)
         if draft is not None
     ]
-    usages = [model_usage(usage) for _, usage in answers]
+    usages = [model_usage(usage) for _, usage, _ in answers]
+    partial = _partial_notes(pairs, answers)
     compared = await asyncio.gather(
         *(_compared(deps, facts, f) for f in state.fact_checks)
     )
@@ -68,6 +71,7 @@ async def assess_evidence(state: CheckState, deps: CheckDeps) -> CheckState:
             "claims": claims,
             "same_claim_reviews": [*state.same_claim_reviews, *same],
             "assessed": [*state.assessed, *assessed],
+            "limitations": [*state.limitations, *partial],
             "models": [*state.models, *usages],
         }
     )
@@ -91,12 +95,25 @@ async def _assess(
     fact: ExtractedClaim,
     document: SourceDocument,
     validity: dict[str, Validity],
-) -> tuple[CitationDraft | None, LlmUsage]:
+) -> tuple[CitationDraft | None, LlmUsage, str]:
     claim_date = fact.claim_date or date.min  # filtered out by the caller
     entry_validity = validity.get(document.source.domain, "expires")
     return await evidence.assess_stance(
         deps.llm, fact.claim, claim_date, document, entry_validity
     )
+
+
+def _partial_notes(
+    pairs: list[tuple[int, ExtractedClaim, SourceDocument]],
+    answers: list[tuple[CitationDraft | None, LlmUsage, str]],
+) -> list[str]:
+    # Partial support is context only; the limitation says what stayed unconfirmed.
+    notes = {
+        PARTIAL_SUPPORT_NOTE.format(missing=missing, claim=fact.claim)
+        for (_, fact, _), (_, _, missing) in zip(pairs, answers, strict=True)
+        if missing
+    }
+    return [plain_text(note, LIMITATION_MAX_CHARS) for note in sorted(notes)]
 
 
 def _claim_date(

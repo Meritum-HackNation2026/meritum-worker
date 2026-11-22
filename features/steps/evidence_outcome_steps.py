@@ -97,3 +97,8 @@ def older_superseded(context: Context) -> None:
 def outdated(context: Context, verdict: str) -> None:
     claim = _claim(context)
     assert (claim.verdict, claim.technique) == (verdict, "outdated")
+
+
+@then('ograniczenie wskazuje, że nie potwierdzono kwalifikatora "{part}"')
+def limitation_names_missing_part(context: Context, part: str) -> None:
+    assert any(part in text for text in context.state.result.limitations)
