@@ -21,6 +21,7 @@ from meritum_worker.corpus.adapters import (
     MemoryCorpusWriter,
     MemoryEuvsCopy,
     OpenRouterReranker,
+    OrganiserFile,
     PostgresCorpusWriter,
     PostgresEuvsCopy,
     VertexReranker,
@@ -33,6 +34,7 @@ from meritum_worker.corpus.constants import (
 )
 from meritum_worker.corpus.errors import MissingTokenError
 from meritum_worker.corpus.models import SyncReport
+from meritum_worker.corpus.organiser import OrganiserFilePort
 from meritum_worker.corpus.ports import (
     CorpusWriterPort,
     DocumentDiscoveryPort,
@@ -108,6 +110,18 @@ def build_corpus_writer(settings: CorpusSettings | None = None) -> CorpusWriterP
     """  # ruff: ignore[docstring-extraneous-exception]  # raised by _postgres_url
     url = _postgres_url(settings)
     return MemoryCorpusWriter() if url is None else PostgresCorpusWriter(url)
+
+
+def build_organiser_file() -> OrganiserFilePort:
+    """The reader of the organiser's JSON or CSV files on local disk.
+
+    Returns:
+        The file adapter.
+
+    Features:
+        US-KOR-02, F-10, ADR-32
+    """
+    return OrganiserFile()
 
 
 def build_document_discovery() -> DocumentDiscoveryPort:
