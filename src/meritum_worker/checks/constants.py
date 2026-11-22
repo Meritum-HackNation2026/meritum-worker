@@ -99,9 +99,6 @@ URL_UNAVAILABLE_MESSAGE: Final = (
 )
 """Diagnostic for a link that could not be fetched."""
 
-MAX_PAGE_TEXT_CHARS: Final = 4000
-"""Longest page text checked: the limit of a pasted text and of question_masked."""
-
 STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
     "receive": timedelta(seconds=10),
     "fetch_url": timedelta(seconds=30),

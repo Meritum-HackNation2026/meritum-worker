@@ -9,12 +9,12 @@ from meritum_core.security.pii import mask_personal_data
 
 from meritum_worker.checks.constants import (
     FETCH_URL_STEP,
-    MAX_PAGE_TEXT_CHARS,
     PAGE_DATE_ZONE,
     URL_UNAVAILABLE_CODE,
     URL_UNAVAILABLE_MESSAGE,
 )
 from meritum_worker.checks.models import CheckDeps, CheckState
+from meritum_worker.corpus import MAX_PAGE_TEXT_CHARS
 
 
 async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:

@@ -38,8 +38,8 @@ from pydantic import BaseModel, ConfigDict
 
 from meritum_worker.corpus.constants import (
     INJECTION_EXCERPT_MAX_CHARS,
+    MAX_PAGE_TEXT_CHARS,
     MAX_PARALLEL_CLAIMS,
-    WEB_PAGE_MAX_CHARS,
     WEB_QUERIES_PER_CHECK,
     WEB_RESULTS_PER_QUERY,
     WEB_SEARCH_TIMEOUT,
@@ -164,7 +164,7 @@ class _Quarantine:
         page = await self.ports.pages.fetch(url, purpose=FetchPurpose.SOURCE)
         # A redirect may leave the catalogue: the final address is checked again.
         entry = catalog_entry_for(page.url, self.ports.catalog)
-        text = page.untrusted_text[:WEB_PAGE_MAX_CHARS]
+        text = page.untrusted_text[:MAX_PAGE_TEXT_CHARS]
         if entry is None or not text.strip():
             return None
         scan = await self.ports.injection.scan(text)
