@@ -30,3 +30,27 @@ PRESSCORNER_API: Final = (
 )
 """The JSON API the Press Corner page reads its document from; the reference is
 upper case with slashes (``IP/26/2532``). ec.europa.eu's robots.txt allows it."""
+
+INGEST_SKIPPED: Final = {
+    "ulc.gov.pl": (
+        "Imperva Incapsula odsyła robotom stronę ze skryptem zamiast treści"
+        " (javascript_required). Cytujemy tylko z wyszukiwania na żywo."
+    ),
+    "www.sar.gov.pl": (
+        "Imperva Incapsula odsyła robotom stronę ze skryptem zamiast treści"
+        " (javascript_required). Cytujemy tylko z wyszukiwania na żywo."
+    ),
+    "eur-lex.europa.eu": (
+        "Antybot AWS blokuje automaty. Akty prawa UE cytujemy z wyszukiwania"
+        " na żywo; pobieranie przez Cellar/SPARQL to osobne zgłoszenie."
+    ),
+    "odyseusz.gov.pl": (
+        "Strona wymaga JavaScriptu (javascript_required), a ta sama treść jest"
+        " na www.gov.pl/web/dyplomacja, którą pobieramy."
+    ),
+}
+"""Catalogue entries the ingestion skips, with the reason, decided in worker#220.
+
+Unlike core's ``excluded``, which also bars an entry from live search, these stay
+citable from live search; only the scheduled ingestion leaves them out. They move
+to the catalogue (``ingest: live``) with the next core pin."""

@@ -23,6 +23,7 @@ from meritum_worker.corpus.feeds.constants import (
     MAX_PAGES_PER_ENTRY,
     SITEMAP_NS,
 )
+from meritum_worker.corpus.feeds.nato import parse_nato_news
 
 
 @dataclass(frozen=True)
@@ -45,8 +46,10 @@ class FeedListing:
 def parse_feed(xml: str) -> FeedListing:
     """Read an RSS 2.0 channel, an Atom feed, a sitemap or a sitemap index.
 
+    JSON is NATO's news listing (``parse_nato_news``).
+
     Args:
-        xml: The raw, untrusted XML.
+        xml: The raw, untrusted XML or JSON.
 
     Returns:
         The listed pages or child sitemaps with their publication dates.
@@ -57,6 +60,8 @@ def parse_feed(xml: str) -> FeedListing:
     Features:
         US-KOR-03, F-13
     """
+    if xml.lstrip().startswith(("{", "[")):
+        return FeedListing(pages=parse_nato_news(xml))
     try:
         root = fromstring(xml.strip())
     except (ParseError, DefusedXmlException) as error:
