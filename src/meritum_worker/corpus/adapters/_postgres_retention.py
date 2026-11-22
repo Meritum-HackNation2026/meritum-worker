@@ -1,7 +1,7 @@
 """Corpus retention over ``corpus.documents``, ``passages`` and the removal ledger.
 
 ``corpus.documents`` and ``passages`` come from meritum-core's corpus migrations
-0001 and 0003; the ledger ``corpus.publisher_removals`` needs the next one
+0001 and 0003; the ledger ``corpus.publisher_removals`` from migration 0006
 (worker#77). A removal takes ``CORPUS_WRITE_LOCK`` shared, like a document write,
 so a snapshot never sees half of it.
 
