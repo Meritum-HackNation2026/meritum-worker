@@ -181,6 +181,14 @@ def test_entry_page_discovery_fetches_the_catalogue_domain() -> None:
     assert [p.url for p in pages] == ["https://www.gov.pl/web/rcb"]
 
 
+def test_gus_is_fetched_from_its_releases_page_not_the_login_home_page() -> None:
+    discovery = corpus.build_document_discovery()
+    pages = asyncio.run(discovery.pages(entry("stat.gov.pl")))
+    assert [p.url for p in pages] == [
+        "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/"
+    ]
+
+
 def test_writer_follows_the_corpus_settings() -> None:
     assert isinstance(corpus.build_corpus_writer(), MemoryCorpusWriter)
     memory = CorpusSettings(provider=CorpusProvider.MEMORY)
