@@ -229,3 +229,16 @@ def test_extraction_prompt_turns_a_yes_no_question_into_its_claim() -> None:
     # Benchmark worker#170: "Czy X?" ended needs_clarification with no claims.
     assert "yes/no question" in EXTRACTION_INSTRUCTIONS
     assert "Sejm ma 460 posłów" in EXTRACTION_INSTRUCTIONS
+
+
+def test_extraction_prompt_puts_tasks_for_the_assistant_out_of_scope() -> None:
+    # Benchmark worker#170: "Ile to jest 17 razy 23?" ended needs_clarification.
+    for task in ("calculation", "recipe", "translation", "code"):
+        assert task in EXTRACTION_INSTRUCTIONS
+    assert "do something rather than check" in EXTRACTION_INSTRUCTIONS
+    assert "Co o tym sądzisz?" in EXTRACTION_INSTRUCTIONS
+
+
+def test_extraction_prompt_reads_a_ban_from_a_date_as_a_fact() -> None:
+    # Benchmark worker#170: "Od stycznia nie zapłacisz gotówką" came out a prediction.
+    assert "Od stycznia nie zapłacisz gotówką" in EXTRACTION_INSTRUCTIONS
