@@ -54,3 +54,12 @@ INGEST_SKIPPED: Final = {
 Unlike core's ``excluded``, which also bars an entry from live search, these stay
 citable from live search; only the scheduled ingestion leaves them out. They move
 to the catalogue (``ingest: live``) with the next core pin."""
+
+SKIPPED_PAGES: Final = {
+    "pkw.gov.pl": r"/(?:wyniki-glosowania|wyniki-wyborow|wizualizacja-wynikow)/?$",
+}
+"""Pages of an entry's feed the ingestion skips, as a pattern of the URL path, per
+catalogue domain. PKW's election results pages are a JavaScript application: in
+the HTML there is only the site menu, about 200 characters. Results are cited from
+PKW's announcement in Dziennik Ustaw (e.g. Dz.U. 2025 poz. 714), which comes in
+with the full texts of ELI acts; PKW's news and resolutions stay (worker#220)."""
