@@ -10,6 +10,7 @@ from datetime import datetime
 
 from meritum_core.jobs.contracts import DELETE_SUBJECT, ESCALATE_CLAIM
 
+from meritum_worker.corpus import purge_expired_archives
 from meritum_worker.security.constants import (
     DATA_RETENTION,
     ERASURE_RESULT_KEPT,
@@ -30,7 +31,8 @@ async def run_retention(deps: RetentionDeps, now: datetime) -> RetentionReport:
     (stuck ones too), finished ``delete_subject`` runs, files older than 30
     days (orphan audio included) and old ids of checks dropped from cases.
     Last, corpus documents fetched more than 90 days ago lose their full text;
-    their metadata and the passages records cite stay.
+    their metadata and the passages records cite stay. Page copies past their
+    ``expires_at`` lose their file and their row.
 
     Args:
         deps: the ports.
@@ -66,6 +68,7 @@ async def run_retention(deps: RetentionDeps, now: datetime) -> RetentionReport:
         blobs=await deps.blobs.delete_older_than(cutoff),
         removed_case_checks=await deps.removed_checks.purge(cutoff),
         full_texts=await _clear_full_texts(deps, now - FULL_TEXT_RETENTION),
+        archives=await purge_expired_archives(deps.archives, now),
     )
 
 
