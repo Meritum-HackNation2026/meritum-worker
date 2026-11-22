@@ -61,7 +61,11 @@ EXTRACTION_INSTRUCTIONS: Final = (
     " (claim_date_source input_published_at); otherwise leave both empty. Set"
     " out_of_scope only when the text asks for something that is not about"
     " information, such as writing a poem; a question with no claim is not out of"
-    " scope, it has no claims."
+    " scope, it has no claims. A yes/no question about the world (Czy…, Czy to"
+    " prawda, że…, …, prawda?) asks to check the claim inside it: list that claim"
+    " as a statement, for example Czy Sejm ma 460 posłów? gives the fact Sejm ma"
+    " 460 posłów. Only a question that states nothing about the world, such as"
+    " Co o tym sądzisz?, has no claims."
 )
 """Instructions of the extract_claims model call; user text goes as data (ADR-12)."""
 
