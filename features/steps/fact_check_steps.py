@@ -193,16 +193,13 @@ def demagog_not_fetched(context: Context) -> None:
     assert context.pages.calls == []
 
 
-@then(
-    "ocena Demagogu jest tylko kontekstem z linkiem,"
-    ' a werdykt to "insufficient_evidence"'
-)
-def demagog_is_context(context: Context) -> None:
+@then("ocena Demagogu nie jest pokazana i nie wpływa na werdykt")
+def demagog_not_shown(context: Context) -> None:
     claim = context.claim
-    assert claim.verdict == "insufficient_evidence"
     assert claim.claim_review_premises == []
-    [review] = claim.claim_reviews
-    assert str(review.url).startswith("https://demagog.org.pl/")
+    assert claim.claim_reviews == []
+    # No other evidence in this scenario, so nothing settles the claim.
+    assert claim.verdict == "insufficient_evidence"
 
 
 @then('krok "{code}" ma stan "{status}" i nie ma ograniczenia "fact_check_unavailable"')

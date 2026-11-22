@@ -85,7 +85,8 @@ class Judgement(BaseModel):
         technique: ``outdated`` when newer evidence replaced the support.
         archival: whether the agreeing evidence is past its age threshold.
         claim_review_premises: fact-checkers' ratings behind the verdict.
-        claim_reviews: fact-checkers' ratings shown as context.
+        claim_reviews: fact-checkers' ratings of this claim shown as context;
+            ratings of other claims are never shown (worker#257).
 
     Features:
         US-ZRD-04, US-ZRD-10, F-15

@@ -18,6 +18,7 @@ from meritum_worker.corpus import FactCheckUnavailableError, FakeFactCheck
 from meritum_worker.corpus.adapters import GoogleFactCheck
 from meritum_worker.evidence import ClaimExplanation, RecordedLlm, ReviewMatch
 from meritum_worker.evidence.constants import NO_CLAIM_DATE, REVIEW_MATCH_INSTRUCTIONS
+from meritum_worker.observability import CaseRun, GoldenCase, score_runs
 
 FIXTURES = Path(__file__).resolve().parents[2] / "features" / "fixtures"
 EXPLAINED = ClaimExplanation(
@@ -71,19 +72,47 @@ def test_a_demagog_rating_of_the_same_claim_is_a_premise_with_a_link() -> None:
     assert [r.publisher for r in claim.claim_reviews] == []
 
 
-def test_a_rating_of_another_claim_stays_context() -> None:
+def test_a_rating_of_another_claim_is_not_shown() -> None:
     done = _run(same_claim=False, api=_api("fact_check_demagog.json"))
     assert done.result is not None
     [claim] = done.result.claims
     assert claim.claim_review_premises == []
-    assert claim.verdict == "insufficient_evidence"
-    assert [r.rating for r in claim.claim_reviews] == ["Fałsz"]
+    assert claim.claim_reviews == []
 
 
-@pytest.mark.parametrize("same_claim", [True, False])
-def test_repeated_review_is_written_once(*, same_claim: bool) -> None:
+def test_a_rating_of_another_claim_is_no_fact_check_hit() -> None:
+    done = _run(same_claim=False, api=_api("fact_check_demagog.json"))
+    assert done.result is not None
+    case = GoldenCase.model_validate(
+        {
+            "id": "A-own-depesza",
+            "scenario": "A",
+            "origin": "own",
+            "channel": "web",
+            "text": CLAIM,
+            "main_claim": CLAIM,
+            "expected_status": "done",
+            "expected_verdict": "false",
+            "category": "fact_checked",
+            "expected_behavior": "Podaje ocenę Demagoga.",
+            "sources": [
+                {
+                    "url": "https://demagog.org.pl/",
+                    "publisher": "Demagog",
+                    "title": "Ocena depeszy",
+                    "quote": "Fałsz",
+                }
+            ],
+        }
+    )
+    report = score_runs([CaseRun(case=case, result=done.result, seconds=1.0)])
+    assert report.fact_check_hit_rate == 0
+    assert report.citation_recall == 0
+
+
+def test_repeated_review_is_written_once() -> None:
     done = _run(
-        same_claim=same_claim,
+        same_claim=True,
         api=_api("fact_check_demagog.json"),
         repeat_search=True,
     )
