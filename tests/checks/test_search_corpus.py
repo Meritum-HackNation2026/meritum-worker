@@ -175,3 +175,33 @@ def test_search_web_sends_the_polish_and_the_english_query(
     out = asyncio.run(search_web(state.model_copy(update={"claims": [fact]}), deps))
     assert sorted(web.queries) == sorted(fact.queries)
     assert out.web_search_calls == 2
+
+
+def test_search_web_sends_the_models_keyword_queries_not_the_claim_text(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    web = FakeWebSearch()
+    deps = dataclasses.replace(make_deps(), web_search=web)
+    fact = _fact("Kwota wolna od podatku od 2026 wynosi 60 000 zł").model_copy(
+        update={
+            "search_queries": [
+                "kwota wolna od podatku 2026",
+                "tax-free allowance Poland 2026",
+            ]
+        }
+    )
+    asyncio.run(search_web(state.model_copy(update={"claims": [fact]}), deps))
+    assert web.queries == [
+        "kwota wolna od podatku 2026",
+        "tax-free allowance Poland 2026",
+    ]
+
+
+def test_search_web_falls_back_to_the_claim_when_the_model_gave_no_queries(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    web = FakeWebSearch()
+    deps = dataclasses.replace(make_deps(), web_search=web)
+    fact = _fact("Warszawa jest stolicą Polski")
+    asyncio.run(search_web(state.model_copy(update={"claims": [fact]}), deps))
+    assert web.queries == [fact.claim]

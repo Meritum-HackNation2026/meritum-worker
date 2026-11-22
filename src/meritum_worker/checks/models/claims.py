@@ -18,6 +18,9 @@ class ExtractedClaim(BaseModel):
         claim: the claim as written in the input.
         claim_en: the claim in English, for English-language sources; None when
             the claim is already English.
+        search_queries: up to 3 web search queries the model wrote for the claim:
+            key entities, numbers and dates, in Polish and English; empty when
+            the model gave none.
         kind: fact (gets checked), opinion or prediction (not verifiable).
         explanation: why the claim is that kind, in Polish.
         claim_date: the date the claim refers to; None until the step dates it.
@@ -31,6 +34,10 @@ class ExtractedClaim(BaseModel):
 
     claim: Annotated[str, Field(min_length=5, max_length=500)]
     claim_en: Annotated[str, Field(min_length=5, max_length=500)] | None = None
+    search_queries: Annotated[
+        list[Annotated[str, Field(min_length=3, max_length=200)]],
+        Field(max_length=3),
+    ] = []  # pydantic copies the default per instance
     kind: Literal["fact", "opinion", "prediction"]
     explanation: Annotated[str, Field(min_length=10, max_length=800)]
     claim_date: date | None = None
@@ -40,6 +47,11 @@ class ExtractedClaim(BaseModel):
     def queries(self) -> list[str]:
         """The claim as a search query in each language, Polish first."""
         return list(dict.fromkeys([self.claim, self.claim_en or self.claim]))
+
+    @property
+    def web_queries(self) -> list[str]:
+        """What the web search gets: the model's keyword queries, else the claim."""
+        return list(dict.fromkeys(self.search_queries)) or self.queries
 
     @property
     def is_fact(self) -> bool:
