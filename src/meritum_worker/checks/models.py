@@ -34,6 +34,7 @@ from meritum_worker.checks.constants import (
     TECHNICAL_FAILURE_CODE,
     TECHNICAL_FAILURE_MESSAGE,
 )
+from meritum_worker.evidence import VerifiedCitation
 
 
 class ExtractedClaim(BaseModel):
@@ -143,6 +144,7 @@ class CheckState(BaseModel):
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
         evidence: source documents found for the claims, each past quarantine.
         passages: reranked corpus passages per fact, keyed by the claim text.
+        citations: verified fragments per fact, with validity from core rules.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
 
@@ -167,6 +169,7 @@ class CheckState(BaseModel):
     claims: list[ExtractedClaim] = []
     evidence: list[SourceDocument] = []
     passages: dict[str, list[RankedPassage]] = {}
+    citations: list[VerifiedCitation] = []
     limitations: list[str] = []
     result: CheckResult | None = None
 
