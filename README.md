@@ -343,6 +343,27 @@ MERITUM_TEST_DATABASE_URL=postgresql://... MERITUM_DBOS_URL=postgresql://... \
   uv run pytest -m integration tests/corpus
 ```
 
+## Warstwa `corpus_ready` (silver i gold)
+
+Domyślnie wyłączona. Budowa rusza tylko przy `MERITUM_CORPUS_READY=true` i `MERITUM_CORPUS_INGEST=enabled`, czyli w workerze, który może pisać do wspólnego korpusu (prd). Wtedy `main` planuje osobny workflow DBOS `corpus_ready_build` (co godzinę o :40, przed migawką o :00). Jego błąd nie rusza ingestu, migawki ani wyszukiwania. Bez flagi worker nie dotyka schematu `corpus_ready`.
+
+Workflow najpierw stosuje migracje `corpus_ready` z meritum-core (`apply_corpus_ready_migrations`). Potem czyta żywe dokumenty `corpus.documents` i przebudowuje tylko te, których suma kontrolna się zmieniła, a usunięte z bronze kasuje z silver i gold.
+- Silver (`corpus.ready.silver`) wyrzuca całe akapity: menu, stopki, linie w rodzaju „Pliki cookies” i powtórzenia. Bez LLM.
+- Gold (`corpus.ready.gold`) dzieli akt per artykuł parserem `act_units` (worker#249). Długi artykuł dzieli po ustępach, a kontynuacja dostaje w nagłówku „Art. N. (cd.)”. Strony z katalogu (`instytucja`, `dane_publiczne`) dzieli po nagłówkach. Fact-checkerzy i media dostają jeden wyimek do 300 znaków.
+- Nagłówek (tytuł, Dz.U., rodzaj, status, okres obowiązywania, rozdział) idzie do embeddingu i wyszukiwania pełnotekstowego, ale nie jest cytowalny. Tekst fragmentu to zawsze `full_text[start_offset:end_offset]` dokumentu bronze o tej samej sumie kontrolnej.
+- Metadane aktu bierzemy z `corpus.document_legal_meta` (core#167), a do czasu, aż worker je zapisze, z nagłówka dokumentu. Liczby z jednostką i rokiem (`numbers`) wyciąga wyrażenie regularne. LLM nic tu nie dopisuje.
+
+Odczyt jest w core: `build_corpus_search` przy włączonej fladze dokłada fragmenty gold do wyniku bronze (README meritum-core).
+
+Włączenie, w tej kolejności:
+1. scalić meritum-infra#72 (platforma tworzy schemat `corpus_ready`);
+2. ustawić `MERITUM_CORPUS_READY=true` workerowi prd i uruchomić `corpus_ready_build` ręcznie albo poczekać na :40;
+3. ustawić `MERITUM_CORPUS_READY=true` workerowi i API, które mają czytać gold.
+
+Wyłączenie: usunąć zmienną. Cofnięcie tabel: `psql -f` na pliku `corpus/ready/rollback/0001_corpus_ready.sql` z meritum-core.
+
+Kanarek (lokalnie, nigdy w CI): `MERITUM_CORPUS_PROVIDER=postgres MERITUM_CORPUS_DATABASE_URL=… uv run python scripts/corpus_ready_canary.py <corpus_version>` wypisuje hit@5 dla dzisiejszego wyszukiwania i dla gold na zapytaniach z `CANARY_QUERIES`.
+
 ## CI/CD
 
 `.github/workflows/ci.yml`: `lint` i `tests` na runnerach GCP, `deploy` na `dellpromaxgb10` tylko z `develop` i `main`, po zielonym CI. `deploy/deploy.sh` buduje obraz, robi migracje, podmienia kontener z `--stop-timeout 40` i czeka, aż worker zgłosi gotowość. Niedokończone workflowy wznawia nowy kontener.

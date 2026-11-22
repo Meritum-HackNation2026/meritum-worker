@@ -120,6 +120,7 @@ error-on-warning = true
 max-lines = 250
 
 [tool.meritum-conventions.constants-exceptions]
+"src/meritum_worker/corpus/ready/adapters/_postgres.py" = "SQL text of the corpus_ready store stays next to the code that runs it"
 "src/meritum_worker/corpus/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check search keeps its own"
 "src/meritum_worker/corpus/archive_constants.py" = "constants.py is at the 250-line limit; the page archive keeps its own"
 "src/meritum_worker/checks/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check step keeps its own"
@@ -160,4 +161,4 @@ addopts = ["-ra", "--import-mode=importlib", "-m", "not integration"]
 filterwarnings = ["error"]
 
 [tool.uv.sources]
-meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "b95f1cadf874f5a8d6ed65c33062bc096a4102f9" }
+meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "424499b3a029d2b069d29e0893f9c931f8df85b7" }
