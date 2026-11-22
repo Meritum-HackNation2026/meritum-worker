@@ -289,7 +289,7 @@ async def _announce_answers() -> int:
     )
 
 
-@DBOS.workflow(name=checks.ANSWER_NOTICE_WORKFLOW)
+@DBOS.workflow(name=moderation.ANSWER_NOTICE_WORKFLOW)
 async def case_answers_workflow(_scheduled_at: datetime, _context: object) -> None:
     """Tell the askers of answered cases; started by the ANSWER_NOTICE_CRON schedule.
 
@@ -554,9 +554,9 @@ def main() -> None:
     DBOS.apply_schedules(
         [
             {
-                "schedule_name": checks.ANSWER_NOTICE_WORKFLOW,
+                "schedule_name": moderation.ANSWER_NOTICE_WORKFLOW,
                 "workflow_fn": case_answers_workflow,
-                "schedule": checks.ANSWER_NOTICE_CRON,
+                "schedule": moderation.ANSWER_NOTICE_CRON,
             }
         ]
     )

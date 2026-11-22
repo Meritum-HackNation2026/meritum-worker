@@ -76,3 +76,9 @@ BASE_REASON: Final[dict[str, CaseReason]] = {
     "user_dispute": "user_dispute",
 }
 """The case reason a trigger gives by itself; the other triggers give none."""
+
+ANSWER_NOTICE_WORKFLOW: Final = "case_answers"
+"""Name of the scheduled workflow that tells askers a moderator answered."""
+
+ANSWER_NOTICE_CRON: Final = "*/5 * * * *"
+"""Every five minutes; a repeated run replaces entries, so it adds none."""
