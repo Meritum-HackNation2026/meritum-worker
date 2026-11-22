@@ -21,6 +21,7 @@ from meritum_worker.checks import (
     corpus_ports,
     web_ports,
 )
+from meritum_worker.checks.constants import EXTRACTION_INSTRUCTIONS
 from meritum_worker.checks.steps import extract_claims, write_answer
 from meritum_worker.evidence import ClaimExplanation
 
@@ -217,3 +218,8 @@ def test_only_opinions_are_done_with_model_limitations_even_if_it_judged_them(
         ("Rząd sobie nie radzi.", "not_verifiable")
     ]
     assert out.result.limitation_codes == ["corpus_scope"]
+
+
+def test_extraction_prompt_keeps_reasons_inside_the_claim() -> None:
+    assert "reason given for a claim" in EXTRACTION_INSTRUCTIONS
+    assert "rule or decision already made" in EXTRACTION_INSTRUCTIONS
