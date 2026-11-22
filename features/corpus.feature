@@ -113,3 +113,19 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Zakładając pytanie o depeszę PAP i ClaimReview wskazuje artykuł z fakenews.pl
     Gdy system bada twierdzenie z oceną fact-checkera
     Wtedy fragment z artykułu jest cytatem po weryfikacji dosłownej
+
+  Scenariusz: nowy komunikat w kanale RSS
+    Zakładając pozycja katalogu z kanałem RSS i 3 nowymi wpisami od ostatniego przebiegu
+    Gdy cykliczny workflow DBOS uruchamia się po 20 minutach
+    Wtedy 3 nowe dokumenty trafiają do korpusu z datą publikacji z kanału
+    I wpisy już wczytane i powtórzone z innym znacznikiem nie są pobierane ponownie
+
+  Scenariusz: nowe adresy z mapy strony
+    Zakładając pozycja katalogu z indeksem map strony
+    Gdy workflow odświeżania działa
+    Wtedy adresy z map podrzędnych trafiają do korpusu z datą lastmod
+
+  Scenariusz: serwis nie odpowiada
+    Zakładając kanał RSS zwraca błąd 500
+    Gdy workflow odświeżania działa
+    Wtedy błąd jest zapisany z domeną i czasem, a pozostałe źródła są odświeżone

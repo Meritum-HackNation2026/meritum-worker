@@ -26,6 +26,7 @@ from meritum_worker.corpus.constants import (
 )
 from meritum_worker.corpus.documents import (
     CorpusSnapshot,
+    DiscoveredPage,
     Document,
     DocumentMeta,
     DocumentPassage,
@@ -34,6 +35,7 @@ from meritum_worker.corpus.documents import (
     ManifestEntry,
 )
 from meritum_worker.corpus.errors import (
+    DiscoveryError,
     EuvsDisinfoUnavailableError,
     FactCheckUnavailableError,
     MissingTokenError,
@@ -129,6 +131,8 @@ __all__ = [
     "CorpusRetentionPort",
     "CorpusSnapshot",
     "CorpusWriterPort",
+    "DiscoveredPage",
+    "DiscoveryError",
     "Document",
     "DocumentDiscoveryPort",
     "DocumentMeta",

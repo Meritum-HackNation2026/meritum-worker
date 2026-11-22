@@ -1,11 +1,13 @@
 """Adapters of the corpus slice: EUvsDisinfo, catalogue documents, migrations.
 
 Features:
-    US-KOR-08, US-KOR-02, F-11, F-12, ADR-32
+    US-KOR-08, US-KOR-02, US-KOR-03, F-11, F-12, F-13, ADR-32
 """
 
 from ._entry_pages import EntryPageDiscovery
 from ._fact_check import GoogleFactCheck
+from ._feed_discovery import FeedDiscovery
+from ._feed_transport import FeedTransport
 from ._json_transport import JsonAsTextTransport, build_api_fetcher
 from ._mcp import McpEuvsDisinfo
 from ._memory import MemoryEuvsCopy
@@ -22,6 +24,8 @@ from ._workers_ai_ranking import WorkersAiReranker
 
 __all__ = [
     "EntryPageDiscovery",
+    "FeedDiscovery",
+    "FeedTransport",
     "GoogleFactCheck",
     "JsonAsTextTransport",
     "McpEuvsDisinfo",

@@ -6,7 +6,7 @@ Features:
 
 import hashlib
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import date, datetime
 from itertools import batched
 
 from meritum_core.checks.contracts import CatalogEntry
@@ -26,6 +26,7 @@ from meritum_worker.corpus.constants import (
     TDM_RESERVED_ENTRY,
 )
 from meritum_worker.corpus.documents import (
+    DiscoveredPage,
     Document,
     DocumentPassage,
     IngestFailure,
@@ -40,7 +41,7 @@ async def store_page(
     deps: IngestDeps,
     *,
     now: datetime,
-    url: str | None = None,
+    found: DiscoveredPage | None = None,
 ) -> IngestReport:
     """Store one fetched page of a catalogue domain; it joins the next snapshot.
 
@@ -52,7 +53,8 @@ async def store_page(
         entry: The page's catalogue entry (publisher, licence).
         deps: The ports; ``injection``, ``embeddings`` and ``store`` are used.
         now: The page's ``fetched_at``.
-        url: The URL it was fetched from; ``page.url`` when None.
+        found: The discovered page it was fetched for: its URL and feed date
+            win over ``page.url`` and the page's metadata; None for live search.
 
     Returns:
         One added, updated or unchanged document, or one failure; a page of an
@@ -62,7 +64,7 @@ async def store_page(
     Features:
         US-KOR-02, US-KOR-05, US-BEZ-01, F-10, F-12, F-19, ADR-21
     """
-    url = url or page.url
+    url = found.url if found else page.url
     text = page.untrusted_text.strip()
     if entry.excluded or entry.tdm_reservation == TDM_RESERVED_ENTRY:
         return failed_page(entry, url, ENTRY_NOT_INGESTIBLE)
@@ -72,7 +74,8 @@ async def store_page(
         return failed_page(entry, url, EMPTY_TEXT)
     if (await deps.injection.scan(text)).detected:
         return failed_page(entry, url, INJECTION_FOUND)
-    document = _document(entry, url, text, now)
+    published_on = (found.published_on if found else None) or page.published_at
+    document = _document(entry, url, text, now, published_on)
     previous = await deps.store.document(document.source_id)
     if previous is not None and previous.checksum == document.checksum:
         await deps.store.save_document(document, [])
@@ -81,13 +84,16 @@ async def store_page(
     return IngestReport(added=int(previous is None), updated=int(previous is not None))
 
 
-def failed_page(entry: CatalogEntry, url: str, reason: str) -> IngestReport:
+def failed_page(
+    entry: CatalogEntry, url: str, reason: str, *, at: datetime | None = None
+) -> IngestReport:
     """A report with one failed page.
 
     Args:
         entry: The page's catalogue entry.
         url: The page.
         reason: Why it failed.
+        at: When the run started; None outside a run.
 
     Returns:
         The report.
@@ -95,21 +101,39 @@ def failed_page(entry: CatalogEntry, url: str, reason: str) -> IngestReport:
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12
     """
-    failure = IngestFailure(domain=entry.domain, url=url, reason=reason)
+    failure = IngestFailure(domain=entry.domain, url=url, reason=reason, at=at)
     return IngestReport(failures=(failure,))
+
+
+def source_id_for(url: str) -> str:
+    """The ``source_id`` a page fetched from ``url`` is stored under.
+
+    Args:
+        url: The page.
+
+    Returns:
+        ``doc-`` and a hash of the URL.
+
+    Features:
+        US-KOR-02, US-KOR-03, F-10, F-13
+    """
+    return f"{SOURCE_ID_PREFIX}{_sha256(url)[:SOURCE_ID_HASH_CHARS]}"
 
 
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
-def _document(entry: CatalogEntry, url: str, text: str, now: datetime) -> Document:
+def _document(
+    entry: CatalogEntry, url: str, text: str, now: datetime, published_on: date | None
+) -> Document:
     return Document(
-        source_id=f"{SOURCE_ID_PREFIX}{_sha256(url)[:SOURCE_ID_HASH_CHARS]}",
+        source_id=source_id_for(url),
         url=url,
         domain=entry.domain,
         publisher_id=entry.publisher_id,
         license=entry.license,
+        published_on=published_on,
         fetched_at=now,
         checksum=_sha256(text),
         full_text=text,
