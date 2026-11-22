@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-11-22T00:14:30.883511Z",
+  "cases_file": "evals/golden/cases.json",
+  "corpus": "stand-in: golden-set sources, one query per main claim",
+  "models": [
+    {
+      "name": "gemini-embedding-001",
+      "provider": "vertex",
+      "model": "gemini-embedding-001",
+      "region": "europe-central2",
+      "dimensions": 768,
+      "queries": 11,
+      "documents": 12,
+      "top_k": 1,
+      "hit_rate": 0.9091,
+      "mean_reciprocal_rank": 0.9545,
+      "characters": 2602,
+      "cost_usd": 0.0001301,
+      "cost_100_queries_usd": 0.00035818
+    },
+    {
+      "name": "text-multilingual-embedding-002",
+      "provider": "vertex",
+      "model": "text-multilingual-embedding-002",
+      "region": "europe-central2",
+      "dimensions": 768,
+      "queries": 11,
+      "documents": 12,
+      "top_k": 1,
+      "hit_rate": 0.8182,
+      "mean_reciprocal_rank": 0.8939,
+      "characters": 2602,
+      "cost_usd": 0.00006505,
+      "cost_100_queries_usd": 0.00017909
+    }
+  ]
+}

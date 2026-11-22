@@ -52,3 +52,9 @@ Dostawcę NLI i klasyfikatora wejścia wybiera zespół. Każdy nowy dostawca do
 ## Raporty w repozytorium
 
 - `gates-2026-11-22-dlp-wzorce.json`: same wzorce z meritum-core, bez bramki, na lokalnej maszynie. Wykrywają 50% danych osobowych (telefon, e-mail, PESEL, ale nie imion, nazwisk ani adresów osób prywatnych) i zmieniają 1 z 12 elementów, które muszą zostać: telefon infolinii ZUS. Raport z Sensitive Data Protection powstanie w ręcznym przebiegu z projektem GCP.
+
+## Raporty porównania modeli i embeddingów (#40)
+
+- `2026-11-22-modele.json`: `meritum-eval --compare-models` na golden secie (37 przypadków) dla Claude Haiku 5.5 high (OpenRouter, ZDR), Gemini 3.5 Flash (Vertex `europe-west3`), GPT-6.1 Terra low (OpenRouter, ZDR) i Step 3.7 Flash (OpenRouter bez ZDR, tylko golden set). Przebieg poza CI, jeden raz.
+- `2026-11-22-embeddingi.json`: `meritum-eval --compare-embeddings` na zastępczym korpusie z 12 źródeł golden setu (pole `corpus`); prawdziwy korpus czeka na worker#113.
+- `macro_f1` jest niskie u wszystkich modeli (0,08 do 0,13), a `citation_correctness` puste, bo przebieg nie ma korpusu z bazy (worker#17): sprawdzenie nie ma źródeł, na których mogłoby oprzeć werdykt. Porównanie nadaje się do czasu, tokenów na sekundę i kosztu, nie do wyboru modelu po trafności werdyktów.
