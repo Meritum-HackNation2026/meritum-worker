@@ -70,6 +70,11 @@ from meritum_worker.observability.run_comparison import (
 )
 from meritum_worker.observability.runner import run_eval
 from meritum_worker.observability.scoring import score_runs
+from meritum_worker.observability.snapshot import (
+    SnapshotCorpus,
+    SnapshotCorpusPort,
+    load_snapshot_file,
+)
 
 __all__ = [
     "DEFAULT_CASES_FILE",
@@ -102,6 +107,8 @@ __all__ = [
     "RetrievalScore",
     "RunComparison",
     "ScenarioScore",
+    "SnapshotCorpus",
+    "SnapshotCorpusPort",
     "TooFewCasesError",
     "build_case_sets",
     "build_eval_run_deps",
@@ -118,6 +125,7 @@ __all__ = [
     "load_eval_cases",
     "load_golden_set",
     "load_model_config",
+    "load_snapshot_file",
     "log_readiness",
     "macro_f1",
     "meritum_cost",

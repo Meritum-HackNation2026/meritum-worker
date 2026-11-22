@@ -108,12 +108,11 @@ FACT_CHECK_PROBE: Final = "fact_check"
 FACT_CHECK_PROBE_QUERY: Final = "szczepionki"
 """Plain query of the probe; the API answers it free of charge (quota only)."""
 
-RETRIEVAL_TOP_K: Final = 1
-"""Ranks that count as a hit; the stand-in corpus has about a dozen documents, so
-only the first rank separates candidates (worker#40)."""
+RETRIEVAL_TOP_K: Final = 20
+"""Ranks of the fused hybrid corpus search that count as a hit (worker#113)."""
 
-STAND_IN_CORPUS: Final = "stand-in: golden-set sources, one query per main claim"
-"""Corpus label of the embeddings report until a run searches the real corpus."""
+EMBED_BATCH: Final = 100
+"""Passages an embeddings comparison embeds per call, as corpus ingest does."""
 
 CHARS_PER_PRICE_UNIT: Final = 1_000_000
 """Characters in the unit of an embedding price (usd_per_million_chars)."""

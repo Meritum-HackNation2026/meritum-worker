@@ -3,16 +3,25 @@
 import json
 import shutil
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 
 from behave import given, then, when
 from behave.runner import Context
+from meritum_core.corpus import Passage
 
-from meritum_worker.observability import meritum_eval
+from meritum_worker.observability import (
+    SnapshotCorpus,
+    load_golden_set,
+    meritum_eval,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 GOLDEN = ROOT / "evals" / "golden" / "cases.json"
 STUB_ANSWER = ROOT / "features" / "fixtures" / "llm_stub_answer.json"
+VERSION = "2026-11-22T04:00Z"
+TAKEN_AT = datetime(2026, 11, 22, 4, tzinfo=UTC)
+HYBRID_TOP_K = 20
 COMPARED_METRICS = (
     "macro_f1",
     "citation_correctness",
@@ -79,9 +88,34 @@ def report_compares_models(context: Context) -> None:
             assert metric in model["report"], metric
 
 
-@given("dwie konfiguracje modelu embeddingów")
+def _snapshot(folder: Path) -> str:
+    # The golden set's sources as corpus documents, plus one nobody cites.
+    cases = load_golden_set(GOLDEN)
+    sources = {str(s.url): s for case in cases.root for s in case.sources}
+    urls = {f"doc-{i}": url for i, url in enumerate(sources)}
+    texts = {i: f"{sources[u].title}\n{sources[u].quote}" for i, u in urls.items()}
+    urls["doc-other"] = "https://example.pl/inny"
+    texts["doc-other"] = "Rozkład jazdy autobusów w Pcimiu."
+    passages = tuple(
+        Passage(
+            passage_id=f"{doc}-0",
+            source_id=doc,
+            text=text,
+            published_on=None,
+            fetched_at=TAKEN_AT,
+        )
+        for doc, text in texts.items()
+    )
+    corpus = SnapshotCorpus(
+        version=VERSION, taken_at=TAKEN_AT, urls=urls, passages=passages
+    )
+    return _write(folder / "snapshot.json", corpus.model_dump_json())
+
+
+@given("korpus wczytany z migawki i dwie konfiguracje modelu embeddingów")
 def two_embeddings_configs(context: Context) -> None:
     folder = _folder(context)
+    context.corpus_file = _snapshot(folder)
     context.configs = [
         _write(
             folder / f"embeddings-{name}.toml",
@@ -98,6 +132,8 @@ def team_compares_embeddings(context: Context) -> None:
         [
             "--compare-embeddings",
             *context.configs,
+            "--corpus-file",
+            context.corpus_file,
             "--cases",
             str(GOLDEN),
             "--output",
@@ -107,15 +143,23 @@ def team_compares_embeddings(context: Context) -> None:
 
 
 @then(
-    "raport podaje trafność wyszukiwania w korpusie na przypadkach z golden setu"
-    " i koszt"
+    "raport podaje trafność wyszukiwania w korpusie na przypadkach z golden setu,"
+    " z top 20 jak w wyszukiwaniu hybrydowym, i koszt"
 )
 def report_compares_embeddings(context: Context) -> None:
     report = json.loads(context.report_path.read_text(encoding="utf-8"))
-    assert "stand-in" in report["corpus"]
     assert [m["name"] for m in report["models"]] == ["a", "b"]
     for model in report["models"]:
-        assert model["queries"] > 0
+        assert model["top_k"] == HYBRID_TOP_K
+        assert model["queries_with_targets"] > 0
         assert 0 <= model["hit_rate"] <= 1
         assert 0 < model["mean_reciprocal_rank"] <= 1
         assert model["cost_usd"] > 0
+
+
+@then(
+    "pole corpus w raporcie wskazuje migawkę corpus_version zamiast korpusu zastępczego"
+)
+def report_names_the_snapshot(context: Context) -> None:
+    report = json.loads(context.report_path.read_text(encoding="utf-8"))
+    assert report["corpus"] == VERSION

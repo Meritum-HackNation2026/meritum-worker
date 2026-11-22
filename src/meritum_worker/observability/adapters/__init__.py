@@ -15,6 +15,9 @@ from meritum_worker.observability.adapters._llm import CassetteLlm
 from meritum_worker.observability.adapters._pages import CassettePages
 from meritum_worker.observability.adapters._pii import CassettePii
 from meritum_worker.observability.adapters._postgres_runs import PostgresEvalRuns
+from meritum_worker.observability.adapters._postgres_snapshot import (
+    PostgresSnapshotCorpus,
+)
 from meritum_worker.observability.adapters._web_search import CassetteWebSearch
 
 __all__ = [
@@ -28,4 +31,5 @@ __all__ = [
     "CassetteReranker",
     "CassetteWebSearch",
     "PostgresEvalRuns",
+    "PostgresSnapshotCorpus",
 ]
