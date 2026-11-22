@@ -578,9 +578,9 @@ async def _plan(now: datetime) -> list[str]:
     return [entry.model_dump_json() for entry in due]
 
 
-async def _ingest(entry: CatalogEntry, now: datetime) -> str:
+async def _ingest(entry: CatalogEntry, now: datetime) -> dict[str, Any]:
     report = await corpus.ingest_pages(entry, _ingest_deps(), now=now)
-    return report.model_dump_json()  # failed pages with reasons: the run's record
+    return report.model_dump(mode="json")  # failed pages with reasons: the run's record
 
 
 @DBOS.workflow(name=corpus.INGEST_WORKFLOW)
@@ -589,6 +589,9 @@ async def corpus_ingest_workflow(scheduled: datetime, _context: object) -> None:
 
     The plan is a step too, so a recovered run fetches the same entries, and a
     retried entry fetches all of its pages again (unchanged ones cost nothing).
+    Each entry's report (counts and failed pages with reasons) is also an event
+    named like its step, in portable JSON: step outputs are always pickled, and a
+    scheduled run ignores the workflow's ``serialization_type`` (dbos 3.6).
 
     Args:
         scheduled: When the schedule fired; every document's ``fetched_at``.
@@ -600,8 +603,13 @@ async def corpus_ingest_workflow(scheduled: datetime, _context: object) -> None:
     for data in await DBOS.run_step_async({"name": corpus.PLAN_STEP}, _plan, scheduled):
         entry = CatalogEntry.model_validate_json(data)
         name = f"{corpus.INGEST_STEP_PREFIX}{entry.domain}"
-        await DBOS.run_step_async(
+        report = await DBOS.run_step_async(
             {"name": name, "retries_allowed": True}, _ingest, entry, scheduled
+        )
+        await DBOS.set_event_async(
+            name,
+            report,
+            serialization_type=WorkflowSerializationFormat.PORTABLE,
         )
 
 
