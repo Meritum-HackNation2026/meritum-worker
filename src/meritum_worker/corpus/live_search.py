@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, time
 
 from meritum_core.checks import InjectionEvent
-from meritum_core.checks.contracts import CatalogEntry, Source
+from meritum_core.checks.contracts import CatalogEntry, Source, kind_for
 from meritum_core.corpus.fetching import (
     FetchedPage,
     FetchPurpose,
@@ -225,7 +225,7 @@ def _source(page: FetchedPage, entry: CatalogEntry, text: str) -> Source:
         publisher_id=entry.publisher_id,
         url=page.url,
         domain=entry.domain,
-        kind=entry.kind,
+        kind=kind_for(entry, page.url),
         tier=entry.tier,
         published_at=None
         if published is None
