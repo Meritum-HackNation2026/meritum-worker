@@ -180,9 +180,9 @@ CHUNK_MAX_CHARS: Final = 1200
 PARAGRAPH_SEPARATOR: Final = "\n\n"
 """Joins the paragraphs grouped into one passage."""
 
-INGESTED_METHODS: Final = frozenset({"static", "rss", "sitemap"})
-"""Catalogue ``ingest`` values fetched as web pages (ADR-32); ``api`` answers JSON
-the page fetcher refuses, so it waits for per-API adapters (worker#82)."""
+INGESTED_METHODS: Final = frozenset({"static", "rss", "sitemap", "api"})
+"""Catalogue ``ingest`` values the ingestion reads (ADR-32): web pages, and public
+JSON APIs through their own parsers (``catalog_api``, worker#82)."""
 
 EVIDENCE_ROLE: Final = "evidence"
 """Catalogue ``role`` of entries ingested as evidence (not ``source_status``)."""

@@ -59,7 +59,6 @@ def test_only_evidence_entries_that_may_be_mined_are_ingested() -> None:
     kept = entry("a.gov.pl")
     others = [
         entry("b.gov.pl", ingest="live"),
-        entry("api.gov.pl", ingest="api"),
         entry("c.gov.pl", ingest="mcp"),
         entry("d.gov.pl", ingest="web_search"),
         entry("e.gov.pl", role="source_status"),
@@ -67,7 +66,8 @@ def test_only_evidence_entries_that_may_be_mined_are_ingested() -> None:
         entry("g.gov.pl", tdm_reservation="reserved"),
     ]
     rss = entry("h.gov.pl", ingest="rss")
-    assert corpus.ingestible([kept, *others, rss]) == [kept, rss]
+    api = entry("api.gov.pl", ingest="api")
+    assert corpus.ingestible([kept, *others, rss, api]) == [kept, rss, api]
 
 
 def test_domain_whose_pages_all_fail_waits_its_refresh_minutes() -> None:

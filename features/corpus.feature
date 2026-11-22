@@ -42,6 +42,16 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Wtedy korpus ma co najmniej 100 dokumentów z co najmniej 10 domen i obu typów
     I każdy dokument ma fetched_at, publisher_id i licencję z katalogu
 
+  Scenariusz: pozycja katalogu z API
+    Zakładając pozycja katalogu z ingest = api dla api.sejm.gov.pl i odpowiedź API z 3 aktami prawnymi
+    Gdy workflow wczytywania katalogu działa
+    Wtedy 3 dokumenty trafiają do korpusu z publisher_id i licencją z katalogu
+
+  Scenariusz: API zwraca błąd
+    Zakładając API pozycji katalogu odpowiada błędem 500
+    Gdy workflow wczytywania działa
+    Wtedy błąd jest w raporcie przebiegu z domeną, a pozostałe pozycje są wczytane
+
   Scenariusz: domena wykluczona albo z zastrzeżeniem TDM
     Zakładając pozycja katalogu z excluded = true i powodem wykluczenia
     Gdy workflow wczytywania działa

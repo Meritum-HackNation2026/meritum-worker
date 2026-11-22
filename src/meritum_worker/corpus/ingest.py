@@ -11,6 +11,8 @@ from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus.fetching import FetchPurpose, PageFetchError
 from meritum_core.shared.embeddings import EmbeddingsUnavailableError
 
+from meritum_worker.corpus.catalog_api import ingest_api_entry
+from meritum_worker.corpus.catalog_api.constants import API_METHOD
 from meritum_worker.corpus.constants import (
     DEFAULT_REFRESH_MINUTES,
     EMBEDDINGS_UNAVAILABLE,
@@ -49,8 +51,8 @@ def ingestible(entries: Iterable[CatalogEntry]) -> list[CatalogEntry]:
         entries: The catalogue, e.g. ``load_catalog()``.
 
     Returns:
-        Evidence entries fetched as static pages, RSS or sitemaps that are
-        neither excluded nor reserved for text and data mining.
+        Evidence entries fetched as static pages, RSS, sitemaps or public APIs
+        that are neither excluded nor reserved for text and data mining.
 
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
@@ -135,7 +137,8 @@ async def ingest_pages(
     The attempt is noted first, so a domain whose pages all fail waits its
     ``refresh_minutes`` too. A page that fails (robots.txt, Content-Signal,
     HTTP error, TDM meta tags, embeddings down) goes to the report and the
-    next page follows.
+    next page follows. An ``ingest: api`` entry stores one document per API
+    record instead (``catalog_api``).
 
     Args:
         entry: An ingestible catalogue entry.
@@ -149,6 +152,8 @@ async def ingest_pages(
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
     """
     await deps.store.record_attempt(entry.domain, now)
+    if entry.ingest == API_METHOD:
+        return await ingest_api_entry(entry, deps, now=now)
     report = IngestReport()
     for url in await deps.discovery.urls(entry):
         try:

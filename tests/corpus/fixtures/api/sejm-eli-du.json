@@ -1,0 +1,77 @@
+{
+ "count": 3,
+ "items": [
+  {
+   "address": "WDU20260001530",
+   "announcementDate": "2026-11-16",
+   "changeDate": "2026-11-20T10:08:11",
+   "displayAddress": "Dz.U. 2026 poz. 1530",
+   "pos": 1530,
+   "promulgation": "2026-11-19",
+   "publisher": "DU",
+   "status": "obowiązujący",
+   "textHTML": false,
+   "textPDF": true,
+   "title": "Rozporządzenie Ministra Cyfryzacji z dnia 16 listopada 2026 r. w sprawie szczegółowego wykazu danych objętych obowiązkiem zatrzymywania, przechowywania, udostępniania i ochrony oraz rodzaju przedsiębiorców telekomunikacyjnych niepodlegających obowiązkowi zatrzymywania i przechowywania tych danych",
+   "type": "Rozporządzenie",
+   "volume": 0,
+   "year": 2026,
+   "ELI": "DU/2026/1530"
+  },
+  {
+   "address": "WDU20260001529",
+   "announcementDate": "2026-11-13",
+   "changeDate": "2026-11-20T10:08:11",
+   "displayAddress": "Dz.U. 2026 poz. 1529",
+   "pos": 1529,
+   "promulgation": "2026-11-19",
+   "publisher": "DU",
+   "status": "obowiązujący",
+   "textHTML": false,
+   "textPDF": true,
+   "title": "Rozporządzenie Ministra Rolnictwa i Rozwoju Wsi z dnia 13 listopada 2026 r. w sprawie stawek opłat za czynności przeprowadzone w ramach kontroli jakości handlowej artykułów rolno-spożywczych oraz prawidłowości wprowadzania do obrotu i oznakowania materiałów i wyrobów przeznaczonych do kontaktu z żywnością",
+   "type": "Rozporządzenie",
+   "volume": 0,
+   "year": 2026,
+   "ELI": "DU/2026/1529"
+  },
+  {
+   "address": "WDU20260001528",
+   "announcementDate": "2026-11-16",
+   "changeDate": "2026-11-20T10:08:11",
+   "displayAddress": "Dz.U. 2026 poz. 1528",
+   "pos": 1528,
+   "promulgation": "2026-11-19",
+   "publisher": "DU",
+   "status": "obowiązujący",
+   "textHTML": false,
+   "textPDF": true,
+   "title": "Rozporządzenie Ministra Edukacji z dnia 16 listopada 2026 r. zmieniające rozporządzenie w sprawie szczegółowych zasad i trybu przyznawania nagrody rocznej osobom kierującym niektórymi podmiotami prawnymi",
+   "type": "Rozporządzenie",
+   "volume": 0,
+   "year": 2026,
+   "ELI": "DU/2026/1528"
+  }
+ ],
+ "offset": 0,
+ "totalCount": 1530,
+ "searchQuery": {
+  "comparator": {
+   "column": "publisher",
+   "dir": "asc"
+  },
+  "dateEffectType": "NONE",
+  "dateType": "NONE",
+  "exile": false,
+  "keyword": [],
+  "position": -1,
+  "pubDateType": "NONE",
+  "publisher": "DU",
+  "publisherName": "Dziennik Ustaw",
+  "statusInForce": false,
+  "title": "",
+  "type": [],
+  "volume": -1,
+  "year": 2026
+ }
+}

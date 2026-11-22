@@ -6,6 +6,7 @@ Features:
 
 from ._entry_pages import EntryPageDiscovery
 from ._fact_check import GoogleFactCheck
+from ._json_transport import JsonAsTextTransport
 from ._mcp import McpEuvsDisinfo
 from ._memory import MemoryEuvsCopy
 from ._memory_corpus import MemoryCorpusWriter
@@ -22,6 +23,7 @@ from ._workers_ai_ranking import WorkersAiReranker
 __all__ = [
     "EntryPageDiscovery",
     "GoogleFactCheck",
+    "JsonAsTextTransport",
     "McpEuvsDisinfo",
     "MemoryCorpusWriter",
     "MemoryEuvsCopy",

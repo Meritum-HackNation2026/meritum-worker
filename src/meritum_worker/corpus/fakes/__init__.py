@@ -6,6 +6,7 @@ Features:
 
 from meritum_worker.corpus.adapters import MemoryCorpusWriter
 
+from ._api import FakePublicApi
 from ._catalog import FakeCatalogSite
 from ._euvs import FakeEuvsDisinfoServer
 from ._fact_check import FakeFactCheck
@@ -15,6 +16,7 @@ __all__ = [
     "FakeCatalogSite",
     "FakeEuvsDisinfoServer",
     "FakeFactCheck",
+    "FakePublicApi",
     "FakeWebSearch",
     "MemoryCorpusWriter",
 ]

@@ -1,0 +1,44 @@
+{
+ "jsonapi": {
+  "version": "1.4"
+ },
+ "links": {
+  "last": "https://api.dane.gov.pl/1.4/datasets?page=3334&per_page=3&sort=-modified",
+  "self": "https://api.dane.gov.pl/1.4/datasets?page=1&per_page=3&sort=-modified",
+  "next": "https://api.dane.gov.pl/1.4/datasets?page=2&per_page=3&sort=-modified"
+ },
+ "data": [
+  {
+   "id": "32812",
+   "type": "dataset",
+   "links": {
+    "self": "https://api.dane.gov.pl/1.4/datasets/32812,ceny-ofertowe-mieszkan-dewelopera-lege-artis-tomaszow-lubelski"
+   },
+   "attributes": {
+    "title": "Ceny ofertowe mieszkań dewelopera Lege Artis Tomaszów Lubelski",
+    "notes": "<p>Zbiór danych zawiera informacje o cenach ofertowych dewelopera Lege Artis, Inwestycja realizowana przy ul. Kopernika dz. nr 271/1,271/2 w Tomaszowie Lubelskim,&nbsp;udostępniane zgodnie z art. 19b. ust. 1 Ustawy z dnia 20 maja 2021 r. o ochronie praw nabywcy lokalu mieszkalnego lub domu jednorodzinnego oraz Deweloperskim Funduszu Gwarancyjnym (Dz. U. z 2024 r. poz. 695.)</p>",
+    "modified": "2026-11-21T09:46:04Z",
+    "created": "2026-05-12T13:43:03Z",
+    "license_name": "CC0 1.0",
+    "slug": "ceny-ofertowe-mieszkan-dewelopera-lege-artis-tomaszow-lubelski",
+    "update_frequency": "Codziennie"
+   }
+  },
+  {
+   "id": "18034",
+   "type": "dataset",
+   "links": {
+    "self": "https://api.dane.gov.pl/1.4/datasets/18034,ceny-ofertowe-mieszkan-dewelopera-muniak-developme"
+   },
+   "attributes": {
+    "title": "Ceny ofertowe mieszkań dewelopera Muniak Development w 2025 roku",
+    "notes": "<p>Zbiór danych zawiera informacje o cenach ofertowych mieszkań dewelopera Muniak Development udostępniane zgodnie z art. 19b. ust. 1 Ustawy z dnia 20 maja 2021 r. o ochronie praw nabywcy lokalu mieszkalnego lub domu jednorodzinnego oraz Deweloperskim Funduszu Gwarancyjnym (Dz. U. z 2024 r. poz. 695)</p>",
+    "modified": "2026-11-21T08:53:47Z",
+    "created": "2025-11-22T21:19:01Z",
+    "license_name": "CC0 1.0",
+    "slug": "ceny-ofertowe-mieszkan-dewelopera-muniak-developme",
+    "update_frequency": "Codziennie"
+   }
+  }
+ ]
+}
