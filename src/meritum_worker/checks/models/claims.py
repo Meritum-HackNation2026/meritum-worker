@@ -21,6 +21,10 @@ class ExtractedClaim(BaseModel):
         search_queries: up to 3 web search queries the model wrote for the claim:
             key entities, numbers and dates, in Polish and English; empty when
             the model gave none.
+        fact_check_phrases: up to 4 short Polish key phrases of a fact for the
+            fact-checkers' index, which matches phrases literally: the names of
+            people, institutions and places and the numbers (worker#84); empty
+            when the model gave none.
         kind: fact (gets checked), opinion or prediction (not verifiable).
         explanation: why the claim is that kind, in Polish.
         claim_date: the date the claim refers to; None until the step dates it.
@@ -38,6 +42,9 @@ class ExtractedClaim(BaseModel):
         list[Annotated[str, Field(min_length=3, max_length=200)]],
         Field(max_length=3),
     ] = []  # pydantic copies the default per instance
+    # No length cap on the list: a fifth phrase must not fail the extraction;
+    # the search takes FACT_CHECK_PHRASES_PER_FACT.
+    fact_check_phrases: list[Annotated[str, Field(min_length=3, max_length=200)]] = []
     kind: Literal["fact", "opinion", "prediction"]
     explanation: Annotated[str, Field(min_length=10, max_length=800)]
     claim_date: date | None = None

@@ -68,7 +68,7 @@ from meritum_worker.corpus.factory import (
     build_reranker,
     run_euvsdisinfo_sync,
 )
-from meritum_worker.corpus.fakes import FakeFactCheck, FakeWebSearch
+from meritum_worker.corpus.fakes import FakeEmbeddings, FakeFactCheck, FakeWebSearch
 from meritum_worker.corpus.ingest import (
     due_entries,
     ingest_catalog,
@@ -169,6 +169,7 @@ __all__ = [
     "FactCheckSearch",
     "FactCheckSettings",
     "FactCheckUnavailableError",
+    "FakeEmbeddings",
     "FakeFactCheck",
     "FakeWebSearch",
     "ImportReport",

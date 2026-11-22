@@ -1,7 +1,8 @@
 """Find fact-checkers' ratings of the checked facts in the ClaimReview index.
 
 Features:
-    US-KOR-01, US-BEZ-03, US-OBS-01, F-14, F-18, F-22, ADR-24, ADR-34
+    US-KOR-01, US-ZRD-03, US-BEZ-03, US-OBS-01, F-14, F-15, F-18, F-22, ADR-24,
+    ADR-34
 """
 
 from meritum_worker import corpus
@@ -16,9 +17,12 @@ from meritum_worker.checks.models import CheckDeps, CheckState
 async def search_fact_checks(state: CheckState, deps: CheckDeps) -> CheckState:
     """Search Google Fact Check Tools API; ratings wait for the evidence step.
 
-    Each fact is one plain query, masked before it leaves. A rating from a
-    publisher the catalogue knows is kept for ``assess_evidence``, which decides
-    whether it is about our claim. A fact-check article on a fetchable catalogue
+    Each fact is searched whole and by its key phrases from extract_claims, in
+    parallel and masked before they leave; the API matches phrases literally.
+    A rating from a publisher the catalogue knows whose rated claim is close to
+    the fact by embeddings is kept for ``assess_evidence``, which decides
+    whether it is about our claim; a less close one stays context. Some queries
+    failing is no failure. A fact-check article on a fetchable catalogue
     domain is fetched like a web result and may become a citation; Demagog and
     AFP Sprawdzam never are. A failed API (access error, limit, no key) does not
     stop the check: the step ends ``failed`` and the limitation
@@ -33,18 +37,24 @@ async def search_fact_checks(state: CheckState, deps: CheckDeps) -> CheckState:
         The state with the ratings, the articles as evidence, or the limitation.
 
     Features:
-        US-KOR-01, US-BEZ-03, US-OBS-01, F-14, F-18, F-22, ADR-24, ADR-34
+        US-KOR-01, US-ZRD-03, US-BEZ-03, US-OBS-01, F-14, F-15, F-18, F-22, ADR-24,
+        ADR-34
     """
     if state.result is not None:
         return state
-    facts = [claim.claim for claim in state.claims if claim.is_fact]
+    facts = [claim for claim in state.claims if claim.is_fact]
     if not facts:
         return state.model_copy(
             update={"skipped_steps": [*state.skipped_steps, SEARCH_FACT_CHECKS_STEP]}
         )
     try:
         found = await corpus.search_fact_checks(
-            facts, deps.fact_check, deps.pii, deps.catalog
+            [fact.claim for fact in facts],
+            deps.fact_check,
+            deps.pii,
+            deps.catalog,
+            phrases=[fact.fact_check_phrases for fact in facts],
+            embeddings=deps.embeddings,
         )
     except corpus.FactCheckUnavailableError:
         return state.model_copy(
