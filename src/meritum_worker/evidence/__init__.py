@@ -9,6 +9,7 @@ Features:
 
 from meritum_worker.evidence.constants import (
     INCIDENTS_UNAVAILABLE,
+    SANCTIONS_SCHEDULE,
     SANCTIONS_WORKFLOW,
     STANCE_INSTRUCTIONS,
 )
@@ -29,8 +30,11 @@ from meritum_worker.evidence.sanctions import (
     SanctionedEntity,
     SanctionsList,
     load_sanctions,
-    refresh_sanctions,
     sanctions_from_env,
+)
+from meritum_worker.evidence.sanctions_fsf import (
+    parse_fsf_export,
+    refresh_sanctions,
 )
 from meritum_worker.evidence.stance import assess_stance, stance_prompt
 from meritum_worker.evidence.verdict import (
@@ -41,6 +45,7 @@ from meritum_worker.evidence.verdict import (
 
 __all__ = [
     "INCIDENTS_UNAVAILABLE",
+    "SANCTIONS_SCHEDULE",
     "SANCTIONS_WORKFLOW",
     "STANCE_INSTRUCTIONS",
     "AssessedCitation",
@@ -61,6 +66,7 @@ __all__ = [
     "load_sanctions",
     "match_incident",
     "on_topic",
+    "parse_fsf_export",
     "refresh_sanctions",
     "resolve_check_claim_date",
     "review_matches",
