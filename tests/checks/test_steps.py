@@ -52,6 +52,27 @@ def test_write_answer_codes_a_model_limitation_corpus_scope_when_evidence_was_fo
     assert out.result.limitation_codes == ["corpus_scope"]
 
 
+def test_write_answer_keeps_distinct_limitation_pairs_in_order(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    text = "Pominięto źródło."
+    updated = state.model_copy(
+        update={
+            "limitations": [text, text, "Pominięto opinię."],
+            "image_notes": [("image_search_not_run", text), ("corpus_scope", text)],
+        }
+    )
+    out = asyncio.run(write_answer(updated, make_deps()))
+    assert out.result is not None
+    assert out.result.limitations[1:] == [text, "Pominięto opinię.", text]
+    assert out.result.limitation_codes == [
+        "no_publications",
+        "corpus_scope",
+        "corpus_scope",
+        "image_search_not_run",
+    ]
+
+
 def _document() -> SourceDocument:
     source = Source(
         id="gus-a",

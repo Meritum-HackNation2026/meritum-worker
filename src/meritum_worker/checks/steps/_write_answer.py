@@ -101,28 +101,26 @@ def _result_from_draft(
     if len(draft.claims) != len(facts):
         # One result per fact, or the answer cannot be tied to its claims.
         return state.technical_failure()
-    # Skipped claims and dropped sources: what the check could not cover.
-    skipped: list[LimitationCode] = [_code(text) for text in state.limitations]
     answered = [
         _answered(fact, judgement, written, state.incidents.get(fact.claim))
         for fact, judgement, written in zip(facts, judged, draft.claims, strict=True)
     ]
     unverifiable = [_not_verifiable(c) for c in state.claims if not c.is_fact]
-    notes = state.image_notes
+    draft_code = _draft_code(state, facts)
+    notes = dict.fromkeys(
+        [
+            (draft_code, plain_text(text, LIMITATION_MAX_CHARS))
+            for text in draft.limitations
+        ]
+        + [(_code(text), text) for text in state.limitations]
+        + state.image_notes
+    )
     return CheckResult(
         check_id=state.check_id,
         status="done",
         claims=[*answered, *unverifiable],
-        limitations=[
-            *(plain_text(text, LIMITATION_MAX_CHARS) for text in draft.limitations),
-            *state.limitations,
-            *[text for _, text in notes],
-        ],
-        limitation_codes=[
-            *[_draft_code(state, facts)] * len(draft.limitations),
-            *skipped,
-            *[code for code, _ in notes],
-        ],
+        limitations=[text for _, text in notes],
+        limitation_codes=[code for code, _ in notes],
         corpus_version=state.corpus_version,
         ai_marker=ai_marker_for(usage, datetime.now(UTC)),
     )

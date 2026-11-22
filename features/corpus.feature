@@ -1,6 +1,12 @@
 # language: pl
 Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
 
+  Scenariusz: Powtórzone ograniczenie trafia do wyniku raz
+    Zakładając pytanie o depeszę PAP i API Fact Check z oceną Demagogu "Fałsz"
+    I model dwukrotnie podaje to samo ograniczenie
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy wynik zawiera to ograniczenie z kodem tylko raz
+
   Scenariusz: pierwsze pełne skanowanie
     Zakładając ważny token EUvsDisinfo
     I w źródle 230 przypadków i 120 artykułów
