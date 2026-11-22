@@ -10,14 +10,13 @@ from datetime import datetime
 from google.auth.credentials import Credentials
 from httpx2 import AsyncClient
 from meritum_core.corpus import CorpusProvider, CorpusSettings
-from meritum_core.corpus.fetching import PageFetcherPort, build_page_fetcher
+from meritum_core.corpus.fetching import build_page_fetcher
 from meritum_core.corpus.rerank import NullReranker, RerankerPort
 from meritum_core.security.injection import InjectionDetectorPort
 from meritum_core.shared.embeddings import EmbeddingsPort
 
 from meritum_worker.corpus.adapters import (
     EntryPageDiscovery,
-    JsonAsTextTransport,
     McpEuvsDisinfo,
     MemoryCorpusWriter,
     MemoryEuvsCopy,
@@ -27,6 +26,7 @@ from meritum_worker.corpus.adapters import (
     PostgresEuvsCopy,
     VertexReranker,
     WorkersAiReranker,
+    build_api_fetcher,
 )
 from meritum_worker.corpus.adapters import (
     build_corpus_retention as build_corpus_retention,  # ruff: ignore[useless-import-alias]  # explicit re-export for the corpus package
@@ -138,19 +138,6 @@ def build_document_discovery() -> DocumentDiscoveryPort:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
     """
     return EntryPageDiscovery()
-
-
-def build_api_fetcher() -> PageFetcherPort:
-    """Build core's SSRF-safe fetcher for public JSON APIs.
-
-    Returns:
-        The fetcher over a transport that labels JSON answers ``text/plain``;
-        pinning, SNI and robots.txt stay core's.
-
-    Features:
-        US-KOR-02, US-SPR-07, F-06, F-10, F-12, ADR-32
-    """
-    return build_page_fetcher(transport=JsonAsTextTransport())
 
 
 def build_ingest_deps(

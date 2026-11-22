@@ -13,6 +13,7 @@ from collections.abc import Callable
 from typing import override
 
 import httpx
+from meritum_core.corpus.fetching import PageFetcherPort, build_page_fetcher
 
 from meritum_worker.corpus.catalog_api.constants import (
     API_RECORD_CONTENT_TYPE,
@@ -81,3 +82,16 @@ class JsonAsTextTransport(httpx.AsyncBaseTransport):
         inner, self._inner = self._inner, None
         if inner is not None:
             await inner.aclose()
+
+
+def build_api_fetcher() -> PageFetcherPort:
+    """Build core's SSRF-safe fetcher for public JSON APIs.
+
+    Returns:
+        The fetcher over a transport that labels JSON answers ``text/plain``;
+        pinning, SNI and robots.txt stay core's.
+
+    Features:
+        US-KOR-02, US-SPR-07, F-06, F-10, F-12, ADR-32
+    """
+    return build_page_fetcher(transport=JsonAsTextTransport())
