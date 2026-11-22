@@ -12,6 +12,7 @@ from itertools import batched
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus.fetching import FetchedPage
 from meritum_core.shared.embeddings import EmbeddingsPort, Vector
+from meritum_core.shared.llm import ProviderUnavailableError
 
 from meritum_worker.corpus.chunking import chunk_text
 from meritum_worker.corpus.constants import (
@@ -32,6 +33,7 @@ from meritum_worker.corpus.documents import (
     IngestFailure,
     IngestReport,
 )
+from meritum_worker.corpus.ingest_constants import INJECTION_UNAVAILABLE
 from meritum_worker.corpus.ports import IngestDeps
 
 
@@ -58,22 +60,18 @@ async def store_page(
 
     Returns:
         One added, updated or unchanged document, or one failure; a page of an
-        excluded or TDM-reserved entry, or one carrying an instruction for the
-        model, is always a failure.
+        excluded or TDM-reserved entry, one carrying an instruction for the
+        model, or one the injection detector could not scan (its classifier's
+        provider failed), is always a failure.
 
     Features:
         US-KOR-02, US-KOR-05, US-BEZ-01, F-10, F-12, F-19, ADR-21
     """
     url = found.url if found else page.url
     text = page.untrusted_text.strip()
-    if entry.excluded or entry.tdm_reservation == TDM_RESERVED_ENTRY:
-        return failed_page(entry, url, ENTRY_NOT_INGESTIBLE)
-    if page.tdm_reserved:
-        return failed_page(entry, url, TDM_RESERVED)
-    if not text:
-        return failed_page(entry, url, EMPTY_TEXT)
-    if (await deps.injection.scan(text)).detected:
-        return failed_page(entry, url, INJECTION_FOUND)
+    rejected = await _rejection(page, entry, text, deps)
+    if rejected is not None:
+        return failed_page(entry, url, rejected)
     published_on = (found.published_on if found else None) or page.published_at
     document = _document(entry, url, text, now, published_on)
     previous = await deps.store.document(document.source_id)
@@ -82,6 +80,22 @@ async def store_page(
         return IngestReport(unchanged=1)
     await deps.store.save_document(document, await _passages(document, deps))
     return IngestReport(added=int(previous is None), updated=int(previous is not None))
+
+
+async def _rejection(
+    page: FetchedPage, entry: CatalogEntry, text: str, deps: IngestDeps
+) -> str | None:
+    if entry.excluded or entry.tdm_reservation == TDM_RESERVED_ENTRY:
+        return ENTRY_NOT_INGESTIBLE
+    if page.tdm_reserved:
+        return TDM_RESERVED
+    if not text:
+        return EMPTY_TEXT
+    try:
+        scan = await deps.injection.scan(text)
+    except ProviderUnavailableError:  # unscanned text never enters the corpus
+        return INJECTION_UNAVAILABLE
+    return INJECTION_FOUND if scan.detected else None
 
 
 def failed_page(

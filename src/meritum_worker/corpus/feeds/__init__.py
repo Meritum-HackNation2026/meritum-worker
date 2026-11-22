@@ -11,7 +11,7 @@ from meritum_worker.corpus.feeds.constants import (
     FEED_UNREADABLE,
 )
 from meritum_worker.corpus.feeds.parsing import FeedListing, parse_feed
-from meritum_worker.corpus.feeds.urls import canonical_url, feed_url
+from meritum_worker.corpus.feeds.urls import canonical_url, feed_url, on_entry_site
 
 __all__ = [
     "FEED_AS_MEDIA_TYPE",
@@ -21,5 +21,6 @@ __all__ = [
     "FeedListing",
     "canonical_url",
     "feed_url",
+    "on_entry_site",
     "parse_feed",
 ]

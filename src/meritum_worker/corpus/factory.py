@@ -25,6 +25,7 @@ from meritum_worker.corpus.adapters import (
     OrganiserFile,
     PostgresCorpusWriter,
     PostgresEuvsCopy,
+    PresscornerFetcher,
     VertexReranker,
     WorkersAiReranker,
     build_api_fetcher,
@@ -154,19 +155,20 @@ def build_ingest_deps(
         injection: The detector pages are scanned with before they are stored.
 
     Returns:
-        Feed discovery, core's SSRF-safe fetcher, the embeddings, the
-        writer, the detector and the fetcher of public APIs.
+        Feed discovery, core's fetcher (Press Corner through its JSON API), the
+        embeddings, the writer, the detector and the fetcher of public APIs.
 
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
     """
+    api_fetcher = build_api_fetcher()
     return IngestDeps(
         discovery=build_document_discovery(),
-        fetcher=build_page_fetcher(),
+        fetcher=PresscornerFetcher(build_page_fetcher(), api_fetcher),
         embeddings=embeddings,
         store=build_corpus_writer(settings),
         injection=injection,
-        api_fetcher=build_api_fetcher(),
+        api_fetcher=api_fetcher,
     )
 
 

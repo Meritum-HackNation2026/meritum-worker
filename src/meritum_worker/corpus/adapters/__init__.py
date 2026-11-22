@@ -21,6 +21,7 @@ from ._postgres import PostgresEuvsCopy
 from ._postgres_archive import PostgresArchiveRegistry
 from ._postgres_corpus import PostgresCorpusWriter
 from ._postgres_retention import PostgresCorpusRetention
+from ._presscorner import PresscornerFetcher
 from ._retention_factory import build_corpus_retention
 from ._vertex_ranking import VertexReranker
 from ._workers_ai_ranking import WorkersAiReranker
@@ -41,6 +42,7 @@ __all__ = [
     "PostgresCorpusRetention",
     "PostgresCorpusWriter",
     "PostgresEuvsCopy",
+    "PresscornerFetcher",
     "VertexReranker",
     "WorkersAiReranker",
     "apply_corpus_migrations",
