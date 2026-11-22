@@ -73,3 +73,9 @@ Funkcja: Wymowa cytatów i werdykt z reguły core
     Zakładając sprawdzany link do domeny z linksToDisinformation i wpis o temacie twierdzenia
     Gdy obywatel sprawdza podobne twierdzenie po polsku
     Wtedy wynik ma IncidentMatch z matched_on "domain"
+
+  Scenariusz: fragment z migawki korpusu przeczy twierdzeniu
+    Zakładając w migawce korpusu fragment komunikatu RCB, który przeczy twierdzeniu
+    Gdy system ocenia dowody z korpusu i pisze odpowiedź
+    Wtedy werdykt to "false" z cytatem z tego fragmentu
+    Oraz cytat ma wydawcę i domenę z katalogu

@@ -107,6 +107,8 @@ from meritum_worker.corpus.organiser import (
     import_organiser_file,
 )
 from meritum_worker.corpus.pages import store_page
+from meritum_worker.corpus.passage_ports import CorpusDocumentsPort
+from meritum_worker.corpus.passage_sources import passage_documents
 from meritum_worker.corpus.ports import (
     CorpusWriterPort,
     DocumentDiscoveryPort,
@@ -153,6 +155,7 @@ __all__ = [
     "ArchiveRegistry",
     "ArchiveRequest",
     "ClaimReviewFinding",
+    "CorpusDocumentsPort",
     "CorpusLivePages",
     "CorpusRetentionPort",
     "CorpusSnapshot",
@@ -218,6 +221,7 @@ __all__ = [
     "ingestion_enabled",
     "is_due",
     "missing_env",
+    "passage_documents",
     "purge_archives_of",
     "purge_expired_archives",
     "read_archive",

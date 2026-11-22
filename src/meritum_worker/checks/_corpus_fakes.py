@@ -12,6 +12,7 @@ from typing import TypedDict
 from meritum_core.corpus import CorpusSearchPort, NullReranker, Passage, RerankerPort
 
 from meritum_worker.checks.constants import NO_CORPUS_VERSION
+from meritum_worker.corpus import CorpusDocumentsPort, DocumentMeta
 
 
 class FakeCorpusSearch:
@@ -57,6 +58,32 @@ class FakeCorpusSearch:
         return self._passages[:limit]
 
 
+class FakeCorpusDocuments:
+    """CorpusDocumentsPort over the metadata given at construction.
+
+    Args:
+        documents: the documents the corpus holds.
+
+    Features:
+        US-KOR-02, US-ZRD-01, F-12, F-16
+    """
+
+    def __init__(self, documents: Sequence[DocumentMeta] = ()) -> None:
+        self._documents = {d.source_id: d for d in documents}
+
+    async def document(self, source_id: str) -> DocumentMeta | None:
+        """Return the document given at construction, if any.
+
+        Args:
+            source_id: the document.
+
+        Returns:
+            Its metadata, or None.
+        """
+        await asyncio.sleep(0)
+        return self._documents.get(source_id)
+
+
 class CorpusPorts(TypedDict):
     """The CheckDeps ports of corpus research, for ``CheckDeps(**corpus_ports())``.
 
@@ -64,6 +91,7 @@ class CorpusPorts(TypedDict):
         corpus: the fake search.
         reranker: core's null gate, which keeps the search order.
         corpus_version: the pinned snapshot.
+        corpus_documents: the fake documents the passages come from.
 
     Features:
         US-SPR-02, US-SPR-04, F-09, F-12
@@ -72,16 +100,21 @@ class CorpusPorts(TypedDict):
     corpus: CorpusSearchPort
     reranker: RerankerPort
     corpus_version: str
+    corpus_documents: CorpusDocumentsPort
 
 
 def corpus_ports(
-    passages: Sequence[Passage] = (), *, version: str = NO_CORPUS_VERSION
+    passages: Sequence[Passage] = (),
+    *,
+    version: str = NO_CORPUS_VERSION,
+    documents: Sequence[DocumentMeta] = (),
 ) -> CorpusPorts:
     """A fake corpus search, the null reranker and a pinned snapshot.
 
     Args:
         passages: what every search finds.
         version: the snapshot; NO_CORPUS_VERSION (default) skips search_corpus.
+        documents: the metadata of the documents the passages come from.
 
     Returns:
         The ports.
@@ -93,4 +126,5 @@ def corpus_ports(
         corpus=FakeCorpusSearch(passages),
         reranker=NullReranker(),
         corpus_version=version,
+        corpus_documents=FakeCorpusDocuments(documents),
     )

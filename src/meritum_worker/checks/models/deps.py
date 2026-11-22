@@ -21,6 +21,7 @@ from meritum_core.shared.embeddings import EmbeddingsPort
 from meritum_core.shared.llm import LlmPort
 
 from meritum_worker.corpus import (
+    CorpusDocumentsPort,
     EuvsCopyPort,
     FactCheckPort,
     FakeFactCheck,
@@ -48,6 +49,8 @@ class CheckDeps:
         corpus: hybrid search of the corpus snapshots, called in process (ADR-32).
         reranker: the gate passages pass before stance assessment (ADR-35).
         corpus_version: the snapshot checks search; NO_CORPUS_VERSION skips it.
+        corpus_documents: the metadata of the documents passages come from; a
+            passage becomes evidence only with its document's link and domain.
         moderation: the ports of moderator cases; None skips the cases step.
         web_search_provider: the web search provider, the key of WEB_SEARCH_PRICES.
         fact_check: Google Fact Check Tools API, or the stub that finds nothing.
@@ -80,6 +83,7 @@ class CheckDeps:
     corpus: CorpusSearchPort
     reranker: RerankerPort
     corpus_version: str
+    corpus_documents: CorpusDocumentsPort | None = None
     moderation: ModerationDeps | None = None
     web_search_provider: str = "stub"
     fact_check: FactCheckPort = field(default_factory=FakeFactCheck)
