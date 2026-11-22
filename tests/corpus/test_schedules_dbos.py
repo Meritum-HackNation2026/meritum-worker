@@ -9,6 +9,7 @@ import asyncio
 from collections.abc import Callable, Coroutine, Iterator
 from datetime import UTC, datetime
 
+import psycopg
 import pytest
 from dbos import DBOS
 from meritum_core.checks.contracts import CatalogEntry
@@ -45,11 +46,17 @@ def dbos(monkeypatch: pytest.MonkeyPatch) -> Iterator[type[DBOS]]:
 type Workflow = Callable[[datetime, object], Coroutine[object, object, None]]
 
 
-async def _steps(dbos: type[DBOS], workflow: Workflow) -> list[tuple[str, str]]:
+async def _run(dbos: type[DBOS], workflow: Workflow) -> str:
+    handle = await dbos.start_workflow_async(workflow, SCHEDULED, None)
+    await handle.get_result()
+    return handle.workflow_id
+
+
+async def _steps(dbos: type[DBOS], workflow: Workflow) -> list[tuple[str, object]]:
     handle = await dbos.start_workflow_async(workflow, SCHEDULED, None)
     await handle.get_result()
     steps = await dbos.list_workflow_steps_async(handle.workflow_id)
-    return [(step["function_name"], str(step["output"])) for step in steps]
+    return [(step["function_name"], step["output"]) for step in steps]
 
 
 @pytest.mark.integration
@@ -77,10 +84,40 @@ def test_ingest_workflow_stores_the_pages_of_each_due_entry(
     monkeypatch.setattr(main, "_ingest_deps", lambda: deps)
     monkeypatch.setattr(main, "load_catalog", lambda: catalog)
     steps = asyncio.run(_steps(dbos, main.corpus_ingest_workflow))
-    assert [name for name, _ in steps] == ["plan due entries", "ingest urzad.gov.pl"]
-    assert corpus.IngestReport.model_validate_json(steps[1][1]).added == 3
+    assert [name for name, _ in steps][:2] == [
+        "plan due entries",
+        "ingest urzad.gov.pl",
+    ]
+    assert corpus.IngestReport.model_validate(steps[1][1]).added == 3
     documents = asyncio.run(deps.store.documents())
     assert {d.fetched_at for d in documents} == {SCHEDULED}
+
+
+@pytest.mark.integration
+def test_ingest_workflow_keeps_each_report_as_plain_json(
+    dbos: type[DBOS], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    site = FakeCatalogSite(pages_per_domain=2)
+    deps = corpus.IngestDeps(
+        discovery=site,
+        fetcher=site,
+        embeddings=build_embeddings(EmbeddingsSettings()),
+        store=corpus.build_corpus_writer(),
+        injection=CleanInjectionDetector(),
+    )
+    monkeypatch.setattr(main, "_ingest_deps", lambda: deps)
+    monkeypatch.setattr(main, "load_catalog", lambda: (ENTRY,))
+    workflow_id = asyncio.run(_run(dbos, main.corpus_ingest_workflow))
+    url = main.config()["system_database_url"]
+    assert url is not None
+    with psycopg.connect(url) as conn:
+        row = conn.execute(
+            "SELECT serialization, value::jsonb ->> 'added'"
+            " FROM worker_corpus_integration.workflow_events"
+            " WHERE workflow_uuid = %s AND key = %s",
+            (workflow_id, "ingest urzad.gov.pl"),
+        ).fetchone()
+    assert row == ("portable_json", "2")
 
 
 @pytest.mark.integration
@@ -89,4 +126,4 @@ def test_ingest_workflow_plans_nothing_when_not_enabled(
 ) -> None:
     monkeypatch.setenv("MERITUM_CORPUS_INGEST", "")
     steps = asyncio.run(_steps(dbos, main.corpus_ingest_workflow))
-    assert steps == [("plan due entries", "[]")]
+    assert steps == [("plan due entries", [])]
