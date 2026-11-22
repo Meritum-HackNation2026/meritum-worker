@@ -22,6 +22,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from meritum_worker.observability.constants import (
     ANSWER_HIDDEN_FIELDS,
     REPORT_DECIMALS,
+    RUBRIC_BLOCKS,
     RUBRIC_JUDGE_INSTRUCTIONS,
 )
 from meritum_worker.observability.models import GoldenCase, Scenario
@@ -141,11 +142,15 @@ async def judge_rubric(
 
 def _prompt(run: CaseRun, checks: Sequence[str], first: CheckResult | None) -> Prompt:
     numbered = "".join(f"\n{n}. {check}" for n, check in enumerate(checks, 1))
-    data = (_question(run.case), run.case.expected_behavior, _shown(run.result))
-    return Prompt(
-        instructions=RUBRIC_JUDGE_INSTRUCTIONS + numbered,
-        data=data if first is None else (*data, _shown(first)),
+    texts = [_question(run.case), run.case.expected_behavior, _shown(run.result)]
+    if first is not None:
+        texts.append(_shown(first))
+    # Labelled blocks: the judge mixed up the reference and the bot's answer.
+    data = tuple(
+        f"<{tag}>\n{text}\n</{tag}>"
+        for tag, text in zip(RUBRIC_BLOCKS, texts, strict=False)
     )
+    return Prompt(instructions=RUBRIC_JUDGE_INSTRUCTIONS + numbered, data=data)
 
 
 def _question(case: GoldenCase) -> str:

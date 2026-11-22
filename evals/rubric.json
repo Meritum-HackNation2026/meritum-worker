@@ -1,13 +1,14 @@
 {
   "common": [
     "Rozstrzygnięcie odpowiedzi (tak, nie, częściowo, nie udało się potwierdzić, opinia, której nie da się sprawdzić, prośba poza zakresem albo błąd techniczny) zgadza się z odpowiedzią wzorcową.",
-    "Uzasadnienie opiera się na pokazanych cytatach i ocenach fact-checkerów: nie twierdzi niczego, czego one nie mówią, i nie przeczy odpowiedzi wzorcowej. Nie dotyczy, gdy odpowiedź nie ma uzasadnienia (prośba poza zakresem, błąd techniczny)."
+    "Uzasadnienie opiera się na pokazanych cytatach i ocenach fact-checkerów: nie twierdzi niczego, czego one nie mówią, i nie przeczy głównej treści odpowiedzi wzorcowej. Szczegół wzięty z pokazanego cytatu nie jest błędem, nawet gdy różni się od wzorca. Nie dotyczy, gdy odpowiedź nie ma uzasadnienia (prośba poza zakresem, błąd techniczny).",
+    "Każda ocena fact-checkera pokazana przy twierdzeniu dotyczy tego twierdzenia; ocena innej wypowiedzi albo innego tematu pokazana przy nim jest błędem, także jako tło. Nie dotyczy, gdy odpowiedź nie pokazuje ocen fact-checkerów."
   ],
   "scenarios": {
     "A": [
       "Podaje źródło rozstrzygnięcia z nazwą wydawcy i linkiem (cytat albo ocena fact-checkera). Nie dotyczy, gdy odpowiedź wzorcowa nie opiera się na źródle (opinia, prognoza, prośba poza zakresem).",
       "Ocenę fact-checkera przypisuje temu fact-checkerowi (na przykład „Demagog ocenił to jako fałsz”) i daje link do jego publikacji. Nie dotyczy, gdy ani odpowiedź wzorcowa, ani odpowiedź nie mają oceny fact-checkera.",
-      "Wydarzenia zapowiedzianego albo zaplanowanego nie przedstawia jako takiego, które się odbyło: mówi, na kiedy je zapowiedziano i że nie wiadomo, czy się odbyło. Nie dotyczy, gdy pytanie nie dotyczy zapowiedzianego wydarzenia."
+      "Wydarzenia zapowiedzianego albo zaplanowanego na konkretny termin (strajk, protest, wejście przepisów w życie) nie przedstawia jako takiego, które się odbyło: mówi, na kiedy je zapowiedziano i że nie wiadomo, czy się odbyło. Nie dotyczy, gdy pytanie nie pyta o takie wydarzenie, a zwłaszcza przy prognozie albo opinii o przyszłości (na przykład kto wygra turniej)."
     ],
     "B": [
       "Mówi, że materiał jest prawdziwy, ale stary albo wyrwany z kontekstu, i podaje jego rzeczywistą datę albo okoliczności.",

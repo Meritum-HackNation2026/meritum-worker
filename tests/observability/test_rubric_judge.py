@@ -53,14 +53,9 @@ class _Judge(NoTools):
         return LlmResult[T](output=answer, usage=USAGE)
 
 
-def _d_checks(*statuses: str) -> tuple[str, ...]:
-    # D has two common checks and three of its own.
-    assert len(statuses) == len(RUBRIC.checks("D"))
-    return statuses
-
-
-MET = _d_checks("met", "met", "met", "met", "met")
-DENIES = _d_checks("met", "met", "met", "met", "not_met")
+D_CHECKS = len(RUBRIC.checks("D"))
+MET = ("met",) * D_CHECKS
+DENIES = ("met",) * (D_CHECKS - 1) + ("not_met",)
 
 
 def _judged(runs: list[CaseRun], judge: _Judge, votes: int = 2) -> EvalReport:
@@ -82,8 +77,8 @@ def test_case_fails_the_rubric_when_one_check_is_not_met(
     scored = report.outcomes[0].rubric
     assert scored is not None
     assert scored.passed == 0
-    assert scored.score == pytest.approx(0.8)
-    assert scored.failed == (f"{RUBRIC.checks('D')[-1]} (powód 5)",)
+    assert scored.score == pytest.approx((D_CHECKS - 1) / D_CHECKS, abs=1e-4)
+    assert scored.failed == (f"{RUBRIC.checks('D')[-1]} (powód {D_CHECKS})",)
     assert report.scenarios[0].rubric_pass_rate == 0
     assert report.rubric_pass_rate == 0
 
@@ -93,17 +88,19 @@ def test_split_votes_count_as_half_a_pass(
 ) -> None:
     report = _judged([run(case(), result())], _Judge(MET, DENIES))
     assert report.scenarios[0].rubric_pass_rate == pytest.approx(0.5)
-    assert report.rubric_score == pytest.approx(0.9)
+    assert report.rubric_score == pytest.approx(
+        (1 + (D_CHECKS - 1) / D_CHECKS) / 2, abs=1e-4
+    )
 
 
 def test_checks_that_do_not_apply_are_left_out_and_missing_ones_fail(
     case: Make[GoldenCase], result: Make[CheckResult], run: Make[CaseRun]
 ) -> None:
-    na = _d_checks("met", "met", "not_applicable", "met", "met")
+    na = ("not_applicable", *MET[1:])
     report = _judged([run(case(), result())], _Judge(na, ("met",)))
     scored = report.outcomes[0].rubric
     assert scored is not None
-    assert scored.score == pytest.approx((1 + 0.2) / 2)
+    assert scored.score == pytest.approx((1 + 1 / D_CHECKS) / 2, abs=1e-4)
     assert scored.passed == pytest.approx(0.5)
 
 
@@ -141,9 +138,15 @@ def test_the_judge_reads_the_rubric_model_answer_and_the_visible_answer(
     prompt = judge.prompts[0]
     assert RUBRIC.checks("D")[-1] in prompt.instructions
     question, model_answer, answer = prompt.data
-    assert question == case().text
-    assert model_answer == case().expected_behavior
-    shown = json.loads(answer)
+    assert question == f"<question>\n{case().text}\n</question>"
+    assert model_answer == (
+        f"<reference_answer>\n{case().expected_behavior}\n</reference_answer>"
+    )
+    assert answer.startswith("<bot_answer>\n")
+    assert answer.endswith("\n</bot_answer>")
+    shown = json.loads(
+        answer.removeprefix("<bot_answer>").removesuffix("</bot_answer>")
+    )
     quoted = shown["claims"][0]["citations"][0]
     assert quoted["source"]["title"] == "Bilety w Pcimiu"
     assert quoted["source"]["published_at"].startswith("2026-11-02")
@@ -166,7 +169,7 @@ def test_a_repeat_is_judged_next_to_the_first_answer(
     runs = [run(first, result()), run(again, result(check_id="check-2"))]
     _judged(runs, judge, votes=1)
     assert len(judge.prompts[0].data) == 3
-    assert len(judge.prompts[1].data) == 4
+    assert judge.prompts[1].data[3].startswith("<first_bot_answer>\n")
 
 
 def test_reports_from_before_the_rubric_still_load() -> None:
