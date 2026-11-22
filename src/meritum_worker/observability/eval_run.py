@@ -16,6 +16,7 @@ from meritum_core.checks.contracts import (
     EvalCaseResult,
     EvalMetrics,
     EvalRun,
+    EvalScenarioScore,
 )
 from meritum_core.jobs.contracts import EvalRunInput, EvalRunOutput
 from meritum_core.notifications import NotificationRepository
@@ -186,7 +187,10 @@ def _done(
             "finished_at": max(finished_at, run.started_at),
             "models": report.models,
             "metrics": report.model_dump(include=set(EvalMetrics.model_fields)),
-            "scenarios": [s.model_dump() for s in report.scenarios],
+            "scenarios": [
+                s.model_dump(include=set(EvalScenarioScore.model_fields))
+                for s in report.scenarios
+            ],
             "cases": [
                 _case(run.started_at, case, score)
                 for case, score in zip(runs, report.outcomes, strict=True)

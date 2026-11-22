@@ -65,3 +65,18 @@ Funkcja: Golden set A–J i ewaluacja
     Zakładając dwa zapisane przebiegi
     Gdy backend prosi o porównanie
     Wtedy wynik podaje różnice mierników i przypadki, które zmieniły wynik
+
+
+  # --- rubryka tekstu odpowiedzi (worker#252) ---
+
+  Scenariusz: sędzia rubryki ocenia tekst odpowiedzi według scenariusza
+    Zakładając przypadek scenariusza D z odpowiedzią wzorcową i wynik sprawdzenia, który mówi, że zmiany nie było
+    Gdy meritum-eval ocenia przebieg z flagą --judge
+    Wtedy kryterium „nie twierdzi, że zdarzenia nie było” jest niespełnione
+    I przypadek nie przechodzi rubryki, a raport podaje to kryterium przy id przypadku
+
+  Scenariusz: raport podaje zdawalność rubryki per scenariusz
+    Zakładając przebieg z przypadkami scenariuszy A i J ocenionymi przez sędziego dwoma głosami
+    Gdy powstaje raport
+    Wtedy każdy scenariusz ma rubric_pass_rate i rubric_score obok accuracy
+    I przypadek, w którym głosy się różnią, liczy się jako pół zaliczenia

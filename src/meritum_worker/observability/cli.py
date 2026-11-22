@@ -20,7 +20,7 @@ from pydantic import ValidationError
 
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cassette import Cassette, EvalMode
-from meritum_worker.observability.citation_judge import judge_citations
+from meritum_worker.observability.citation_judge import citation_hits
 from meritum_worker.observability.comparison import (
     ModelComparison,
     ModelConfig,
@@ -29,7 +29,9 @@ from meritum_worker.observability.comparison import (
 )
 from meritum_worker.observability.constants import (
     DEFAULT_CASES_FILE,
+    DEFAULT_JUDGE_VOTES,
     DEFAULT_MAX_CONCURRENCY,
+    DEFAULT_RUBRIC_FILE,
     EVAL_NAME,
 )
 from meritum_worker.observability.factory import (
@@ -48,8 +50,9 @@ from meritum_worker.observability.retrieval import (
     load_embeddings_config,
     score_retrieval,
 )
+from meritum_worker.observability.rubric_judge import Rubric, judge_rubric, load_rubric
 from meritum_worker.observability.runner import DepsFor, run_cases, run_eval
-from meritum_worker.observability.scoring import score_runs
+from meritum_worker.observability.scoring import score_runs, with_judgements
 from meritum_worker.observability.snapshot import SnapshotCorpus, load_snapshot_file
 
 
@@ -91,9 +94,7 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
         "--corpus-file", type=Path, help="saved snapshot --compare-embeddings searches"
     )
     parser.add_argument("--api", help="origin of a deployed API to check the cases on")
-    parser.add_argument(
-        "--judge", action="store_true", help="judge citations with MERITUM_LLM_*"
-    )
+    _judge_arguments(parser)
     parser.add_argument(
         "--fresh", action="store_true", help="bypass the API's result cache"
     )
@@ -107,6 +108,7 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
         # Every file loads before any model runs, so a typo costs nothing.
         models = [load_model_config(path) for path in args.compare_models]
         embeddings = [load_embeddings_config(p) for p in args.compare_embeddings]
+        rubric = load_rubric(args.rubric) if args.judge else None
     except (OSError, tomllib.TOMLDecodeError, ValidationError) as error:
         parser.error(f"config: {error}")
     recorded: Cassette | None = None
@@ -120,7 +122,7 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
             _compare_models(cases, args.cases, models, args.max_concurrency)
         )
     elif args.api:
-        report = asyncio.run(_through_api(cases, args, args.max_concurrency))
+        report = asyncio.run(_through_api(cases, args, rubric))
     else:
         deps_for, recorded = _deps(parser, args)
         report = score_runs(
@@ -186,18 +188,20 @@ def _snapshot(
 
 
 async def _through_api(
-    cases: GoldenSet, args: argparse.Namespace, concurrency: int
+    cases: GoldenSet, args: argparse.Namespace, rubric: Rubric | None
 ) -> EvalReport:
     checks = build_api_checks(args.api, fresh=args.fresh)
     try:
-        runs = await run_cases(cases, checks.check, concurrency)
+        runs = await run_cases(cases, checks.check, args.max_concurrency)
     finally:
         await checks.aclose()
     report = score_runs(runs)
-    if not args.judge:
+    if rubric is None:
         return report
-    precision = await judge_citations(runs, build_llm(LlmSettings()))
-    return report.model_copy(update={"citation_precision": precision})
+    judge = build_llm(LlmSettings())
+    hits = await citation_hits(runs, judge)
+    rubrics = await judge_rubric(runs, judge, rubric, votes=args.judge_votes)
+    return with_judgements(report, rubrics=rubrics, citations=hits)
 
 
 def _deps(
@@ -223,6 +227,16 @@ def _replay_deps(parser: argparse.ArgumentParser, args: argparse.Namespace) -> D
     except (OSError, ValueError) as error:
         parser.error(f"{args.cassette}: {error}")
     return build_replay_deps(cassette)
+
+
+def _judge_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--judge",
+        action="store_true",
+        help="judge citations and the answer rubric with MERITUM_LLM_*",
+    )
+    parser.add_argument("--judge-votes", type=_positive, default=DEFAULT_JUDGE_VOTES)
+    parser.add_argument("--rubric", type=Path, default=Path(DEFAULT_RUBRIC_FILE))
 
 
 def _positive(value: str) -> int:

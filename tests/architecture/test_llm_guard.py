@@ -21,6 +21,8 @@ CALLERS = {
     "observability/adapters/_llm.py",
     # Eval judge: reads a finished run's citations offline; nothing reaches a user.
     "observability/citation_judge.py",
+    # Eval judge: reads a finished run's answer text offline; nothing reaches a user.
+    "observability/rubric_judge.py",
     "security/guard.py",
 }
 
