@@ -4,7 +4,7 @@ Features:
     US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, F-07, F-22
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from meritum_core.checks import CheckRecordRepository
 from meritum_core.checks.contracts import CatalogEntry
@@ -18,6 +18,7 @@ from meritum_core.security.pii import PiiGatePort
 from meritum_core.shared.blobs import BlobStore
 from meritum_core.shared.llm import LlmPort
 
+from meritum_worker.corpus import FactCheckPort, FakeFactCheck
 from meritum_worker.moderation import ModerationDeps
 
 
@@ -41,6 +42,7 @@ class CheckDeps:
         corpus_version: the snapshot checks search; NO_CORPUS_VERSION skips it.
         moderation: the ports of moderator cases; None skips the cases step.
         web_search_provider: the web search provider, the key of WEB_SEARCH_PRICES.
+        fact_check: Google Fact Check Tools API, or the stub that finds nothing.
 
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
@@ -62,3 +64,4 @@ class CheckDeps:
     corpus_version: str
     moderation: ModerationDeps | None = None
     web_search_provider: str = "stub"
+    fact_check: FactCheckPort = field(default_factory=FakeFactCheck)

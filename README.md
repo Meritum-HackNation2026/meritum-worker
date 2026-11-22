@@ -178,6 +178,10 @@ Obaj dostawcy nie podają, gdzie w tekście jest polecenie. Bramka wysyła więc
 
 Prawdziwe wywołanie: ustaw zmienne i uruchom `uv run pytest -m integration tests/security`.
 
+## Oceny fact-checkerów (Google Fact Check Tools API)
+
+Krok `search_fact_checks` szuka ocen ClaimReview dla każdego twierdzenia, które jest faktem (zamaskowane, jedno proste zapytanie). Dostawcę wybiera `MERITUM_FACT_CHECK_PROVIDER` (`stub` domyślnie: bez ocen; `google`), klucz to `MERITUM_FACT_CHECK_API_KEY`, wysyłany w nagłówku `X-Goog-Api-Key`, nigdy w adresie. Wydawcę rozpoznajemy po domenie z katalogu (Demagog też, choć jego stron nie pobieramy). Ocena sygnatariusza IFCN/EFCSN jest przesłanką tylko wtedy, gdy model uzna, że oceniane twierdzenie ma ten sam temat, liczby i datę; inaczej zostaje kontekstem z linkiem. Awaria, limit albo brak klucza kończy krok stanem `failed` i daje ograniczenie `fact_check_unavailable`; pusty wynik to brak oceny. API dopasowuje frazy dosłownie, więc trafianie poprawia [worker#84](https://github.com/Meritum-HackNation2026/meritum-worker/issues/84). Raport gotowości o braku klucza dodaje worker#27.
+
 ## Reranker fragmentów
 
 Krok badań porządkuje fragmenty z wyszukiwania rerankerem typu cross-encoder (ADR-35) przez `meritum_worker.corpus.rerank_passages`, a reranker buduje `build_reranker`. Dostawcę wybiera `MERITUM_RERANKER`; bez niego działa pusta bramka z meritum-core (`NullReranker`), która zostawia kolejność z wyszukiwania i loguje pominięcie. Awaria dostawcy (brak odpowiedzi, błąd HTTP po ponowieniach, odrzucone poświadczenia, nieczytelna odpowiedź) nie jest awarią sprawdzenia: fragmenty zostają w kolejności z wyszukiwania, a do `retrieval_errors` trafia `search_corpus: reranker_unavailable`. Ranking nie jest źródłem dowodu. Który dostawca zostaje, rozstrzyga ewaluacja na golden secie ([worker#41](https://github.com/Meritum-HackNation2026/meritum-worker/issues/41)).

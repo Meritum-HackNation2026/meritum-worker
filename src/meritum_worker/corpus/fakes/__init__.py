@@ -8,11 +8,13 @@ from meritum_worker.corpus.adapters import MemoryCorpusWriter
 
 from ._catalog import FakeCatalogSite
 from ._euvs import FakeEuvsDisinfoServer
+from ._fact_check import FakeFactCheck
 from ._web_search import FakeWebSearch
 
 __all__ = [
     "FakeCatalogSite",
     "FakeEuvsDisinfoServer",
+    "FakeFactCheck",
     "FakeWebSearch",
     "MemoryCorpusWriter",
 ]

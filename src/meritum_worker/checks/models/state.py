@@ -21,6 +21,7 @@ from meritum_worker.checks.constants import (
     TECHNICAL_FAILURE_MESSAGE,
 )
 from meritum_worker.checks.models.claims import ExtractedClaim
+from meritum_worker.corpus import ClaimReviewFinding
 from meritum_worker.evidence import AssessedCitation, VerifiedCitation
 
 type NotAVerdict = Literal["needs_clarification", "out_of_scope", "technical_failure"]
@@ -50,6 +51,9 @@ class CheckState(BaseModel):
         passages: reranked corpus passages per fact, keyed by the claim text.
         assessed: citations the stance calls proposed, per fact.
         citations: citations past the verbatim check, per fact.
+        fact_checks: fact-checkers' ratings found for the facts.
+        same_claim_reviews: positions in fact_checks of ratings of our claim.
+        failed_steps: step codes that failed without ending the check.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
 
@@ -76,6 +80,9 @@ class CheckState(BaseModel):
     passages: dict[str, list[RankedPassage]] = {}
     assessed: list[AssessedCitation] = []
     citations: list[VerifiedCitation] = []
+    fact_checks: list[ClaimReviewFinding] = []
+    same_claim_reviews: list[int] = []
+    failed_steps: list[str] = []
     limitations: list[str] = []
     result: CheckResult | None = None
 

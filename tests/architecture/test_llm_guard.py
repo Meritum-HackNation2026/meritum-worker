@@ -16,6 +16,7 @@ SRC = Path(__file__).resolve().parents[2] / "src" / "meritum_worker"
 CALLERS = {
     "checks/steps/_extract_claims.py",
     "checks/steps/_write_answer.py",
+    "evidence/reviews.py",
     "evidence/stance.py",
     "observability/adapters/_llm.py",
     "security/guard.py",

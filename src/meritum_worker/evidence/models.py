@@ -8,6 +8,8 @@ from typing import Annotated
 
 from meritum_core.checks.contracts import (
     Citation,
+    ClaimReviewContext,
+    ClaimReviewPremise,
     EvidenceStrength,
     Stance,
     TechniqueCode,
@@ -77,6 +79,8 @@ class Judgement(BaseModel):
         citations: the citations the result may show for this verdict.
         technique: ``outdated`` when newer evidence replaced the support.
         archival: whether the agreeing evidence is past its age threshold.
+        claim_review_premises: fact-checkers' ratings behind the verdict.
+        claim_reviews: fact-checkers' ratings shown as context.
 
     Features:
         US-ZRD-04, US-ZRD-10, F-15
@@ -89,6 +93,8 @@ class Judgement(BaseModel):
     citations: list[Citation]
     technique: TechniqueCode | None
     archival: bool
+    claim_review_premises: list[ClaimReviewPremise] = []
+    claim_reviews: list[ClaimReviewContext] = []
 
 
 class ClaimExplanation(BaseModel):
@@ -104,3 +110,16 @@ class ClaimExplanation(BaseModel):
 
     explanation: str
     unresolved: str | None = None
+
+
+class ReviewMatch(BaseModel):
+    """What the model answers when it compares a rated claim with ours.
+
+    Attributes:
+        same_claim: whether both claims have the same topic, numbers and date.
+
+    Features:
+        US-KOR-01, F-14, ADR-34
+    """
+
+    same_claim: bool

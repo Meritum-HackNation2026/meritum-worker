@@ -69,3 +69,32 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Gdy system bada twierdzenie
     Wtedy cytat jest w oryginale z Source.language "en", a wyjaśnienie po polsku
     I wyszukiwanie na żywo dostało zapytanie po polsku i po angielsku
+
+  Scenariusz: ocena Demagogu jako przesłanka (scenariusz A)
+    Zakładając pytanie o depeszę PAP i API Fact Check z oceną Demagogu "Fałsz"
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy werdykt to "false" z przesłanką: Demagog, "Fałsz", tytuł, data i link, bez fragmentu strony
+    I żaden artykuł Demagogu nie jest pobierany
+
+  Scenariusz: ocena innego twierdzenia zostaje kontekstem
+    Zakładając pytanie o depeszę PAP i API Fact Check z oceną Demagogu "Fałsz"
+    I model uznaje, że oceniane twierdzenie jest inne niż nasze
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy ocena Demagogu jest tylko kontekstem z linkiem, a werdykt to "insufficient_evidence"
+
+  Scenariusz: pusty wynik API to brak oceny, a nie awaria
+    Zakładając pytanie o depeszę PAP i API Fact Check bez żadnej oceny
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy krok "search_fact_checks" ma stan "done" i nie ma ograniczenia "fact_check_unavailable"
+
+  Scenariusz: awaria API (scenariusz J)
+    Zakładając pytanie o depeszę PAP i API Fact Check zwraca błąd dostępu
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy sprawdzenie kończy się bez tej przesłanki, a wynik ma kod ograniczenia "fact_check_unavailable"
+    I krok "search_fact_checks" ma stan "failed"
+    I żaden komunikat nie mówi, że takiego artykułu nie ma
+
+  Scenariusz: artykuł z domeny katalogu staje się cytatem
+    Zakładając pytanie o depeszę PAP i ClaimReview wskazuje artykuł z fakenews.pl
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy fragment z artykułu jest cytatem po weryfikacji dosłownej

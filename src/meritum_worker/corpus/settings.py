@@ -22,6 +22,7 @@ from meritum_worker.corpus.constants import (
     URL_SEGMENT,
     VERTEX_RANKING_LOCATION,
 )
+from meritum_worker.corpus.fact_check_constants import FACT_CHECK_ENV_PREFIX
 
 
 class RerankerProvider(StrEnum):
@@ -98,3 +99,32 @@ class RerankerSettings(BaseSettings):
             msg = f"{names} required for {self.provider}"
             raise ValueError(msg)
         return self
+
+
+class FactCheckProvider(StrEnum):
+    """Which fact-check search ``build_fact_check`` builds.
+
+    Features:
+        US-KOR-01, F-14, ADR-34
+    """
+
+    STUB = "stub"
+    GOOGLE = "google"
+
+
+class FactCheckSettings(BaseSettings):
+    """Fact Check Tools configuration from ``MERITUM_FACT_CHECK_*``.
+
+    Attributes:
+        provider: ``stub`` (default: finds no review) or ``google``.
+        api_key: Google API key; empty (default) fails every ``google`` search as
+            unavailable (the readiness report names it, worker#27).
+
+    Features:
+        US-KOR-01, F-14, ADR-34
+    """
+
+    model_config = SettingsConfigDict(env_prefix=FACT_CHECK_ENV_PREFIX, frozen=True)
+
+    provider: FactCheckProvider = FactCheckProvider.STUB
+    api_key: SecretStr = SecretStr("")

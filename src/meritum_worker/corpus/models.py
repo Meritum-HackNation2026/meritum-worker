@@ -9,7 +9,7 @@ from typing import Literal
 
 from meritum_core.checks.contracts import Source
 from meritum_core.shared.embeddings import Vector
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl
 
 
 class EuvsCase(BaseModel):
@@ -142,3 +142,48 @@ class SyncReport(BaseModel):
     updated: int = 0
     deleted: int = 0
     missing_env: list[str] = []
+
+
+class FactCheckHit(BaseModel):
+    """One fact-check of Google Fact Check Tools API: a claim and one review of it.
+
+    Attributes:
+        claim_reviewed: The claim the fact-checker rated, as the API returns it
+            (``claimReview.title`` is the article's, this is the ``text`` of the claim).
+        site: The publisher's site as the API names it.
+        publisher: The publisher's name as the API names it.
+        rating: The ``textualRating``, verbatim (untrusted).
+        title: The fact-check's title.
+        url: The fact-check link.
+        reviewed_at: When the claim was reviewed, when the API says.
+
+    Features:
+        US-KOR-01, F-14, ADR-34
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    claim_reviewed: str
+    site: str
+    publisher: str
+    rating: str
+    title: str
+    url: HttpUrl
+    reviewed_at: AwareDatetime | None = None
+
+
+class FactCheckAnswer(BaseModel):
+    """What one Fact Check Tools API search returned.
+
+    Attributes:
+        hits: The reviews found; empty when the index has none (not a failure).
+        cache_control: The response's ``Cache-Control`` header, when sent.
+
+    Features:
+        US-KOR-01, F-14, ADR-24
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    hits: list[FactCheckHit] = []
+    cache_control: str | None = None

@@ -13,6 +13,8 @@ from meritum_core.checks.contracts import (
     CatalogEntry,
     Citation,
     ClaimDateSource,
+    ClaimReviewContext,
+    ClaimReviewPremise,
     Stance,
     Verdict,
     is_expired,
@@ -83,12 +85,14 @@ def with_validity(
     return assign_validity(facts, claim_date=claim_date)
 
 
-def judge(
+def judge(  # ruff: ignore[too-many-arguments]  # one keyword per kind of evidence
     citations: Sequence[Citation],
     *,
     catalog: Mapping[str, CatalogEntry],
     claim_date: date,
     present_tense: bool = False,
+    reviews: Sequence[ClaimReviewPremise] = (),
+    review_context: Sequence[ClaimReviewContext] = (),
 ) -> Judgement:
     """Derive one fact's verdict, strength and technique from its citations.
 
@@ -97,6 +101,8 @@ def judge(
         catalog: catalogue entries by domain.
         claim_date: the date the claim refers to.
         present_tense: whether the claim speaks about the present.
+        reviews: fact-checkers' ratings of this claim, each one secondary publisher.
+        review_context: ratings shown as context only.
 
     Returns:
         The judgement; conflicting evidence has no strength.
@@ -109,8 +115,11 @@ def judge(
     # evidence outvotes it and the two never conflict (core#110).
     fresh = {c.stance for c in current if not is_expired(c, claim_date)}
     decisive = fresh & {"supports", "refutes"} or {c.stance for c in current}
+    decisive |= {r.stance for r in reviews}
     conflicting = {"supports", "refutes"} <= decisive
-    verdict = settle_verdict(_proposed(decisive), citations, claim_date=claim_date)
+    verdict = settle_verdict(
+        _proposed(decisive), citations, reviews, claim_date=claim_date
+    )
     max_age = _max_age_hours(verdict, citations, catalog)
     technique = None
     archival = False
@@ -126,6 +135,7 @@ def judge(
         verdict,
         citations,
         claim_date=claim_date,
+        reviews=reviews,
         max_age_hours=max_age,
     )
     shown = list(citations) if strength or conflicting else []
@@ -133,6 +143,8 @@ def judge(
         verdict=verdict,
         strength=strength,
         citations=shown,
+        claim_review_premises=list(reviews) if strength or conflicting else [],
+        claim_reviews=list(review_context),
         technique=technique,
         archival=archival or (strength is not None and is_stale(strength.premises)),
     )
