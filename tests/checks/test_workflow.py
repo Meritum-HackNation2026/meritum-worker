@@ -1,4 +1,5 @@
 import asyncio
+import dataclasses
 from collections.abc import Callable
 from typing import Any, get_args
 
@@ -167,3 +168,11 @@ def test_parallel_steps_that_change_the_same_field_fail_loudly(
     monkeypatch.setattr(steps, "search_web", other_snapshot)
     with pytest.raises(ValueError, match="corpus_version"):
         _run(payload, make_deps())
+
+
+def test_pinned_corpus_version_reaches_the_result(
+    payload: Payload, make_deps: Callable[..., CheckDeps]
+) -> None:
+    deps = dataclasses.replace(make_deps(), corpus_version="2026-11-20T10:00Z")
+    output, _ = _run(payload, deps)
+    assert output.result.corpus_version == "2026-11-20T10:00Z"

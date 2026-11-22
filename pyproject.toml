@@ -18,6 +18,7 @@ dependencies = [
 meritum-worker = "meritum_worker.main:main"
 meritum-worker-migrate = "meritum_worker.main:migrate"
 meritum-eval = "meritum_worker.observability:meritum_eval"
+meritum-eval-bundle = "meritum_worker.observability:meritum_eval_bundle"
 
 [build-system]
 requires = ["uv_build>=0.13.0,<0.14.0"]
@@ -122,8 +123,8 @@ max-lines = 250
 [tool.vulture]
 paths = ["src", "scripts", "tests", "features"]
 # DBOS and behave register functions through their decorators.
-ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator", "@field_validator"]
-ignore_names = ["before_scenario", "model_config", "__call__", "mask"]  # behave hook; Pydantic settings; Protocol call signatures; PiiGatePort.mask, called by core
+ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator", "@field_validator", "@pytest.fixture"]
+ignore_names = ["before_scenario", "model_config", "__call__", "mask", "pytestmark"]  # behave hook; pytest module marks; Pydantic settings; Protocol call signatures; PiiGatePort.mask, called by core
 min_confidence = 60
 
 # bandit is a security linter, not a dead-code tool. Ruff's S rules already run

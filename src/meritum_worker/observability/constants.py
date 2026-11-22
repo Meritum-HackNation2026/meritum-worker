@@ -116,3 +116,9 @@ COST_DECIMALS: Final = 8
 
 COST_SAMPLE_QUERIES: Final = 100
 """The embeddings report prices this many corpus queries."""
+
+BUNDLE_NAME: Final = "meritum-eval-bundle"
+"""Name of the command that writes the public reproduction bundle."""
+
+BUNDLE_FILES: Final = ("cases.json", "sources.json", "manifest.json")
+"""Files of the public bundle: cases, their sources with quotes, the manifest."""

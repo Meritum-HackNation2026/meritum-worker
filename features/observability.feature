@@ -35,3 +35,13 @@ Funkcja: Golden set A–J i ewaluacja
     Zakładając dwie konfiguracje modelu embeddingów
     Gdy zespół uruchamia porównanie
     Wtedy raport podaje trafność wyszukiwania w korpusie na przypadkach z golden setu i koszt
+
+  Scenariusz: powtórzenie przebiegu bez kluczy
+    Zakładając nagrane kasety i migawka 2026-11-20T10:00Z
+    Gdy ktoś uruchamia ewaluację w trybie replay bez kluczy dostawców
+    Wtedy wyniki są identyczne z przebiegiem nagrania
+
+  Scenariusz: paczka do publikacji
+    Gdy zespół tworzy paczkę do odtworzenia
+    Wtedy paczka zawiera przypadki, adresy źródeł, cytowane fragmenty i manifest z identyfikatorami dokumentów, sumami kontrolnymi i fetched_at
+    I nie zawiera pełnych tekstów ani kaset
