@@ -63,3 +63,9 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Zakładając wpis bez pola licencji
     Gdy workflow importu go czyta
     Wtedy wpis jest pominięty z zapisanym powodem, a pozostałe są zaimportowane
+
+  Scenariusz: źródło po angielsku
+    Zakładając twierdzenie po polsku i jedyny dowód w dokumencie EUR-Lex po angielsku
+    Gdy system bada twierdzenie
+    Wtedy cytat jest w oryginale z Source.language "en", a wyjaśnienie po polsku
+    I wyszukiwanie na żywo dostało zapytanie po polsku i po angielsku

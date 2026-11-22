@@ -55,6 +55,7 @@ from meritum_worker.corpus.ingest import (
     is_due,
     take_snapshot,
 )
+from meritum_worker.corpus.language import detect_language
 from meritum_worker.corpus.live_search import (
     LiveSearchPorts,
     LiveSearchResult,
@@ -143,6 +144,7 @@ __all__ = [
     "build_reranker",
     "catalog_entry",
     "chunk_text",
+    "detect_language",
     "due_entries",
     "import_organiser_file",
     "ingest_catalog",

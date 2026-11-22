@@ -149,8 +149,9 @@ WEB_SEARCH_MARGIN: Final = timedelta(seconds=1)
 """Time the search_web step gets past WEB_SEARCH_TIMEOUT, so pages cut at the
 deadline drop out before the step's own backstop timeout ends the check."""
 
-WEB_QUERIES_PER_CHECK: Final = 5
-"""Most web searches one check sends: one per checked fact (US-KOR-04, F-13)."""
+WEB_QUERIES_PER_CHECK: Final = 10
+"""Most web searches one check sends: a Polish and an English query per checked fact
+(US-KOR-04, US-KOR-06, F-13, F-35)."""
 
 MAX_PARALLEL_CLAIMS: Final = 3
 """Most claims one research agent researches at once, corpus and web alike

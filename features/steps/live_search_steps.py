@@ -48,20 +48,26 @@ PAGE_TEXT = (
 )
 
 
-def _deps(
-    context: Context, page_text: str, web_search: WebSearchPort | None = None
+def deps_with(
+    context: Context,
+    page_text: str,
+    web_search: WebSearchPort | None = None,
+    *,
+    url: str = RCB_URL,
+    name: str = "rcb",
 ) -> None:
     llm = build_llm(
         LlmSettings(
-            provider=LlmProvider.STUB, stub_fixtures=FIXTURES / "llm_stub_rcb.json"
+            provider=LlmProvider.STUB, stub_fixtures=FIXTURES / f"llm_stub_{name}.json"
         )
     )
     catalog = load_catalog()
     search = WebSearchSettings(
-        provider=WebSearchProvider.STUB, stub_fixture=FIXTURES / "web_search_rcb.json"
+        provider=WebSearchProvider.STUB,
+        stub_fixture=FIXTURES / f"web_search_{name}.json",
     )
     context.pages = FakePageFetcher(
-        FetchedPage(url=RCB_URL, content_type="text/html", untrusted_text=page_text)
+        FetchedPage(url=url, content_type="text/html", untrusted_text=page_text)
     )
     context.deps = CheckDeps(
         llm=llm,
@@ -76,9 +82,9 @@ def _deps(
     )
 
 
-def _run(context: Context) -> None:
+def run_check_on(context: Context, text: str = TEXT) -> None:
     job = CheckInput(
-        request=CheckRequest(channel="web", text=TEXT),
+        request=CheckRequest(channel="web", text=text),
         session_id="session-behave-live",
         received_at=RECEIVED_AT,
     )
@@ -92,12 +98,12 @@ def _run(context: Context) -> None:
 
 @given("twierdzenie o komunikacie RCB z dzisiejszego ranka, którego nie ma w korpusie")
 def fresh_rcb_claim(context: Context) -> None:
-    _deps(context, PAGE_TEXT)
+    deps_with(context, PAGE_TEXT)
 
 
 @when("sprawdzenie uruchamia wyszukiwanie w korpusie i w sieci równolegle")
 def searches_in_parallel(context: Context) -> None:
-    _run(context)
+    run_check_on(context)
     # Both search codes are active in the same published status before either ends.
     together = [
         status
@@ -136,12 +142,12 @@ def search_returns_outside(context: Context) -> None:
         domain="www.gov.pl/web/rcb",
         publisher_id="rcb",
     )
-    _deps(context, PAGE_TEXT, FakeWebSearch((outside,)))
+    deps_with(context, PAGE_TEXT, FakeWebSearch((outside,)))
 
 
 @when("wynik przechodzi nasz filtr domen")
 def result_through_filter(context: Context) -> None:
-    _run(context)
+    run_check_on(context)
 
 
 @then("strona nie jest pobierana ani cytowana")
@@ -153,12 +159,12 @@ def page_not_fetched(context: Context) -> None:
 
 @given('pobrana strona zawiera "{instruction}"')
 def page_with_instruction(context: Context, instruction: str) -> None:
-    _deps(context, f"{PAGE_TEXT} {instruction}.")
+    deps_with(context, f"{PAGE_TEXT} {instruction}.")
 
 
 @when("kończy się skan w kwarantannie")
 def quarantine_scan_ends(context: Context) -> None:
-    _run(context)
+    run_check_on(context)
 
 
 @then(

@@ -144,3 +144,34 @@ def test_search_web_researches_at_most_three_claims_at_once(
     asyncio.run(search_web(_with_facts(state, 5), deps))
     assert len(web.queries) == 5
     assert web.most_at_once == MAX_PARALLEL_CLAIMS
+
+
+def _bilingual(text: str, english: str) -> ExtractedClaim:
+    return _fact(text).model_copy(update={"claim_en": english})
+
+
+def test_search_corpus_searches_the_polish_and_the_english_query(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    corpus = FakeCorpusSearch(PASSAGES)
+    deps = dataclasses.replace(make_deps(), corpus=corpus, corpus_version="v1")
+    fact = _bilingual("Płaca minimalna wynosi 4806 zł", "The minimum wage is 4806 PLN")
+    out = asyncio.run(search_corpus(state.model_copy(update={"claims": [fact]}), deps))
+    assert [q for q, _ in corpus.queries] == [fact.claim, fact.claim_en]
+    # The same passages from both queries are kept once, under the Polish claim.
+    assert [p.passage.passage_id for p in out.passages[fact.claim]] == [
+        "p0",
+        "p1",
+        "p2",
+    ]
+
+
+def test_search_web_sends_the_polish_and_the_english_query(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    web = FakeWebSearch()
+    deps = dataclasses.replace(make_deps(), web_search=web)
+    fact = _bilingual("Płaca minimalna wynosi 4806 zł", "The minimum wage is 4806 PLN")
+    out = asyncio.run(search_web(state.model_copy(update={"claims": [fact]}), deps))
+    assert sorted(web.queries) == sorted(fact.queries)
+    assert out.web_search_calls == 2
