@@ -96,7 +96,10 @@ def page_dropped(context: Context) -> None:
     assert [(e.location, e.action, str(e.source_url)) for e in events] == [
         ("source", "source_dropped", PAGE_URL)
     ], events
-    assert any(PAGE_URL in limit for limit in context.result.result.limitations)
+    assert context.result.result.limitations[-1] == (
+        "Pominęliśmy stronę example.com, bo zawierała polecenia dla modelu."
+    )
+    assert all(PAGE_URL not in limit for limit in context.result.result.limitations)
 
 
 @given('strona katalogu z tekstem "{text}"')

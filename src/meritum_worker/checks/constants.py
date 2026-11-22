@@ -209,3 +209,9 @@ WEB_SEARCH_PRICES: Final = MappingProxyType(
 
 Vertex AI Search Standard: USD 1.50 per 1,000 queries (2026-11-22); stub is free.
 """
+
+SOURCE_DROPPED_NOTE: Final = (
+    "Pominęliśmy stronę {host}, bo zawierała polecenia dla modelu."
+)
+"""Limitation for a page the injection detector dropped; the full address stays in
+the InjectionEvent for moderators, the citizen gets the host only."""

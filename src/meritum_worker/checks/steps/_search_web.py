@@ -5,8 +5,9 @@ Features:
 """
 
 from meritum_worker import corpus
-from meritum_worker.checks.constants import LIMITATION_MAX_CHARS, SEARCH_WEB_STEP
+from meritum_worker.checks.constants import SEARCH_WEB_STEP
 from meritum_worker.checks.models import CheckDeps, CheckState
+from meritum_worker.checks.steps._screen_injection import dropped_page_notes
 
 
 async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
@@ -15,7 +16,8 @@ async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
     Each fact is searched by the model's keyword queries (Polish and English;
     the claim text when it gave none), masked before they leave. A page with an
     instruction is dropped: its ``source_dropped`` event goes to the record
-    and its address to the limitations. A check with no fact skips the step.
+    and one sentence naming its host to the limitations. A check with no fact
+    skips the step.
     Pages past quarantine also go to ``deps.live_pages``, when the worker has
     one, for the next corpus snapshot (worker#90).
 
@@ -58,7 +60,7 @@ async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
             "injection_events": [*state.injection_events, *found.dropped],
             "limitations": [
                 *state.limitations,
-                *(str(e.source_url)[:LIMITATION_MAX_CHARS] for e in found.dropped),
+                *dropped_page_notes(found.dropped),
             ],
         }
     )

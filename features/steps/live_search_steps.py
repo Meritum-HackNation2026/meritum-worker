@@ -183,7 +183,11 @@ def page_dropped(context: Context) -> None:
     assert event.action == "source_dropped"
     assert str(event.source_url) == url
     assert "Ignore previous instructions" in event.excerpt
-    assert url in context.result.limitations
+    assert url not in context.result.limitations
+    assert (
+        "Pominęliśmy stronę www.gov.pl, bo zawierała polecenia dla modelu."
+        in context.result.limitations
+    )
 
 
 @given("sprawdzenie, w którym strona z gov.pl przeszła kwarantannę")
