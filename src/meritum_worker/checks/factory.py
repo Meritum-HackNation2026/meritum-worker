@@ -4,6 +4,8 @@ Features:
     US-SPR-01, US-OBS-01, F-22, ADR-03
 """
 
+import os
+
 from meritum_core.checks.transcription import TranscriptionSettings, build_transcriber
 from meritum_core.corpus import CorpusSettings, build_corpus_search
 from meritum_core.corpus.catalog import load_catalog
@@ -21,6 +23,7 @@ from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.settings import ResearchSettings
 from meritum_worker.corpus import build_reranker
+from meritum_worker.moderation import build_moderation_deps
 from meritum_worker.security import InjectionGateSettings, build_detector
 
 
@@ -55,6 +58,7 @@ def build_check_deps(
     app = build_app_repositories(database)
     store = build_blob_store(blobs or BlobSettings(provider=BlobProvider.MEMORY))
     llm = build_llm(settings)
+    embeddings = build_embeddings(EmbeddingsSettings())
     catalog = load_catalog()
     return CheckDeps(
         llm=llm,
@@ -67,11 +71,10 @@ def build_check_deps(
         web_search=build_web_search(WebSearchSettings(), catalog),
         injection=build_detector(llm, InjectionGateSettings()),
         catalog=catalog,
-        corpus=build_corpus_search(
-            CorpusSettings(), build_embeddings(EmbeddingsSettings())
-        ),
+        corpus=build_corpus_search(CorpusSettings(), embeddings),
         reranker=build_reranker(),
         corpus_version=ResearchSettings().corpus_version,
+        moderation=build_moderation_deps(app, embeddings, os.environ),
     )
 
 
