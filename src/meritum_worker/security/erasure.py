@@ -14,6 +14,7 @@ from meritum_core.jobs.contracts import (
     DeleteSubjectOutput,
 )
 
+from meritum_worker.corpus import purge_archives_of
 from meritum_worker.security.models import RetentionDeps, StoredWorkflow
 from meritum_worker.security.selection import (
     about_checks,
@@ -33,7 +34,8 @@ async def erase_subject(
     ``delete_subject`` runs this twice, ``ERASURE_SETTLE`` apart, to catch that
     record) and the escalations of their checks
     leave DBOS; then the eraser deletes their records, notifications and case
-    checks, and their uploaded audio goes. Running it again deletes nothing more.
+    checks, and their uploaded audio and archived pages go. Running it again
+    deletes nothing more.
 
     Args:
         payload: the ``DeleteSubjectInput`` JSON object the backend enqueued.
@@ -69,6 +71,7 @@ async def erase_subject(
         deleted += await deps.app.notifications.delete_for_checks(unsaved)
     audio = [found for w in checks if (found := audio_id(w.payload)) is not None]
     deleted += await deps.blobs.delete(audio)
+    deleted += await purge_archives_of(deps.archives, value)
     return DeleteSubjectOutput(deleted=deleted)
 
 

@@ -48,6 +48,30 @@ class ArchiveRegistry(Protocol):
         """
         ...
 
+    async def expired(self, now: datetime, limit: int) -> list[ArchiveCopy]:
+        """Select the copies whose ``expires_at`` has passed.
+
+        Args:
+            now: the retention run's time.
+            limit: the most copies to return.
+
+        Returns:
+            The copies, oldest first; empty when none is past its term.
+        """
+        ...
+
+    async def owned_by(self, owner_id: str, limit: int) -> list[ArchiveCopy]:
+        """Select the copies one person asked for.
+
+        Args:
+            owner_id: the session or user who asked.
+            limit: the most copies to return.
+
+        Returns:
+            Their copies; empty when there are none.
+        """
+        ...
+
     async def count_since(self, owner_id: str, since: datetime) -> int:
         """Count the copies one person made since ``since``.
 

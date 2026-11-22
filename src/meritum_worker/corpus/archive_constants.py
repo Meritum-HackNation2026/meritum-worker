@@ -32,6 +32,9 @@ ARCHIVE_DELETION_PROCEDURE: Final = (
 )
 """How a copy is removed; stored with it."""
 
+ARCHIVE_PURGE_BATCH: Final = 100
+"""Copies the retention run and an erasure delete in one round."""
+
 ARCHIVE_CONTENT_TYPE: Final = "text/plain; charset=utf-8"
 """Media type of the stored text."""
 
@@ -74,3 +77,17 @@ COUNT_ARCHIVES_SQL: Final = (
     "SELECT count(*) FROM page_archives WHERE owner_id = %s AND archived_at >= %s"
 )
 """Counts one person's copies in the rate-limit window."""
+
+EXPIRED_ARCHIVES_SQL: Final = """
+SELECT archive_id, blob_id, url, owner_id, sha256, archived_at, expires_at,
+    legal_basis, access_rule, deletion_procedure
+FROM page_archives WHERE expires_at <= %s ORDER BY expires_at LIMIT %s
+"""
+"""Reads the copies past their ``expires_at``, oldest first."""
+
+OWNED_ARCHIVES_SQL: Final = """
+SELECT archive_id, blob_id, url, owner_id, sha256, archived_at, expires_at,
+    legal_basis, access_rule, deletion_procedure
+FROM page_archives WHERE owner_id = %s ORDER BY archived_at LIMIT %s
+"""
+"""Reads one person's copies."""

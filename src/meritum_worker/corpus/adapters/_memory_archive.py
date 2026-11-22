@@ -46,6 +46,32 @@ class MemoryArchiveRegistry:
         """
         self._copies.pop(archive_id, None)
 
+    async def expired(self, now: datetime, limit: int) -> list[ArchiveCopy]:
+        """Select the copies past their term (see ``ArchiveRegistry``).
+
+        Args:
+            now: the retention run's time.
+            limit: the most copies to return.
+
+        Returns:
+            The copies, oldest first.
+        """
+        found = [c for c in self._copies.values() if c.expires_at <= now]
+        return sorted(found, key=lambda c: c.expires_at)[:limit]
+
+    async def owned_by(self, owner_id: str, limit: int) -> list[ArchiveCopy]:
+        """Select one person's copies (see ``ArchiveRegistry``).
+
+        Args:
+            owner_id: who asked.
+            limit: the most copies to return.
+
+        Returns:
+            Their copies.
+        """
+        found = [c for c in self._copies.values() if c.owner_id == owner_id]
+        return found[:limit]
+
     async def count_since(self, owner_id: str, since: datetime) -> int:
         """Count a person's copies in the window (see ``ArchiveRegistry``).
 

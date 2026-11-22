@@ -113,6 +113,7 @@ def test_retention_without_blob_store_or_database_deletes_nothing_else() -> None
         "blobs": 0,
         "removed_case_checks": 0,
         "full_texts": 0,
+        "archives": 0,
     }
 
 

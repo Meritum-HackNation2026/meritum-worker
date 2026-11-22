@@ -15,7 +15,7 @@ from meritum_core.observability import AppRepositories
 from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
-    from meritum_worker.corpus import CorpusRetentionPort
+    from meritum_worker.corpus import ArchiveDeps, CorpusRetentionPort
     from meritum_worker.security.ports import (
         BlobCleaner,
         RemovedCaseChecks,
@@ -49,6 +49,7 @@ class RetentionDeps:
         blobs: the uploaded files.
         removed_checks: the ids of checks dropped from moderator cases.
         corpus: the catalogue documents, whose full texts expire.
+        archives: the page copies' registry and files.
         check_workflows: the names of workflows started with a ``CheckInput``:
             the `check` workflow and the recheck after a new snapshot.
 
@@ -61,6 +62,7 @@ class RetentionDeps:
     blobs: BlobCleaner
     removed_checks: RemovedCaseChecks
     corpus: CorpusRetentionPort
+    archives: ArchiveDeps
     check_workflows: tuple[str, ...] = (CHECK.name,)
 
 
@@ -74,6 +76,7 @@ class RetentionReport(BaseModel):
         blobs: uploaded files.
         removed_case_checks: forgotten ids of checks dropped from cases.
         full_texts: corpus documents whose full text was cleared.
+        archives: page copies past their term, row and file.
 
     Features:
         US-BEZ-05, US-POW-04, US-KOR-05, F-10, F-20, ADR-13
@@ -87,3 +90,4 @@ class RetentionReport(BaseModel):
     blobs: Annotated[int, Field(ge=0)]
     removed_case_checks: Annotated[int, Field(ge=0)]
     full_texts: Annotated[int, Field(ge=0)]
+    archives: Annotated[int, Field(ge=0)]

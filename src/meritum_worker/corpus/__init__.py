@@ -18,6 +18,10 @@ from meritum_worker.corpus.archive_models import (
     ArchiveRequest,
 )
 from meritum_worker.corpus.archive_ports import ArchiveDeps, ArchiveRegistry
+from meritum_worker.corpus.archive_retention import (
+    purge_archives_of,
+    purge_expired_archives,
+)
 from meritum_worker.corpus.chunking import chunk_text
 from meritum_worker.corpus.constants import (
     INGEST_SCHEDULE,
@@ -212,6 +216,8 @@ __all__ = [
     "ingestion_enabled",
     "is_due",
     "missing_env",
+    "purge_archives_of",
+    "purge_expired_archives",
     "read_archive",
     "rerank_passages",
     "run_archive_page",
