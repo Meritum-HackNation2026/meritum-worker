@@ -60,6 +60,24 @@ Funkcja: Smoke test workera
     Gdy workflow sprawdza link
     Wtedy wynik ma stan technical_failure z kodem "url_unavailable" i prośbą o wklejenie tekstu, bez werdyktu
 
+  Scenariusz: pytanie o artykuł z adresem w tekście
+    Zakładając publiczna strona pod adresem "https://example.com/artykul"
+    Gdy workflow "check" dostaje CheckRequest z tekstem "Czy ten artykuł mówi prawdę https://example.com/artykul"
+    Wtedy krok fetch_url kończy się stanem done, a strona spod adresu z tekstu została pobrana
+    Oraz zapis sprawdzenia zachowuje pytanie razem z adresem
+
+  Scenariusz: sam adres wpisany jako tekst
+    Zakładając publiczna strona pod adresem "https://example.com/artykul"
+    Gdy workflow "check" dostaje CheckRequest z tekstem "https://example.com/artykul"
+    Wtedy krok fetch_url kończy się stanem done, a strona spod adresu z tekstu została pobrana
+    Oraz sprawdzany jest tekst strony
+
+  Scenariusz: strony z pytania nie da się pobrać
+    Zakładając strona pod adresem "https://example.com/rosyjskie-rakiety-spadly-w-polsce" jest za paywallem
+    Gdy workflow "check" dostaje CheckRequest z tekstem "Czy ten artykuł mówi prawdę https://example.com/rosyjskie-rakiety-spadly-w-polsce"
+    Wtedy sprawdzenie kończy się stanem done z krokiem fetch_url w stanie failed
+    Oraz ograniczenia mówią, że strony "example.com" nie udało się otworzyć
+
   Scenariusz: sam tekst bez linku
     Zakładając wklejony tekst bez adresu
     Gdy workflow publikuje postęp

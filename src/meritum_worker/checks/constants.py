@@ -80,6 +80,19 @@ URL_UNAVAILABLE_MESSAGE: Final = (
 )
 """Diagnostic for a link that could not be fetched."""
 
+LINK_IN_TEXT: Final = re.compile(r"https?://[^\s<>\"]+")
+"""An http(s) address written inside a citizen's text (worker#256)."""
+
+LINK_TRAILING: Final = ".,;:!?)]}'”»"
+"""Punctuation that ends a sentence or a bracket around a link, not the link."""
+
+LINK_UNREAD_NOTE: Final = (
+    "Nie udało się otworzyć strony {host}, więc nie znamy jej treści."
+    " Sprawdziliśmy tylko to, co wynika z pytania i z adresu strony."
+)
+"""Limitation for a link whose page could not be fetched; the check goes on
+with the citizen's text and the address (worker#256)."""
+
 STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
     "receive": timedelta(seconds=100),
     "fetch_url": timedelta(seconds=30),
