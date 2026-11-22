@@ -1,5 +1,8 @@
 """Citation precision: a judge model reads each fragment against its claim.
 
+The judge sees what a reader sees under the citation: the fragment and its
+source's title, date and address (worker#247).
+
 The pipeline already keeps only fragments found verbatim in the fetched page
 (``verify_citation``), so the judge checks the stance alone.
 
@@ -10,11 +13,13 @@ Features:
 import asyncio
 from collections.abc import Sequence
 
+from meritum_core.checks.contracts import Citation
 from meritum_core.shared.llm import LlmPort, Prompt
 from pydantic import BaseModel, ConfigDict
 
 from meritum_worker.observability.constants import (
     CITATION_JUDGE_INSTRUCTIONS,
+    JUDGE_UNKNOWN_DATE,
     STANCE_WORDS,
 )
 from meritum_worker.observability.quality import share
@@ -52,7 +57,7 @@ async def judge_citations(runs: Sequence[CaseRun], llm: LlmPort) -> Ratio:
     prompts = [
         Prompt(
             instructions=CITATION_JUDGE_INSTRUCTIONS,
-            data=(claim.claim, STANCE_WORDS[c.stance], c.fragment),
+            data=(claim.claim, STANCE_WORDS[c.stance], c.fragment, *_source(c)),
         )
         for run in runs
         for claim in run.result.claims
@@ -62,3 +67,10 @@ async def judge_citations(runs: Sequence[CaseRun], llm: LlmPort) -> Ratio:
         *(llm.complete(p, CitationJudgement) for p in prompts)
     )
     return share([answer.output.correct for answer in answers])
+
+
+def _source(citation: Citation) -> tuple[str, str, str]:
+    source = citation.source
+    published = source.published_at
+    day = published.date().isoformat() if published else JUDGE_UNKNOWN_DATE
+    return source.title, day, str(source.url)

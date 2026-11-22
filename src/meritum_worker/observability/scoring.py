@@ -64,6 +64,7 @@ def score_runs(runs: Sequence[CaseRun]) -> EvalReport:
         corpus_versions=tuple(sorted({run.result.corpus_version for run in runs})),
         cases=len(runs),
         macro_f1=_round(macro_f1([(s.expected, _f1_label(s)) for s in scores])),
+        macro_f1_strict=_round(macro_f1([(s.expected, s.predicted) for s in scores])),
         accuracy=share([s.outcome == "correct" for s in scores]),
         abstention_rate=abstention_rate(runs),
         citation_recall=citation_recall(runs),

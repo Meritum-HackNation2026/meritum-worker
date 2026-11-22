@@ -108,6 +108,8 @@ class EvalReport(BaseModel):
         cases: How many cases ran.
         macro_f1: Verdict macro-F1, every non-verdict state one error class;
             an acceptable alternative counts as the expected verdict.
+        macro_f1_strict: The same over the labels the pipeline gave, so a class
+            it never answers scores 0; None in reports from before worker#247.
         accuracy: Cases with the correct outcome.
         abstention_rate: Done checks whose claims all got no decision.
         citation_recall: Mean share of a case's source hosts cited or rated.
@@ -144,6 +146,7 @@ class EvalReport(BaseModel):
     corpus_versions: tuple[str, ...] = ()
     cases: int
     macro_f1: float
+    macro_f1_strict: Ratio = None
     accuracy: Ratio = None
     abstention_rate: Ratio = None
     citation_recall: Ratio = None
