@@ -5,6 +5,7 @@ Features:
     F-07, F-15, F-22
 """
 
+import logging
 from collections.abc import Mapping
 from datetime import UTC, date, datetime
 
@@ -25,6 +26,7 @@ from pydantic import ValidationError
 from meritum_worker import evidence
 from meritum_worker.checks.answers import AnswerDraft, plain_text
 from meritum_worker.checks.constants import (
+    ANSWER_ATTEMPTS,
     DRAFT_MAX_CHARS,
     EXPLANATION_MAX_CHARS,
     LIMITATION_MAX_CHARS,
@@ -36,6 +38,8 @@ from meritum_worker.checks.fact_check_constants import FACT_CHECK_UNAVAILABLE_NO
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
 from meritum_worker.checks.prompts import ANSWER_INSTRUCTIONS
 from meritum_worker.checks.usage import model_usage
+
+_log = logging.getLogger(__name__)
 
 
 async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
@@ -68,13 +72,21 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
     judged = [_judge(state, catalog, i, fact) for i, fact in enumerate(facts)]
     data = (state.question, *map(_described, facts, judged, strict=True))
     prompt = Prompt(instructions=ANSWER_INSTRUCTIONS, data=data)
-    answer = await deps.llm.complete(prompt, AnswerDraft)
-    usage = model_usage(answer.usage)
-    models = [*state.models, usage]
-    try:
-        result = _result_from_draft(state, facts, judged, answer.output, usage)
-    except ValidationError:
-        result = state.technical_failure()
+    models = list(state.models)
+    result = state.technical_failure()
+    for attempt in range(1, ANSWER_ATTEMPTS + 1):
+        # A model answer breaking the contract is random: one more call (worker#194).
+        answer = await deps.llm.complete(prompt, AnswerDraft)
+        usage = model_usage(answer.usage)
+        models.append(usage)
+        broken = _broken_rule(facts, answer.output)
+        try:
+            if broken is None:
+                result = _result_from_draft(state, facts, judged, answer.output, usage)
+                break
+        except ValidationError as error:
+            broken = _error_types(error)
+        _log.warning("write_answer attempt %d broke the contract: %s", attempt, broken)
     preview = None
     if result.status == "done":
         explanations = (
@@ -98,9 +110,6 @@ def _result_from_draft(
     if not facts:
         # Only opinions: nothing for the model to judge, whatever it answered.
         draft = draft.model_copy(update={"claims": []})
-    if len(draft.claims) != len(facts):
-        # One result per fact, or the answer cannot be tied to its claims.
-        return state.technical_failure()
     answered = [
         _answered(fact, judgement, written, state.incidents.get(fact.claim))
         for fact, judgement, written in zip(facts, judged, draft.claims, strict=True)
@@ -124,6 +133,20 @@ def _result_from_draft(
         corpus_version=state.corpus_version,
         ai_marker=ai_marker_for(usage, datetime.now(UTC)),
     )
+
+
+def _broken_rule(facts: list[ExtractedClaim], draft: AnswerDraft) -> str | None:
+    # One explanation per fact, or the answer cannot be tied to its claims;
+    # with no fact the explanations are dropped, whatever the model wrote.
+    if facts and len(draft.claims) != len(facts):
+        return f"{len(draft.claims)} explanations for {len(facts)} facts"
+    return None
+
+
+def _error_types(error: ValidationError) -> str:
+    # Locations and messages only: the input is the model's text, never logged.
+    errors = error.errors(include_input=False, include_url=False)
+    return "; ".join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in errors)
 
 
 def _code(text: str) -> LimitationCode:

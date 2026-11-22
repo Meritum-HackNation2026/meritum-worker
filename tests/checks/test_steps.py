@@ -119,7 +119,7 @@ def test_write_answer_turns_contract_breaking_answer_into_technical_failure(
     assert out.result.claims == []
     assert not (out.result.message or "").startswith("status_hint.")
     assert out.result.failure_code == "provider_unavailable"
-    assert len(out.models) == 1
+    assert len(out.models) == 2  # one more call before the failure (worker#194)
 
 
 def test_write_answer_leaves_provider_failure_to_the_workflow(
@@ -230,5 +230,5 @@ def test_write_answer_prompt_gives_the_length_limits() -> None:
 
 def test_write_answer_prompt_asks_for_plain_answers_about_the_claim() -> None:
     assert "never mention fragments" in ANSWER_INSTRUCTIONS
-    assert "at most two limitations" in ANSWER_INSTRUCTIONS
+    assert "one or two limitations" in ANSWER_INSTRUCTIONS
     assert "never generic" in ANSWER_INSTRUCTIONS

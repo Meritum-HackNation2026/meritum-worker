@@ -104,11 +104,10 @@ def build_replay_deps(cassette: Cassette) -> DepsFor:
 
 
 def _base(settings: LlmSettings) -> CheckDeps:
-    # An evaluation opens no moderator cases: it reads no DBOS history either.
     deps = build_check_deps(
         settings, DatabaseSettings(provider=DatabaseProvider.MEMORY)
     )
-    return replace(deps, moderation=None)
+    return replace(deps, moderation=None)  # no moderator cases, no DBOS history
 
 
 def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckDeps:
@@ -207,9 +206,8 @@ def build_readiness_probes(
     """Probes of the optional providers; a free call each.
 
     The Fact Check API is probed with one search when ``MERITUM_FACT_CHECK_PROVIDER``
-    is ``google``; web search and transcription get probes with their ports
-    (later); the model is checked by its variables only, since
-    every call to it is paid.
+    is ``google``; web search and transcription get probes with their ports later;
+    the model is checked by its variables only, since every call to it is paid.
 
     Args:
         env: The worker's environment, usually ``os.environ``.
