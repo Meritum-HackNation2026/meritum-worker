@@ -106,3 +106,22 @@ def test_a_fact_check_on_a_catalogue_domain_may_be_fetched() -> None:
 def test_the_stub_provider_finds_no_review() -> None:
     port = build_fact_check(FactCheckSettings(provider=FactCheckProvider.STUB))
     assert asyncio.run(port.search(CLAIM, language="pl")).hits == []
+
+
+def test_a_rating_longer_than_the_contract_allows_is_dropped_not_a_crash() -> None:
+    # Dev, 2026-11-22: a long textualRating passed the search and failed the
+    # contract later in assess_evidence, so the whole check ended technical_failure.
+    hit = asyncio.run(
+        _google(200, "fact_check_demagog.json")[0].search(CLAIM, language="pl")
+    ).hits[0]
+    long_rating = hit.model_copy(
+        update={
+            "rating": "Fałsz. " + "x" * 120,
+            "url": "https://demagog.org.pl/fake_news/inna-ocena/",
+        }
+    )
+    port = FakeFactCheck(FactCheckAnswer(hits=[long_rating, hit]))
+    found = asyncio.run(
+        search_fact_checks([CLAIM], port, NullPiiGate(), load_catalog())
+    )
+    assert [f.found.rating for f in found.findings] == ["Fałsz"]

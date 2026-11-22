@@ -31,6 +31,7 @@ from meritum_worker.corpus.fact_check_constants import (
     FACT_CHECK_LANGUAGE,
     FACT_CHECK_PARALLEL_QUERIES,
     FACT_CHECK_SIMILARITY_THRESHOLD,
+    REVIEW_RATING_MAX_CHARS,
     REVIEW_TITLE_MAX_CHARS,
 )
 from meritum_worker.corpus.fact_check_ports import FactCheckPort
@@ -185,7 +186,9 @@ def _finding(
     fetched_at: datetime,
 ) -> ClaimReviewFinding | None:
     entry = _publisher(hit, catalog)
-    if entry is None or hit.reviewed_at is None:
+    # A rating ClaimReviewPremise/Context cannot hold would fail the check later.
+    too_long = len(hit.rating) > REVIEW_RATING_MAX_CHARS
+    if entry is None or hit.reviewed_at is None or too_long:
         return None
     try:
         found = FoundClaimReview(
