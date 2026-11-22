@@ -145,13 +145,12 @@ def _compared(context: Context) -> bool:
 
 @then(
     "model porównuje ocenę z twierdzeniem i uznaje ją za inną,"
-    " a ocena zostaje kontekstem z linkiem"
+    " a ocena nie jest pokazana"
 )
-def other_city_is_context(context: Context) -> None:
+def other_city_not_shown(context: Context) -> None:
     assert _compared(context)
     assert context.claim.claim_review_premises == []
-    [review] = context.claim.claim_reviews
-    assert "krakow" in str(review.url)
+    assert context.claim.claim_reviews == []
 
 
 @then("model porównuje ocenę z twierdzeniem i uznaje ją za ocenę naszego twierdzenia")

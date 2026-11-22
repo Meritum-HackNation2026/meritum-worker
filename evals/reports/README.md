@@ -69,3 +69,7 @@ Dostawcę NLI i klasyfikatora wejścia wybiera zespół. Każdy nowy dostawca do
 - `rubric_score` to średni udział spełnionych kryteriów, które dotyczą przypadku.
 - Raport ma `rubric_pass_rate` i `rubric_score` ogółem i w `scenarios`, obok `accuracy`. `scenarios` ma też `citation_precision` scenariusza, a każdy przypadek w `outcomes` ma `rubric` z niespełnionymi kryteriami i wszystkimi głosami do ręcznej kontroli.
 - Głos, którego wywołanie się nie udało, wypada. Przebieg nie przepada przez awarię sędziego.
+
+## Oceny fact-checkerów w miernikach (#257)
+
+Od #257 `claim_reviews` zawiera tylko oceny, które dopasowanie uznało za ocenę naszego twierdzenia. `fact_check_hit_rate` i `citation_recall`, które liczą linki z `claim_reviews`, liczą więc tylko takie oceny. Raporty sprzed tej zmiany liczyły też oceny innych twierdzeń: na przebiegu 5 `fact_check_hit_rate` spada z 1,0 do 0,625, a `citation_recall` z 0,35 do 0,30.
