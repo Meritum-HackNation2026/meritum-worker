@@ -227,6 +227,19 @@ WEB_SEARCH_PRICES: Final = MappingProxyType(
 Vertex AI Search Standard: USD 1.50 per 1,000 queries (2026-11-22); stub is free.
 """
 
+NEWS_SEARCH_PRICE: Final = ModelUsage(
+    provider="openrouter",
+    model="web-search-exa",
+    region="global",
+    input_tokens=0,
+    output_tokens=0,
+    cost_usd=0.007,
+)
+"""Usage of one media search on OpenRouter's ``web`` plugin (US-OBS-02, F-23).
+
+Exa through OpenRouter: USD 0.007 per request with up to 10 results (2026-11-22).
+"""
+
 SOURCE_DROPPED_NOTE: Final = (
     "Pominęliśmy stronę {host}, bo zawierała polecenia dla modelu."
 )

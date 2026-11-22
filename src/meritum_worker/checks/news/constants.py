@@ -38,3 +38,28 @@ NEWS_QUALIFIED_BECAUSE: Final = (
     "Duża redakcja informacyjna; źródło wtórne, pytane dopiero gdy katalog nic nie dał."
 )
 """Why the outlets qualify, as the catalogue entry says it."""
+
+OPENROUTER_CHAT_PATH: Final = "/chat/completions"
+"""Chat completions path, joined to the OpenRouter base URL of the model's region."""
+
+NEWS_SEARCH_ENGINE: Final = "exa"
+"""Engine of OpenRouter's ``web`` plugin: Exa takes ``include_domains`` for any
+model, where native search depends on the model's provider."""
+
+NEWS_MAX_RESULTS: Final = 5
+"""Results asked from Exa per search; one request covers up to 10 at one price."""
+
+NEWS_SEARCH_CONTEXT: Final = "low"
+"""``search_context_size``: the least page text per result. Only the addresses
+are read, so more text would only add prompt tokens."""
+
+NEWS_ANSWER_MAX_TOKENS: Final = 64
+"""Cap of the model's answer, which nobody reads: the addresses come from the
+reply's ``url_citation`` annotations."""
+
+NEWS_SEARCH_TIMEOUT_SECONDS: Final = 8.0
+"""HTTP timeout of the search, inside live search's 10 s deadline."""
+
+NEWS_PRIVACY: Final = {"zdr": True, "data_collection": "deny"}
+"""Provider preferences of the call, as core's LLM adapter sends them: only
+zero-data-retention endpoints, no prompt collection (ADR-14)."""

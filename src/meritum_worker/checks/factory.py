@@ -5,22 +5,30 @@ Features:
 """
 
 import os
+from collections.abc import Sequence
 
 from httpx2 import AsyncClient
+from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.checks.ocr import OcrSettings, build_image_search, build_ocr
 from meritum_core.checks.transcription import TranscriptionSettings, build_transcriber
 from meritum_core.corpus import CorpusSettings, build_corpus_search
 from meritum_core.corpus.catalog import load_catalog
 from meritum_core.corpus.fetching import build_page_fetcher
-from meritum_core.corpus.web_search import WebSearchSettings, build_web_search
+from meritum_core.corpus.web_search import (
+    WebSearchPort,
+    WebSearchSettings,
+    build_web_search,
+)
 from meritum_core.observability import build_app_repositories
 from meritum_core.security.pii import PiiGateSettings, build_pii_gate
 from meritum_core.shared.blobs import BlobProvider, BlobSettings, build_blob_store
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
-from meritum_core.shared.llm import LlmSettings, build_llm
+from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
+from meritum_core.shared.llm.constants import OPENROUTER_BASE_URLS
 
-from meritum_worker.checks.adapters import DbosCheckRuntime
+from meritum_worker.checks.adapters import DbosCheckRuntime, OpenRouterNewsSearch
+from meritum_worker.checks.constants import NEWS_SEARCH_PRICE
 from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.news import news_catalog
 from meritum_worker.checks.ports import CheckRuntime
@@ -81,6 +89,7 @@ def build_check_deps(
     news = news_catalog()
     search = WebSearchSettings()
     injection = build_detector(llm, InjectionGateSettings())
+    routed = settings.provider is LlmProvider.OPENROUTER
     return CheckDeps(
         llm=llm,
         records=app.records,
@@ -93,7 +102,8 @@ def build_check_deps(
         injection=injection,
         # Media entries name the publisher of a news page; web_search never sees them.
         catalog=(*catalog, *news),
-        news_search=build_web_search(search, news),
+        news_search=build_news_search(settings, news) or build_web_search(search, news),
+        news_search_price=NEWS_SEARCH_PRICE if routed else None,
         corpus=build_corpus_search(CorpusSettings(), embeddings),
         reranker=build_reranker(),
         corpus_version=ResearchSettings().corpus_version,
@@ -115,6 +125,40 @@ def build_check_deps(
         image_search=build_image_search(),
         incidents=build_euvsdisinfo_copy(CorpusSettings()),
         embeddings=embeddings,
+    )
+
+
+def build_news_search(
+    settings: LlmSettings,
+    news: Sequence[CatalogEntry],
+    http_client: AsyncClient | None = None,
+) -> WebSearchPort | None:
+    """Build the media search on OpenRouter when the model already runs there.
+
+    The Vertex AI Search data store indexes catalogue domains only, so the
+    configured web search finds no media page (worker#275). OpenRouter's web
+    search needs no index of ours and uses the model's key, model and region.
+
+    Args:
+        settings: the LLM settings; ``openrouter`` with its key builds the search.
+        news: the outlets as catalogue entries (``news_catalog()``).
+        http_client: HTTP client (a recorded API in tests); None: the adapter's own.
+
+    Returns:
+        The search, or None for another model provider.
+
+    Features:
+        US-KOR-04, F-13, ADR-07, ADR-14
+    """
+    key = settings.openrouter_api_key
+    if settings.provider is not LlmProvider.OPENROUTER or key is None:
+        return None
+    return OpenRouterNewsSearch(
+        key,
+        news,
+        model=settings.model,
+        base_url=OPENROUTER_BASE_URLS[settings.region],
+        http_client=http_client,
     )
 
 
