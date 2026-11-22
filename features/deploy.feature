@@ -20,7 +20,12 @@ Funkcja: Migracje w deployu workera
   Scenariusz: brak tokenu EUvsDisinfo
     Zakładając worker startuje bez zmiennej z tokenem EUvsDisinfo
     Gdy kończy sprawdzanie gotowości
-    Wtedy raport wymienia nazwę brakującej zmiennej, a log startu ma tę samą listę bez wartości sekretów
+    Wtedy raport nie ma braków zmiennych, euvsdisinfo jest niedostępny, a log mówi degraded bez wartości sekretów
+
+  Scenariusz: korpus EUvsDisinfo nie blokuje sprawdzeń na dev
+    Zakładając worker dev z tokenem EUvsDisinfo, którego serwer nie odpowiada
+    Gdy kończy sprawdzanie gotowości
+    Wtedy raport nie ma braków zmiennych, euvsdisinfo jest niedostępny, a log mówi degraded bez wartości sekretów
 
   Scenariusz: wszystko ustawione
     Zakładając wszystkie wymagane zmienne i dostępni dostawcy

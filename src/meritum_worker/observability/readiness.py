@@ -80,13 +80,17 @@ async def _answers(probe: Probe) -> bool:
     try:
         return await probe()
     except Exception as error:  # ruff: ignore[blind-except]  # a broken provider is reported, never crashes
-        # The type only: a message could quote the token.
-        _log.warning("readiness probe failed: %s", type(error).__name__)
+        # Types only: a message could quote the token.
+        cause = type(error.__cause__).__name__ if error.__cause__ else "none"
+        _log.warning("readiness probe failed: %s from %s", type(error).__name__, cause)
         return False
 
 
 def log_readiness(report: ReadinessReport, logger: logging.Logger) -> None:
     """Log the report's names only; values of secrets never reach the log.
+
+    Missing variables make the worker not ready; unreachable providers only
+    degrade it.
 
     Args:
         report: The report from ``check_readiness``.
@@ -95,11 +99,16 @@ def log_readiness(report: ReadinessReport, logger: logging.Logger) -> None:
     Features:
         US-WDR-08, US-BEZ-03, F-30
     """
-    if report.missing_env or report.unavailable_providers:
+    if report.missing_env:
         logger.warning(
             "worker not ready: missing env %s, unavailable providers %s",
             report.missing_env,
             report.unavailable_providers,
+        )
+    elif report.unavailable_providers:
+        # The API runs checks without them (worker#102).
+        logger.warning(
+            "worker degraded: unavailable providers %s", report.unavailable_providers
         )
     else:
         logger.info("worker ready: no missing env, all providers answer")

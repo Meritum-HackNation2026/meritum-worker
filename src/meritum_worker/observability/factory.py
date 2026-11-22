@@ -52,7 +52,7 @@ def build_eval_deps(settings: LlmSettings) -> DepsFor:
 def build_readiness_probes(
     env: Mapping[str, str], http_client: AsyncClient
 ) -> dict[str, Probe]:
-    """Probes of the providers whose variables are set; a free call each.
+    """Probes of the optional providers; a free call each.
 
     Fact Check API, web search and transcription get probes with their ports
     (worker#43 and later); the model is checked by its variables only, since
@@ -63,17 +63,16 @@ def build_readiness_probes(
         http_client: HTTP client of the probes; the caller closes it.
 
     Returns:
-        Provider name to probe; without a token EUvsDisinfo has none, since
-        ``missing_env`` already names it.
+        Provider name to probe; without a token the EUvsDisinfo probe fails,
+        so the optional provider is reported unavailable.
 
     Features:
         US-WDR-08, US-BEZ-03, F-30
     """
-    if corpus.missing_env(env):
-        return {}
-    client = corpus.build_euvsdisinfo_client(env, http_client)
 
     async def euvsdisinfo() -> bool:
+        # Without the token this raises MissingTokenError: unavailable, not missing env.
+        client = corpus.build_euvsdisinfo_client(env, http_client)
         await client.cases(limit=1, offset=0)
         return True
 
