@@ -176,3 +176,15 @@ def test_pinned_corpus_version_reaches_the_result(
     deps = dataclasses.replace(make_deps(), corpus_version="2026-11-20T10:00Z")
     output, _ = _run(payload, deps)
     assert output.result.corpus_version == "2026-11-20T10:00Z"
+
+
+def test_check_input_from_a_newer_backend_runs(
+    payload: Payload, make_deps: Callable[..., CheckDeps]
+) -> None:
+    newer = {
+        **payload,
+        "from_v_next": 1,
+        "request": {**payload["request"], "from_v_next": 1},
+    }
+    output, _ = _run(newer, make_deps())
+    assert output.result.check_id == "check-1"

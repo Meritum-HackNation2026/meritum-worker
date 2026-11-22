@@ -48,7 +48,7 @@ async def erase_subject(
     Features:
         US-BEZ-05, F-20, ADR-13
     """
-    subject = DELETE_SUBJECT.input.model_validate(payload)
+    subject = DELETE_SUBJECT.input.model_validate(payload, extra="ignore")
     if subject.contract_version != CONTRACT_VERSION:
         msg = f"unsupported contract_version {subject.contract_version}"
         raise ValueError(msg)

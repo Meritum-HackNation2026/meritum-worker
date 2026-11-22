@@ -21,7 +21,7 @@ def ping(payload: dict[str, Any], env: str) -> dict[str, Any]:
     Features:
         ADR-03
     """
-    data = PING.input.model_validate(payload)
+    data = PING.input.model_validate(payload, extra="ignore")
     if data.contract_version != CONTRACT_VERSION:
         msg = f"unsupported contract_version {data.contract_version}"
         raise ValueError(msg)
