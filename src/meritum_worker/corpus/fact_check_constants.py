@@ -21,6 +21,13 @@ FACT_CHECK_LANGUAGE: Final = "pl"
 FACT_CHECK_TIMEOUT_SECONDS: Final = 10.0
 """Timeout of one Fact Check Tools call; the step's backstop is 30 s."""
 
+REVIEW_RATING_MAX_CHARS: Final = 120
+"""Longest textualRating ClaimReviewPremise and ClaimReviewContext accept; a longer
+rating is cut at a word and ends with RATING_ELLIPSIS."""
+
+RATING_ELLIPSIS: Final = "…"
+"""Ends a fact-checker's rating cut to REVIEW_RATING_MAX_CHARS."""
+
 REVIEW_TITLE_MAX_CHARS: Final = 200
 """Longest fact-check title ``ClaimReviewPremise`` accepts; longer ones are cut."""
 
