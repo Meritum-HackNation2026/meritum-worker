@@ -122,6 +122,7 @@ max-lines = 250
 "src/meritum_worker/corpus/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check search keeps its own"
 "src/meritum_worker/corpus/archive_constants.py" = "constants.py is at the 250-line limit; the page archive keeps its own"
 "src/meritum_worker/checks/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check step keeps its own"
+"src/meritum_worker/corpus/passage_constants.py" = "constants.py is at the 250-line limit; matching live page passages keeps its own"
 
 [tool.meritum-conventions.line-limit-exceptions]
 "src/meritum_worker/main.py" = "registers every DBOS workflow; split into a main/ package in its own PR, so parallel PRs do not conflict on a move"
