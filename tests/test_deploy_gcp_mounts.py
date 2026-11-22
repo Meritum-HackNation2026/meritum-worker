@@ -2,7 +2,9 @@
 
 from pathlib import Path
 
-from tests.test_deploy_secrets import deploy, started
+from tests.test_deploy_secrets import deploy, needs_posix, started
+
+pytestmark = needs_posix
 
 WORKER = "/home/m/meritum/gcp/meritum-worker:/var/run/meritum/gcp/meritum-worker:ro"
 SPEECH = "/home/m/meritum/gcp/meritum-speech:/var/run/meritum/gcp/meritum-speech:ro"

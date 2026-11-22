@@ -2,7 +2,9 @@
 
 from pathlib import Path
 
-from tests.test_deploy_secrets import deploy, started
+from tests.test_deploy_secrets import deploy, needs_posix, started
+
+pytestmark = needs_posix
 
 
 def test_files_volume_is_mounted_under_files_dir(tmp_path: Path) -> None:

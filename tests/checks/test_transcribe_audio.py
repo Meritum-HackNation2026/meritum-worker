@@ -31,7 +31,9 @@ def _deps(
     make_deps: Callable[..., CheckDeps], tmp_path: Path, text: str = SPOKEN
 ) -> CheckDeps:
     fixture = tmp_path / "transcript.json"
-    fixture.write_text(Transcript(text=text, language="pl-PL").model_dump_json())
+    fixture.write_text(
+        Transcript(text=text, language="pl-PL").model_dump_json(), encoding="utf-8"
+    )
     return dataclasses.replace(make_deps(), **audio_ports(fixture))
 
 
