@@ -16,6 +16,11 @@ from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 from meritum_worker import corpus
 from meritum_worker.checks import CheckDeps
 from meritum_worker.checks.factory import build_check_deps
+from meritum_worker.corpus.adapters import GoogleFactCheck
+from meritum_worker.corpus.fact_check_constants import (
+    FACT_CHECK_ENV_PREFIX,
+    FACT_CHECK_LANGUAGE,
+)
 from meritum_worker.observability.adapters import (
     CassetteCorpus,
     CassetteInjection,
@@ -28,7 +33,11 @@ from meritum_worker.observability.adapters import (
     PostgresEvalRuns,
 )
 from meritum_worker.observability.cassette import Cassette
-from meritum_worker.observability.constants import EUVSDISINFO_PROBE
+from meritum_worker.observability.constants import (
+    EUVSDISINFO_PROBE,
+    FACT_CHECK_PROBE,
+    FACT_CHECK_PROBE_QUERY,
+)
 from meritum_worker.observability.eval_run import EvalRunDeps
 from meritum_worker.observability.fakes import InMemoryEvalRuns
 from meritum_worker.observability.models import GoldenCase
@@ -155,8 +164,9 @@ def build_readiness_probes(
 ) -> dict[str, Probe]:
     """Probes of the optional providers; a free call each.
 
-    Fact Check API, web search and transcription get probes with their ports
-    (worker#43 and later); the model is checked by its variables only, since
+    The Fact Check API is probed with one search when ``MERITUM_FACT_CHECK_PROVIDER``
+    is ``google``; web search and transcription get probes with their ports
+    (later); the model is checked by its variables only, since
     every call to it is paid.
 
     Args:
@@ -177,7 +187,18 @@ def build_readiness_probes(
         await client.cases(limit=1, offset=0)
         return True
 
-    return {EUVSDISINFO_PROBE: euvsdisinfo}
+    probes: dict[str, Probe] = {EUVSDISINFO_PROBE: euvsdisinfo}
+    prefix = FACT_CHECK_ENV_PREFIX
+    if env.get(f"{prefix}PROVIDER", "").lower() == corpus.FactCheckProvider.GOOGLE:
+
+        async def fact_check() -> bool:
+            # An empty key raises FactCheckUnavailableError: degraded, not missing env.
+            port = GoogleFactCheck(env.get(f"{prefix}API_KEY", ""), http_client)
+            await port.search(FACT_CHECK_PROBE_QUERY, language=FACT_CHECK_LANGUAGE)
+            return True
+
+        probes[FACT_CHECK_PROBE] = fact_check
+    return probes
 
 
 def _no_answers() -> LlmSettings:
