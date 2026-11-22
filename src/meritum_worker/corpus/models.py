@@ -9,7 +9,14 @@ from typing import Literal
 
 from meritum_core.checks.contracts import Source
 from meritum_core.shared.embeddings import Vector
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    field_validator,
+)
 
 
 class EuvsCase(BaseModel):
@@ -37,6 +44,13 @@ class EuvsCase(BaseModel):
     date: AwareDatetime
     links: list[str] = Field(default=[], alias="linksToDisinformation")
     url: str
+
+    @field_validator("links", mode="before")
+    @classmethod
+    def _link_urls(cls, links: list[object]) -> list[object]:
+        # The live server sends link objects ({"url", ...}); their url may be null.
+        urls = [link.get("url") if isinstance(link, dict) else link for link in links]
+        return [url for url in urls if url is not None]
 
 
 class EuvsArticle(BaseModel):

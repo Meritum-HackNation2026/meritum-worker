@@ -160,6 +160,16 @@ def test_malformed_link_flags_no_domain() -> None:
     assert asyncio.run(store.flagged_domains()) == {"ok.example": ("case:1",)}
 
 
+def test_link_objects_without_url_flag_no_domain() -> None:
+    server, store = FakeEuvsDisinfoServer(TOKEN), corpus.build_euvsdisinfo_copy()
+    server.seed(cases=1, articles=1)
+    server.patch_cases(
+        linksToDisinformation=[{"url": None}, {"url": "https://ok.example/a"}]
+    )
+    assert sync(server, store) == corpus.SyncReport(added=2)
+    assert asyncio.run(store.flagged_domains()) == {"ok.example": ("case:1",)}
+
+
 def test_case_date_out_of_range_is_unavailable() -> None:
     server = FakeEuvsDisinfoServer(TOKEN)
     server.seed(cases=1, articles=1)
