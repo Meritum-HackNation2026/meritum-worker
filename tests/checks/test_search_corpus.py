@@ -76,6 +76,26 @@ def test_search_corpus_keeps_reranked_passages_per_fact(
     assert corpus.queries == [(claim, date(2026, 1, 5))]
 
 
+def test_search_corpus_gives_the_reranker_30_candidates_per_query(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    # worker#248: with 10, the settling article of a long act missed the top 5.
+    many = tuple(
+        PASSAGES[0].model_copy(update={"passage_id": f"m{i}"}) for i in range(40)
+    )
+    corpus = FakeCorpusSearch(many)
+    # The 30th candidate is the most relevant; the 31st never reaches the reranker.
+    reranker = FakeReranker({"m29": 0.9, "m30": 1.0})
+    deps = dataclasses.replace(
+        make_deps(), corpus=corpus, reranker=reranker, corpus_version="v1"
+    )
+    out = asyncio.run(search_corpus(state, deps))
+    kept = [p.passage.passage_id for p in out.passages[state.claims[0].claim]]
+    assert corpus.limits == [30]
+    assert kept[0] == "m29"
+    assert len(kept) == 5
+
+
 def test_search_corpus_keeps_search_order_when_reranker_fails(
     state: CheckState, make_deps: MakeDeps
 ) -> None:

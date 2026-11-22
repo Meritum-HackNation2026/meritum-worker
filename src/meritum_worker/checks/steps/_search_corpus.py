@@ -13,6 +13,7 @@ from datetime import date
 from meritum_core.security.pii import mask_personal_data
 
 from meritum_worker.checks.constants import (
+    CORPUS_CANDIDATES,
     NO_CORPUS_VERSION,
     SEARCH_CORPUS_STEP,
 )
@@ -22,6 +23,9 @@ from meritum_worker.corpus import MAX_PARALLEL_CLAIMS, Reranking, rerank_passage
 
 async def search_corpus(state: CheckState, deps: CheckDeps) -> CheckState:
     """Search the pinned snapshot for every fact, at most 3 facts at once.
+
+    Each query asks for ``CORPUS_CANDIDATES`` passages; the reranker keeps the
+    best ``RERANK_TOP_K`` of them all.
 
     Args:
         state: the check so far, with its dated claims.
@@ -69,6 +73,7 @@ async def _research(
                     q,
                     claim_date=fact.claim_date or today,
                     corpus_version=deps.corpus_version,
+                    limit=CORPUS_CANDIDATES,
                 )
                 for q in queries
             )
