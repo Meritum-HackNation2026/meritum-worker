@@ -165,3 +165,9 @@ NOTIFICATION_RETENTION: Final = timedelta(days=30)
 
 USER_ID_PATTERN: Final = re.compile(r"^[^:\s]+:\S+$")
 """A signed-in user id as the backend reads it: ``{provider}:{subject}``."""
+
+SEARCH_CORPUS_STEP: Final = "search_corpus"
+"""AnalysisStep code of the corpus research agent; skipped with no fact or snapshot."""
+
+CORPUS_VERSION_ENV: Final = "MERITUM_CORPUS_VERSION"
+"""Environment variable pinning the corpus snapshot checks search; unset: none."""

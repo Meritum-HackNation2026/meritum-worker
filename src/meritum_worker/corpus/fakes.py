@@ -4,6 +4,7 @@ Features:
     US-KOR-08, US-KOR-04, F-11, F-13
 """
 
+import asyncio
 import json
 
 from httpx2 import AsyncClient, MockTransport, Request, Response
@@ -211,19 +212,22 @@ class FakeWebSearch:
 
     Attributes:
         queries: the text of every query, in order.
+        most_at_once: the most searches that were running at the same time.
 
     Features:
-        US-KOR-04, F-13
+        US-KOR-04, US-SPR-02, F-09, F-13
     """
 
     def __init__(self, candidates: tuple[WebSearchCandidate, ...] = ()) -> None:
         self.queries: list[str] = []
+        self.most_at_once = 0
         self._candidates = candidates
+        self._running = 0
 
     async def search(
         self, query: MaskedText, *, limit: int = 10
     ) -> list[WebSearchCandidate]:
-        """Note the query and return the candidates.
+        """Note the query, yield once so parallel searches overlap, return candidates.
 
         Args:
             query: the masked claim.
@@ -233,4 +237,8 @@ class FakeWebSearch:
             The first ``limit`` candidates given at construction.
         """
         self.queries.append(query.text)
+        self._running += 1
+        self.most_at_once = max(self.most_at_once, self._running)
+        await asyncio.sleep(0)
+        self._running -= 1
         return list(self._candidates[:limit])

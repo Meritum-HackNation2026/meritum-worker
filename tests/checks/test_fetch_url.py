@@ -148,6 +148,7 @@ def test_check_of_a_text_shows_fetch_url_as_skipped(
     statuses = _statuses(make_job(), make_deps())
     assert statuses.pop("fetch_url") == "skipped"
     assert statuses.pop("transcribe_audio") == "skipped"
+    assert statuses.pop("search_corpus") == "skipped"
     assert set(statuses.values()) == {"done"}
 
 

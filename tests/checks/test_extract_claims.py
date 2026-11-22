@@ -22,6 +22,7 @@ from meritum_worker.checks import (
     ExtractedClaim,
     FakePageFetcher,
     audio_ports,
+    corpus_ports,
     web_ports,
 )
 from meritum_worker.checks.steps import extract_claims, write_answer
@@ -35,6 +36,7 @@ def _deps(llm: LlmPort) -> CheckDeps:
         pii=NullPiiGate(),
         **audio_ports(),
         **web_ports(),
+        **corpus_ports(),
     )
 
 
@@ -75,9 +77,8 @@ def _extract(
     state: CheckState, *claims: ExtractedClaim, out_of_scope: bool = False
 ) -> tuple[CheckState, _RecordingLlm]:
     llm = _RecordingLlm(ClaimExtraction(out_of_scope=out_of_scope, claims=[*claims]))
-    deps = _deps(llm)
     return asyncio.run(
-        extract_claims(state.model_copy(update={"claims": []}), deps)
+        extract_claims(state.model_copy(update={"claims": []}), _deps(llm))
     ), llm
 
 

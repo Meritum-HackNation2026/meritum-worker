@@ -16,6 +16,7 @@ from meritum_worker.checks import (
     ExtractedClaim,
     FakePageFetcher,
     audio_ports,
+    corpus_ports,
     web_ports,
 )
 
@@ -36,6 +37,7 @@ def _deps(
         pii=NullPiiGate(),
         **audio_ports(),
         **web_ports(),
+        **corpus_ports(),
     )
 
 

@@ -10,6 +10,7 @@ import tempfile
 from datetime import timedelta
 from pathlib import Path
 from typing import override
+from unittest.mock import patch
 
 from behave import given, then, when
 from behave.runner import Context
@@ -18,7 +19,13 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.security.pii import NullPiiGate
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
-from meritum_worker.checks import CheckDeps, FakePageFetcher, audio_ports, web_ports
+from meritum_worker.checks import (
+    CheckDeps,
+    FakePageFetcher,
+    audio_ports,
+    corpus_ports,
+    web_ports,
+)
 from meritum_worker.observability import (
     GoldenCase,
     GoldenSet,
@@ -127,17 +134,10 @@ def jury_runs_eval(context: Context) -> None:
         "MERITUM_LLM_PROVIDER": "stub",
         "MERITUM_LLM_STUB_FIXTURES": str(STUB_ANSWER),
     }
-    previous = {name: os.environ.get(name) for name in stub}
-    os.environ.update(stub)
-    try:
+    with patch.dict(os.environ, stub):
         meritum_eval(
             ["--cases", str(context.path), "--output", str(context.report_path)]
         )
-    finally:
-        for name, value in previous.items():
-            os.environ.pop(name, None)
-            if value is not None:
-                os.environ[name] = value
 
 
 @then(
@@ -182,14 +182,14 @@ def _case(slug: str) -> GoldenCase:
 
 
 def _deps(seconds: float, fixtures: Path | None) -> CheckDeps:
-    settings = LlmSettings(provider=LlmProvider.STUB, stub_fixtures=fixtures)
     return CheckDeps(
-        llm=build_llm(settings),
+        llm=build_llm(LlmSettings(provider=LlmProvider.STUB, stub_fixtures=fixtures)),
         records=_ShiftedRecords(seconds),
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
         **audio_ports(),
         **web_ports(),
+        **corpus_ports(),
     )
 
 

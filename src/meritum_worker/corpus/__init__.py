@@ -7,6 +7,7 @@ Features:
 """
 
 from meritum_worker.corpus.constants import (
+    MAX_PARALLEL_CLAIMS,
     SYNC_WORKFLOW,
     TOKEN_ENV,
     WEB_SEARCH_MARGIN,
@@ -38,6 +39,7 @@ from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
 from meritum_worker.corpus.sync import catalog_entry, missing_env, sync_euvsdisinfo
 
 __all__ = [
+    "MAX_PARALLEL_CLAIMS",
     "SYNC_WORKFLOW",
     "TOKEN_ENV",
     "WEB_SEARCH_MARGIN",

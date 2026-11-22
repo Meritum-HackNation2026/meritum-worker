@@ -104,3 +104,14 @@ Funkcja: Smoke test workera
     Zakładając plik w formacie, którego port nie obsługuje
     Gdy workflow sprawdzania działa
     Wtedy wynik ma stan out_of_scope z komunikatem, co można wysłać zamiast
+
+  Scenariusz: trzy twierdzenia sprawdzane równolegle
+    Zakładając tekst z 4 twierdzeniami
+    Gdy workflow uruchamia agenty badawcze
+    Wtedy najwyżej 3 twierdzenia są badane jednocześnie
+    Oraz AnalysisStatus pokazuje kilka kroków w stanie active naraz
+
+  Scenariusz: wersja wstępna bez werdyktu
+    Zakładając agent główny strumieniuje wstępną odpowiedź
+    Gdy cytaty nie przeszły jeszcze weryfikacji
+    Wtedy wersja wstępna nie zawiera werdyktu

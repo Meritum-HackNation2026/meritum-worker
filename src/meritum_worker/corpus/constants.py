@@ -152,6 +152,10 @@ deadline drop out before the step's own backstop timeout ends the check."""
 WEB_QUERIES_PER_CHECK: Final = 5
 """Most web searches one check sends: one per checked fact (US-KOR-04, F-13)."""
 
+MAX_PARALLEL_CLAIMS: Final = 3
+"""Most claims one research agent researches at once, corpus and web alike
+(US-SPR-02, F-09, ADR-20)."""
+
 WEB_RESULTS_PER_QUERY: Final = 3
 """Catalogue addresses asked per search; each is fetched and scanned in quarantine."""
 

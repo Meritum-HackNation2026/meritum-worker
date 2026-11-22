@@ -25,7 +25,11 @@ from meritum_core.corpus.fetching import (
     PageFetcherPort,
     PageFetchError,
 )
-from meritum_core.corpus.web_search import WebSearchPort, catalog_entry_for
+from meritum_core.corpus.web_search import (
+    WebSearchCandidate,
+    WebSearchPort,
+    catalog_entry_for,
+)
 from meritum_core.evidence.models import SourceDocument
 from meritum_core.security.injection import InjectionDetectorPort
 from meritum_core.security.pii import PiiGatePort, mask_personal_data
@@ -34,6 +38,7 @@ from pydantic import BaseModel, ConfigDict
 
 from meritum_worker.corpus.constants import (
     INJECTION_EXCERPT_MAX_CHARS,
+    MAX_PARALLEL_CLAIMS,
     WEB_PAGE_MAX_CHARS,
     WEB_QUERIES_PER_CHECK,
     WEB_RESULTS_PER_QUERY,
@@ -92,13 +97,13 @@ async def search_live(
 ) -> LiveSearchResult:
     """Mask and search each query, then fetch and scan every catalogue page.
 
-    At most ``WEB_QUERIES_PER_CHECK`` queries are masked and searched, all at
-    once. One deadline, ``WEB_SEARCH_TIMEOUT`` from the call, covers the masking,
-    the searches, the fetches and the scans. Our catalogue filter checks every
-    address before the fetch and the final one after redirects. A page that
-    cannot be fetched (robots.txt, Content-Signal, network), is empty, could not
-    be scanned or is not scanned by the deadline is left out with a log line;
-    the check goes on.
+    At most ``WEB_QUERIES_PER_CHECK`` queries are masked and searched,
+    ``MAX_PARALLEL_CLAIMS`` at a time. One deadline, ``WEB_SEARCH_TIMEOUT``
+    from the call, covers the masking, the searches, the fetches and the
+    scans. Our catalogue filter checks every address before the fetch and the
+    final one after redirects. A page that cannot be fetched (robots.txt,
+    Content-Signal, network), is empty, could not be scanned or is not scanned
+    by the deadline is left out with a log line; the check goes on.
 
     Args:
         queries: the checked facts, as extracted from the masked input.
@@ -116,12 +121,8 @@ async def search_live(
     asked = queries[:WEB_QUERIES_PER_CHECK]
     deadline = asyncio.get_running_loop().time() + WEB_SEARCH_TIMEOUT.total_seconds()
     async with asyncio.timeout_at(deadline):
-        masked = await asyncio.gather(
-            *(mask_personal_data(query, ports.pii) for query in asked)
-        )
-        found = await asyncio.gather(
-            *(ports.web_search.search(q, limit=WEB_RESULTS_PER_QUERY) for q in masked)
-        )
+        slots = asyncio.Semaphore(MAX_PARALLEL_CLAIMS)
+        found = await asyncio.gather(*(_ask(query, ports, slots) for query in asked))
     urls = dict.fromkeys(c.url for candidates in found for c in candidates)
     quarantine = _Quarantine(ports, deadline)
     scanned = await asyncio.gather(*map(quarantine.admit, urls))
@@ -132,6 +133,14 @@ async def search_live(
         documents=list(documents.values()),
         dropped=[s for s in scanned if isinstance(s, InjectionEvent)],
     )
+
+
+async def _ask(
+    query: str, ports: LiveSearchPorts, slots: asyncio.Semaphore
+) -> list[WebSearchCandidate]:
+    async with slots:
+        masked = await mask_personal_data(query, ports.pii)
+        return await ports.web_search.search(masked, limit=WEB_RESULTS_PER_QUERY)
 
 
 @dataclass(frozen=True, slots=True)
