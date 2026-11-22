@@ -87,7 +87,7 @@ async def _compared(
     if not isinstance(rated.evidence, ClaimReviewPremise) or fact is None or not close:
         return False, None
     return await evidence.review_matches(
-        deps.llm, fact.claim, fact.claim_date or date.min, finding.claim_reviewed
+        deps.llm, fact.claim, _stated_date(fact), finding.claim_reviewed
     )
 
 
@@ -97,11 +97,16 @@ async def _assess(
     document: SourceDocument,
     validity: dict[str, Validity],
 ) -> tuple[CitationDraft | None, LlmUsage, str]:
-    claim_date = fact.claim_date or date.min  # filtered out by the caller
     entry_validity = validity.get(document.source.domain, "expires")
     return await evidence.assess_stance(
-        deps.llm, fact.claim, claim_date, document, entry_validity
+        deps.llm, fact.claim, _stated_date(fact), document, entry_validity
     )
+
+
+def _stated_date(fact: ExtractedClaim) -> date | None:
+    # The day of the check is not a date the claim states: judged against it, a
+    # source from 2018 that is still in force would not confirm the present.
+    return None if fact.claim_date_source == "today" else fact.claim_date
 
 
 def _partial_notes(
