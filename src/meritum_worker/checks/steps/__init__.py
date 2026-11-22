@@ -19,6 +19,7 @@ from ._save_record import save_record
 from ._screen_injection import screen_injection
 from ._search_corpus import search_corpus
 from ._search_fact_checks import search_fact_checks
+from ._search_news import search_news
 from ._search_web import search_web
 from ._transcribe_audio import transcribe_audio
 from ._verify_citations import verify_citations
@@ -40,6 +41,7 @@ __all__ = [
     "screen_injection",
     "search_corpus",
     "search_fact_checks",
+    "search_news",
     "search_web",
     "transcribe_audio",
     "verify_citations",

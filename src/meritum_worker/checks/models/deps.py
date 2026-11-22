@@ -56,6 +56,8 @@ class CheckDeps:
         fact_check: Google Fact Check Tools API, or the stub that finds nothing.
         live_pages: takes pages past quarantine into the corpus for the next
             snapshot; None where the worker may not write ``corpus``.
+        news_search: web search limited to the major media, asked once when the
+            catalogue search found no page; None skips it.
         sanctions: the local copy of the EU sanctions list; empty finds nothing.
         ocr: reads text from an uploaded image; None fails an image check.
         image_search: earlier-occurrence search; None means it did not run.
@@ -88,6 +90,7 @@ class CheckDeps:
     web_search_provider: str = "stub"
     fact_check: FactCheckPort = field(default_factory=FakeFactCheck)
     live_pages: LivePagesPort | None = None
+    news_search: WebSearchPort | None = None
     sanctions: SanctionsList = field(default_factory=SanctionsList)
     ocr: OcrPort | None = None
     image_search: ImageSearchPort | None = None
