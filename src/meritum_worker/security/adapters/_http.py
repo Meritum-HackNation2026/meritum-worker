@@ -7,7 +7,7 @@ Features:
 import asyncio
 import logging
 
-from httpx2 import AsyncClient, TransportError, codes
+from httpx2 import AsyncClient, RequestError, TransportError, codes
 from pydantic import BaseModel, JsonValue, ValidationError
 
 from meritum_worker.security.constants import RETRY_BACKOFF_SECONDS
@@ -70,6 +70,9 @@ async def post_reply[T: BaseModel](  # ruff: ignore[too-many-arguments]  # one c
         except TransportError as exc:
             last = f"{type(exc).__name__} on attempt {attempt + 1}"
             continue
+        except RequestError as exc:  # undecodable body, redirects: not transient
+            last = f"{type(exc).__name__} on attempt {attempt + 1}"
+            break
         last = f"HTTP {response.status_code} on attempt {attempt + 1}"
         if response.is_success:
             try:

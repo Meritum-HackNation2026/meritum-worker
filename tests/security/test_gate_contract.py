@@ -72,11 +72,12 @@ def test_transient_error_is_retried(provider: Provider) -> None:
     "reply",
     [
         httpx2.ConnectError("no reply"),
+        httpx2.DecodingError("bad Content-Encoding"),
         (503, "malformed.json"),
         (403, "malformed.json"),
         (200, "malformed.json"),
     ],
-    ids=["no-reply", "unavailable", "refused", "malformed"],
+    ids=["no-reply", "undecodable", "unavailable", "refused", "malformed"],
 )
 def test_failure_skips_the_gate_and_logs_without_the_text(
     provider: Provider,
