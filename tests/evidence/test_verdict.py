@@ -70,3 +70,12 @@ def test_expired_evidence_on_both_sides_still_conflicts() -> None:
     ]
     result = judge(citations, catalog=CATALOG, claim_date=CLAIM_DATE)
     assert result.verdict == "insufficient_evidence"
+
+
+def test_citation_source_carries_the_catalog_age_threshold() -> None:
+    citations = [
+        cite("supports", "kprm", "primary", domain="gov.pl"),
+        cite("supports", "demagog", page="b"),
+    ]
+    dated = with_validity(citations, CATALOG, claim_date=CLAIM_DATE)
+    assert [c.source.max_age_hours for c in dated] == [48, None]

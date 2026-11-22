@@ -149,8 +149,11 @@ def _proposed(stances: set[Stance]) -> Verdict:
 
 
 def _facts(citation: Citation, entry: CatalogEntry | None) -> EvidenceFacts:
+    # The source carries its catalogue threshold, so core's rules read it (v14).
+    threshold = {"max_age_hours": entry.max_age_hours if entry else None}
+    source = citation.source.model_copy(update=threshold)
     return EvidenceFacts(
-        citation=citation,
+        citation=citation.model_copy(update={"source": source}),
         entry_validity=entry.validity if entry else None,
         series=citation.source.domain,
     )
