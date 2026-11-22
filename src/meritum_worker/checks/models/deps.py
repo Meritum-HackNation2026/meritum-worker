@@ -49,15 +49,13 @@ class CheckDeps:
             snapshot; None where the worker may not write ``corpus``.
         sanctions: the local copy of the EU sanctions list; empty finds nothing.
 
-    Features:
-        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
-        US-POW-01, US-KOR-04, US-ZRD-07, F-06, F-08, F-09, F-12, F-13, F-22, F-34
         ocr: reads text from an uploaded image; None fails an image check.
         image_search: earlier-occurrence search; None means it did not run.
 
     Features:
-        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
-        US-POW-01, US-KOR-04, US-SPR-08, F-33, F-06, F-08, F-09, F-12, F-13, F-22
+        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-08, US-SPR-11, US-OBS-01,
+        US-OBS-07, US-POW-01, US-KOR-04, US-ZRD-07, F-06, F-08, F-09, F-12, F-13,
+        F-22, F-33, F-34
     """
 
     llm: LlmPort
