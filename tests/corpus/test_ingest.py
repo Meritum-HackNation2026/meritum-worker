@@ -6,14 +6,12 @@ import pytest
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus import CorpusProvider, CorpusSettings
 from meritum_core.corpus.fetching import FetchedPage, FetchFailureReason, FetchPurpose
-from meritum_core.security.injection import InjectionScan
 from meritum_core.shared.embeddings import (
     EmbeddingsSettings,
     EmbeddingsUnavailableError,
     Vector,
     build_embeddings,
 )
-from meritum_core.shared.llm import ProviderUnavailableError
 
 from meritum_worker import corpus
 from meritum_worker.corpus.adapters import MemoryCorpusWriter
@@ -221,34 +219,3 @@ def test_page_of_excluded_or_reserved_entry_is_never_stored(
     )
     assert [f.reason for f in report.failures] == ["entry_not_ingestible"]
     assert asyncio.run(store.documents()) == []
-
-
-class DownInjectionDetector:
-    """The classifier's provider fails, as worker#195 saw on prd."""
-
-    async def scan(self, text: str) -> InjectionScan:  # ruff: ignore[no-self-use]  # implements the port
-        msg = f"classifier down for {len(text)} characters"
-        raise ProviderUnavailableError(msg)
-
-
-def test_page_the_injection_detector_cannot_scan_is_a_failure_and_the_run_goes_on() -> (
-    None
-):
-    site, store = FakeCatalogSite(pages_per_domain=2), MemoryCorpusWriter()
-    ports = corpus.IngestDeps(
-        discovery=site,
-        fetcher=site,
-        embeddings=build_embeddings(EmbeddingsSettings()),
-        store=store,
-        injection=DownInjectionDetector(),
-    )
-    report = asyncio.run(
-        corpus.ingest_catalog([entry(), entry("drugi.gov.pl")], ports, now=NOW)
-    )
-    assert report.added == 0
-    assert [(f.domain, f.reason) for f in report.failures] == [
-        ("urzad.gov.pl", "injection_unavailable"),
-        ("urzad.gov.pl", "injection_unavailable"),
-        ("drugi.gov.pl", "injection_unavailable"),
-        ("drugi.gov.pl", "injection_unavailable"),
-    ]

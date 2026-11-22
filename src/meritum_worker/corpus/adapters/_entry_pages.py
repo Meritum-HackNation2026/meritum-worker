@@ -1,5 +1,6 @@
-"""Discovery by entry page: a static catalogue domain is fetched as its own URL
-or as the entry page ``ENTRY_URLS`` names.
+"""Discovery by entry page: a static catalogue domain is fetched as one page.
+
+Its own URL, or the entry page ``ENTRY_URLS`` names.
 
 Features:
     US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13, ADR-32
