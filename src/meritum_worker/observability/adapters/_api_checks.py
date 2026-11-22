@@ -8,15 +8,15 @@ import asyncio
 import secrets
 import time
 
-from httpx2 import AsyncClient, HTTPError
+from httpx2 import AsyncClient, HTTPError, Response, TransportError
 from meritum_core.checks import CheckResult
 from pydantic import BaseModel, ValidationError
 
 from meritum_worker.observability.constants import (
     API_CHECKS_PATH,
     API_POLL_SECONDS,
-    API_RATE_LIMIT_RETRIES,
     API_REQUEST_TIMEOUT_SECONDS,
+    API_RETRIES,
     API_RETRY_AFTER_SECONDS,
     API_SESSION_HEADER,
     API_TIMEOUT_SECONDS,
@@ -25,6 +25,7 @@ from meritum_worker.observability.constants import (
     FAILURE_CODE,
     FAILURE_MESSAGE,
     NO_CORPUS_VERSION,
+    RATE_LIMITED,
     RETRY_STATUSES,
 )
 from meritum_worker.observability.models import GoldenCase
@@ -49,7 +50,8 @@ class ApiChecks:
         base_url: The API's origin, e.g. ``https://meritum-dev.gburek.app``.
         client: The HTTP client (a recorded API in tests); None: its own, closed
             by ``aclose``.
-        poll_seconds: Pause between status reads.
+        poll_seconds: Pause between status reads, and before a retry after a
+            dropped connection or a 502, 503 or 504 (the API restarting mid-run).
         timeout_seconds: Longest wait for a result; then a technical failure.
         fresh: Tag every text with this run's invisible suffix, so the API's
             result cache (keyed by the normalized text) misses and the check runs.
@@ -108,24 +110,47 @@ class ApiChecks:
         body = {"channel": "web", "text": text, "url": case.url}
         payload = {k: str(v) for k, v in body.items() if v is not None}
         headers = {API_SESSION_HEADER: secrets.token_hex(16)}
-        for _ in range(API_RATE_LIMIT_RETRIES):
-            response = await self._client.post(self._url, json=payload, headers=headers)
-            if response.status_code not in RETRY_STATUSES:
-                response.raise_for_status()
-                return _Accepted.model_validate_json(response.content).check_id
-            wait = response.headers.get("Retry-After", API_RETRY_AFTER_SECONDS)
-            await asyncio.sleep(float(wait))
-        response.raise_for_status()
-        return ""  # unreachable: the last answer asked to retry
+        response = await self._send("POST", self._url, payload, headers)
+        return _Accepted.model_validate_json(response.content).check_id
 
     async def _result(self, check_id: str) -> CheckResult:
         while True:
-            response = await self._client.get(f"{self._url}/{check_id}")
-            response.raise_for_status()
+            response = await self._send("GET", f"{self._url}/{check_id}")
             status = _Status.model_validate_json(response.content)
             if status.result is not None:
                 return status.result
             await asyncio.sleep(self._poll)
+
+    async def _send(
+        self,
+        method: str,
+        url: str,
+        payload: dict[str, str] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Response:
+        # A restarting API refuses or drops connections for under a minute.
+        for _ in range(API_RETRIES - 1):
+            try:
+                response = await self._client.request(
+                    method, url, json=payload, headers=headers
+                )
+            except TransportError:
+                await asyncio.sleep(self._poll)
+                continue
+            if response.status_code not in RETRY_STATUSES:
+                break
+            await asyncio.sleep(self._pause(response))
+        else:  # the last try: its error ends the case
+            response = await self._client.request(
+                method, url, json=payload, headers=headers
+            )
+        response.raise_for_status()
+        return response
+
+    def _pause(self, response: Response) -> float:
+        limited = response.status_code == RATE_LIMITED
+        default = API_RETRY_AFTER_SECONDS if limited else self._poll
+        return float(response.headers.get("Retry-After", default))
 
 
 def _failure(check_id: str) -> CheckResult:

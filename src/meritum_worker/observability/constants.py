@@ -159,14 +159,18 @@ API_POLL_SECONDS: Final = 3.0
 API_TIMEOUT_SECONDS: Final = 300.0
 """Longest wait for one check's result from the API; then a technical failure."""
 
-API_RATE_LIMIT_RETRIES: Final = 5
-"""Posts of one case the API may refuse with 429 or 503 before it fails."""
+API_RETRIES: Final = 20
+"""Tries of one request to the API before the case fails (worker#242): with the
+poll pause between them they outlast a restart of the API, about a minute."""
 
-API_RETRY_AFTER_SECONDS: Final = "60"
-"""Wait after a 429 or 503 without Retry-After: the API's per-minute window."""
+API_RETRY_AFTER_SECONDS: Final = 60.0
+"""Wait after a 429 without Retry-After: the API's per-minute window."""
 
-RETRY_STATUSES: Final = frozenset({429, 503})
-"""HTTP statuses worth a retry: a rate limit, or an API not ready (restarting)."""
+RATE_LIMITED: Final = 429
+"""Status of a rate limit; it waits out the window, not the short pause."""
+
+RETRY_STATUSES: Final = frozenset({RATE_LIMITED, 502, 503, 504})
+"""HTTP statuses worth a retry: a rate limit, or an API or proxy mid-restart."""
 
 API_REQUEST_TIMEOUT_SECONDS: Final = 30.0
 """Timeout of one HTTP request to the API in a run against it."""
