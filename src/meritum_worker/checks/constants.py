@@ -43,6 +43,8 @@ ANSWER_INSTRUCTIONS: Final = (
     " Every text is read by a citizen: never write code names such as"
     " insufficient_evidence, not_verifiable, supports or refutes; name a verdict only"
     " by its Polish name given in the data, for example „Brak wystarczających dowodów”."
+    " Keep each explanation under 800 characters, each unresolved text under 500"
+    " and each limitation under 300."
 )
 """Instructions of the write_answer model call; the verdicts come from code (ADR-05)."""
 
@@ -87,6 +89,15 @@ OUT_OF_SCOPE_MESSAGE: Final = "Claim extraction classified the input as out of s
 
 LIMITATION_MAX_CHARS: Final = 300
 """Longest limitation CheckResult accepts; a longer skipped claim is cut to fit."""
+
+EXPLANATION_MAX_CHARS: Final = 800
+"""Longest ClaimResult.explanation; a longer model text is cut to fit."""
+
+UNRESOLVED_MAX_CHARS: Final = 500
+"""Longest ClaimResult.unresolved; a longer model text is cut to fit."""
+
+SENTENCE_END: Final = re.compile(r"[.!?](?=\s)")
+"""End of a sentence followed by more text: where a too long model text is cut."""
 
 FETCH_URL_STEP: Final = "fetch_url"
 """AnalysisStep code of fetching the citizen's link; skipped when there is none."""
