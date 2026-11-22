@@ -18,6 +18,7 @@ from meritum_worker.corpus.catalog_api.constants import (
     EUROSTAT_DATA_URL,
     EUROSTAT_QUERIES,
     MAX_RECORDS_PER_LISTING,
+    NBP_ATTEMPTS,
     NBP_GOLD_URL,
     NBP_TABLES_URL,
     SEJM_ELI_ACT_URL,
@@ -36,6 +37,7 @@ class ApiListing:
     Attributes:
         url: The request, fetched like a page (SSRF guard, robots.txt).
         parse: Turns the raw JSON answer into records.
+        attempts: Requests made while the API answers ``not_found``.
 
     Features:
         US-KOR-02, F-10, F-12, ADR-32
@@ -43,6 +45,7 @@ class ApiListing:
 
     url: str
     parse: Parser
+    attempts: int = 1
 
 
 def api_listings(
@@ -93,8 +96,8 @@ def api_listings(
             ApiListing(SEJM_ELI_ACTS_URL.format(year=now.year), parsers.sejm_acts),
         ],
         "api.nbp.pl": [
-            ApiListing(NBP_TABLES_URL, parsers.nbp_tables),
-            ApiListing(NBP_GOLD_URL, parsers.nbp_gold),
+            ApiListing(NBP_TABLES_URL, parsers.nbp_tables, NBP_ATTEMPTS),
+            ApiListing(NBP_GOLD_URL, parsers.nbp_gold, NBP_ATTEMPTS),
         ],
         "dane.gov.pl": [ApiListing(DANE_DATASETS_URL, parsers.dane_datasets)],
         "bdl.stat.gov.pl": [ApiListing(BDL_SUBJECTS_URL, parsers.bdl_subjects)],

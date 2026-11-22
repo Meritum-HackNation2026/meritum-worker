@@ -7,7 +7,13 @@ Features:
 from datetime import datetime
 
 from meritum_core.checks.contracts import CatalogEntry
-from meritum_core.corpus.fetching import FetchPurpose, PageFetcherPort, PageFetchError
+from meritum_core.corpus.fetching import (
+    FetchedPage,
+    FetchFailureReason,
+    FetchPurpose,
+    PageFetcherPort,
+    PageFetchError,
+)
 from meritum_core.shared.embeddings import EmbeddingsUnavailableError
 
 from meritum_worker.corpus.catalog_api.acts import act_body, act_parts
@@ -77,7 +83,7 @@ async def _ingest_listing(  # ruff: ignore[too-many-arguments, too-many-position
     seen: set[str],
 ) -> IngestReport:
     try:
-        answer = await fetcher.fetch(listing.url, purpose=FetchPurpose.SOURCE)
+        answer = await _fetch(listing, fetcher)
         records = parse_listing(listing, answer.untrusted_text)
     except PageFetchError as error:
         return failed_page(entry, listing.url, error.reason.value)
@@ -122,3 +128,13 @@ async def _store(
         return await store_page(record.page(), entry, deps, now=now)
     except EmbeddingsUnavailableError:
         return failed_page(entry, record.url, EMBEDDINGS_UNAVAILABLE)
+
+
+async def _fetch(listing: ApiListing, fetcher: PageFetcherPort) -> FetchedPage:
+    for _ in range(listing.attempts - 1):
+        try:
+            return await fetcher.fetch(listing.url, purpose=FetchPurpose.SOURCE)
+        except PageFetchError as error:
+            if error.reason != FetchFailureReason.NOT_FOUND:
+                raise
+    return await fetcher.fetch(listing.url, purpose=FetchPurpose.SOURCE)

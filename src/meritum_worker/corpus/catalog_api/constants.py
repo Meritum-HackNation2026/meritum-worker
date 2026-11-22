@@ -50,6 +50,12 @@ NBP_GOLD_URL: Final = "https://api.nbp.pl/api/cenyzlota/last/30/?format=json"
 NBP_GOLD_DAY_URL: Final = "https://api.nbp.pl/api/cenyzlota/{day}/"
 """NBP's gold price of one day."""
 
+NBP_ATTEMPTS: Final = 3
+"""Requests per NBP listing while it answers ``not_found``. The paths are the ones
+in NBP's documentation (api.nbp.pl); one of NBP's servers answers every request
+with IIS's 404 page, and its load balancer sends about one request in three there
+(checked 2026-11-22, worker#220)."""
+
 DANE_DATASETS_URL: Final = (
     "https://api.dane.gov.pl/1.4/datasets?page=1&per_page=100&sort=-modified"
 )
