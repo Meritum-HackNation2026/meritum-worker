@@ -1,0 +1,94 @@
+{
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "W 2024 r. wskaźnik numer 1 wyniósł 1,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 2 wyniósł 2,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 3 wyniósł 3,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 4 wyniósł 4,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 5 wyniósł 5,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 6 wyniósł 6,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 7 wyniósł 7,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 8 wyniósł 8,5%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      }
+    ]
+  },
+  "AnswerDraft": {
+    "claims": [
+      {
+        "claim": "W 2024 r. wskaźnik numer 1 wyniósł 1,5%.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "today",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 2 wyniósł 2,5%.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "today",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 3 wyniósł 3,5%.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "today",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 4 wyniósł 4,5%.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "today",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      },
+      {
+        "claim": "W 2024 r. wskaźnik numer 5 wyniósł 5,5%.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "today",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      }
+    ],
+    "limitations": [
+      "Odpowiedź z modelu zastępczego, bez przeszukania korpusu."
+    ]
+  }
+}

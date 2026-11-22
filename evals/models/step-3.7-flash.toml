@@ -1,0 +1,9 @@
+# Step 3.7 Flash nie ma endpointu ZDR: tylko golden set, nigdy dane użytkowników (ADR-14).
+name = "step-3.7-flash"
+
+[llm]
+provider = "openrouter"
+model = "stepfun/step-3.7-flash"
+region = "global"
+reasoning = "high"
+openrouter_zdr = false

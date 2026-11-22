@@ -1,0 +1,22 @@
+{
+  "claims": [
+    {
+      "text": "PAP usunęła depeszę o wypowiedzi posła przed wyborami 15 października 2023",
+      "claimant": "Internauci",
+      "claimDate": "2023-10-16T00:00:00Z",
+      "claimReview": [
+        {
+          "publisher": {
+            "name": "Fakenews.pl",
+            "site": "fakenews.pl"
+          },
+          "url": "https://fakenews.pl/art",
+          "title": "PAP nie usunęła depeszy",
+          "reviewDate": "2023-10-18T10:00:00Z",
+          "textualRating": "Fałsz",
+          "languageCode": "pl"
+        }
+      ]
+    }
+  ]
+}

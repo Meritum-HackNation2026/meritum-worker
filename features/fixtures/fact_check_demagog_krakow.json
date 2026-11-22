@@ -1,0 +1,19 @@
+{
+  "claims": [
+    {
+      "text": "W Krakowie seniorzy po 70. roku życia jeżdżą komunikacją miejską za darmo",
+      "claimant": "Polityk",
+      "claimDate": "2024-02-01T00:00:00Z",
+      "claimReview": [
+        {
+          "publisher": {"name": "Demagog", "site": "demagog.org.pl"},
+          "url": "https://demagog.org.pl/wypowiedzi/krakow-darmowa-komunikacja-seniorzy",
+          "title": "Darmowa komunikacja dla seniorów w Krakowie",
+          "reviewDate": "2024-02-05T10:00:00Z",
+          "textualRating": "Prawda",
+          "languageCode": "pl"
+        }
+      ]
+    }
+  ]
+}

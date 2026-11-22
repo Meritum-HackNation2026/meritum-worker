@@ -1,0 +1,32 @@
+{
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "Inflacja w październiku wyniosła 2,8%.",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych."
+      },
+      {
+        "claim": "Rząd kompletnie sobie nie radzi.",
+        "kind": "opinion",
+        "explanation": "To ocena działań rządu, a nie twierdzenie o fakcie."
+      }
+    ]
+  },
+  "AnswerDraft": {
+    "claims": [
+      {
+        "claim": "Inflacja w październiku wyniosła 2,8%.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "today",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      }
+    ],
+    "limitations": [
+      "Odpowiedź z modelu zastępczego, bez przeszukania korpusu."
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+ "totalRecords": 33,
+ "page": 0,
+ "pageSize": 5,
+ "links": {
+  "first": "https://bdl.stat.gov.pl/api/v1/subjects?format=json&lang=pl&page-size=5&page=0",
+  "self": "https://bdl.stat.gov.pl/api/v1/subjects?format=json&lang=pl&page-size=5&page=0",
+  "next": "https://bdl.stat.gov.pl/api/v1/subjects?format=json&lang=pl&page-size=5&page=1",
+  "last": "https://bdl.stat.gov.pl/api/v1/subjects?format=json&lang=pl&page-size=5&page=6"
+ },
+ "results": [
+  {
+   "id": "K15",
+   "name": "CENY",
+   "hasVariables": false,
+   "children": [
+    "G186",
+    "G187",
+    "G188",
+    "G189",
+    "G405"
+   ],
+   "levels": [
+    3
+   ]
+  },
+  {
+   "id": "K43",
+   "name": "FINANSE PRZEDSIĘBIORSTW (DANE KWARTALNE)",
+   "hasVariables": false,
+   "children": [
+    "G418",
+    "G576"
+   ],
+   "levels": [
+    3
+   ]
+  },
+  {
+   "id": "K27",
+   "name": "FINANSE PUBLICZNE",
+   "hasVariables": false,
+   "children": [
+    "G195",
+    "G197",
+    "G199",
+    "G201",
+    "G423",
+    "G425",
+    "G497",
+    "G569"
+   ],
+   "levels": [
+    3,
+    5,
+    6
+   ]
+  }
+ ]
+}

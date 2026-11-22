@@ -1,0 +1,12 @@
+{
+  "name": "injection-model-armor-eu",
+  "gate": "injection",
+  "runs_on": {
+    "provider": "model_armor",
+    "model": "pi_and_jailbreak, wykrywanie wielojęzyczne",
+    "version": "modelarmor v1",
+    "region": "eu",
+    "price_per_call_usd": 0.00001
+  },
+  "settings": { "provider": "model_armor" }
+}

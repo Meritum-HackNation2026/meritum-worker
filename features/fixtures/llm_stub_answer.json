@@ -1,0 +1,35 @@
+{
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł",
+        "kind": "fact",
+        "explanation": "Twierdzenie o liczbie, które da się sprawdzić w danych publicznych.",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "text"
+      }
+    ]
+  },
+  "AnswerDraft": {
+    "claims": [
+      {
+        "claim": "Od 1 stycznia 2026 płaca minimalna wynosi 4806 zł",
+        "claim_date": "2026-01-01",
+        "claim_date_source": "text",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      }
+    ],
+    "limitations": [
+      "Odpowiedź z modelu zastępczego, bez przeszukania korpusu."
+    ]
+  },
+  "StanceJudgement": {
+    "relevant": false
+  },
+  "InjectionClassification": {
+    "injected": false
+  }
+}

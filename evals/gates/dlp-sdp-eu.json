@@ -1,0 +1,13 @@
+{
+  "name": "dlp-sdp-europe-central2",
+  "gate": "dlp",
+  "runs_on": {
+    "provider": "sdp",
+    "model": "Sensitive Data Protection, deidentify",
+    "version": "dlp v2",
+    "region": "europe-central2",
+    "price_per_call_usd": 0.000003
+  },
+  "settings": { "gate": "sdp", "location": "europe-central2" },
+  "cases": "dlp-cases.json"
+}

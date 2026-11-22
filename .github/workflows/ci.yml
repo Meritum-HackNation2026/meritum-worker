@@ -35,13 +35,16 @@ jobs:
           install -m 600 /dev/null "$key" && printf '%s\n' "$CORE_KEY" >"$key"
           echo "GIT_SSH_COMMAND=ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$GITHUB_WORKSPACE/deploy/github_known_hosts" >>"$GITHUB_ENV"
       - &setup-uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false # ~/.cache/uv stays on the self-hosted runner
       - run: uv sync --locked
       - run: uv run ruff check --output-format=github .
       - run: uv run ruff format --check .
       - run: uv run ty check
+      - run: uv run python scripts/check_conventions.py # docstrings, Features:, constants, 250 lines
+      - run: uv run vulture # dead code
+      - run: uv run bandit -c pyproject.toml -r src scripts # security (ruff S runs the same rules)
 
   tests:
     runs-on: [self-hosted, meritum]
@@ -54,7 +57,8 @@ jobs:
       - *core-key
       - *setup-uv
       - run: uv sync --locked
-      - run: uv run pytest
+      - run: uv run pytest # includes tests/architecture (pytestarch); skips -m integration
+      - run: uv run behave # scenarios from features/
 
   deploy:
     needs: [lint, tests]
@@ -67,6 +71,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Deploy
+        env: # the names in worker_secrets of deploy/deploy.sh
+          EUVSDISINFO_MCP_API_KEY: ${{ secrets.EUVSDISINFO_MCP_API_KEY }}
+          # D9 (core#97): one key per env, empty if missing (never the other env's key). prd stays
+          # on the stub until worker-prd.env (meritum-infra PR #44) says openrouter.
+          OPENROUTER_API_KEY: ${{ secrets[format('OPENROUTER_API_KEY_{0}', github.ref_name == 'main' && 'PRD' || 'DEV')] }}
         run: |
           export CORE_KEY_FILE="$RUNNER_TEMP/core_key"
           install -m 600 /dev/null "$CORE_KEY_FILE" && printf '%s\n' "$CORE_KEY" >"$CORE_KEY_FILE"

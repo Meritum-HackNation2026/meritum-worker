@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-22",
+  "entries": [
+    {
+      "name": "dlp-tylko-wzorce",
+      "runs_on": {
+        "provider": "none",
+        "model": "wzorce telefonów, e-maili i PESEL z meritum-core",
+        "version": "meritum-core",
+        "region": "lokalnie",
+        "price_per_call_usd": 0.0
+      },
+      "score": {
+        "median_seconds": 0.0,
+        "cost_100_calls_usd": 0.0,
+        "kind": "dlp",
+        "personal_items": 6,
+        "detected": 0.5,
+        "keep_items": 12,
+        "over_masking": 0.0833
+      }
+    }
+  ]
+}

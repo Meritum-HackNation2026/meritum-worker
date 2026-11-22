@@ -1,0 +1,4 @@
+id,title,description,date,license,topics,retention_days,url
+inc-1,Fałszywy komunikat RCB,Rzekomy alert RCB o skażeniu wody,2026-11-20,CC BY 4.0,zdrowie;bezpieczeństwo,365,https://example.org/inc-1
+inc-2,Zmyślony cytat ministra,Cytat przypisany ministrowi,2026-11-19T08:00:00Z,CC BY 4.0,polityka,,
+inc-3,Bez licencji,Wpis bez pola licencji,2026-11-18,,polityka,,

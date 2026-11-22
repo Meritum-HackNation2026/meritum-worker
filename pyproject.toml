@@ -7,12 +7,21 @@ authors = [{ name = "Cyprian Gburek" }]
 requires-python = ">=3.14"
 dependencies = [
     "dbos>=3.6.0",
+    "defusedxml>=0.7.1",
+    "httpx>=0.28.1",
+    "httpx2>=2.16.2",
     "meritum-core",
+    "psycopg[binary]>=3.3",
     "pydantic>=2.14.4",
+    "pydantic-evals>=2.71.0",
 ]
 
 [project.scripts]
 meritum-worker = "meritum_worker.main:main"
+meritum-worker-migrate = "meritum_worker.main:migrate"
+meritum-eval = "meritum_worker.observability:meritum_eval"
+meritum-eval-bundle = "meritum_worker.observability:meritum_eval_bundle"
+meritum-cost = "meritum_worker.observability:meritum_cost"
 
 [build-system]
 requires = ["uv_build>=0.13.0,<0.14.0"]
@@ -20,9 +29,14 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "bandit>=1.9.4",
+    "behave>=1.3.3",
     "pytest>=9.2.0",
+    "pytestarch>=5.1.1",
     "ruff>=0.17.6",
     "ty>=0.0.107",
+    "types-defusedxml>=0.7.0.20260504",
+    "vulture>=2.16",
 ]
 
 # --------------------------------------------------------------------------- #
@@ -31,7 +45,7 @@ dev = [
 [tool.ruff]
 target-version = "py314"
 line-length = 88
-src = ["src", "tests"]
+src = ["src", "tests", "features"]
 
 [tool.ruff.lint]
 preview = true
@@ -39,10 +53,8 @@ select = ["ALL"]
 ignore = [
     "CPY",                                  # no per-file license headers
     "missing-trailing-comma",               # managed by `ruff format`
-    "undocumented-magic-method",
+    "undocumented-magic-method",            # __eq__, __hash__ ... follow the data model
     "undocumented-public-init",             # documented in the class docstring
-    "docstring-missing-exception",
-    "docstring-extraneous-exception",
     # Pydantic and FastAPI read annotations at runtime: keep real imports.
     "typing-only-first-party-import",
     "typing-only-third-party-import",
@@ -50,10 +62,31 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["assert", "magic-value-comparison", "D", "DOC"]
+# Tests: plain asserts and literals; tests/ is not a package (pytest importlib mode).
+"tests/**/*.py" = ["assert", "magic-value-comparison", "D", "DOC", "implicit-namespace-package"]
+"features/**/*.py" = ["assert", "D", "DOC", "implicit-namespace-package"]  # behave steps, not a package
+"scripts/**/*.py" = ["implicit-namespace-package"]  # standalone scripts, not a package
+# Placeholder steps keep the async signature the workflow awaits; their issues add awaits.
+"src/meritum_worker/checks/steps/_*.py" = ["unused-async"]
 
 [tool.ruff.lint.pydocstyle]
-convention = "google"
+convention = "google"  # also turns off D203/D213 and the other non-Google rules
+
+# Complexity limits: decompose instead of raising them (docs/architecture.md).
+# Ruff's defaults, written out, except nested blocks and boolean expressions: a
+# condition with more than 3 parts becomes named booleans or a predicate.
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 5
+max-positional-args = 5
+max-branches = 12
+max-statements = 50
+max-returns = 6
+max-locals = 15
+max-nested-blocks = 3
+max-bool-expr = 3
 
 [tool.ruff.format]
 docstring-code-format = true
@@ -65,13 +98,48 @@ docstring-code-format = true
 python-version = "3.14"
 
 [tool.ty.src]
-include = ["src", "tests"]
+include = ["src", "tests", "scripts", "features"]
 
 [tool.ty.rules]
 all = "error"
 
+# behave's step decorators are untyped.
+[[tool.ty.overrides]]
+include = ["features/steps"]
+rules = { not-callable = "ignore", dynamic-function-decorator-return = "ignore" }
+
 [tool.ty.terminal]
 error-on-warning = true
+
+# --------------------------------------------------------------------------- #
+# Conventions Ruff and ty cannot express: scripts/check_conventions.py
+# (docs/architecture.md). Every exception maps a path to its reason.
+# --------------------------------------------------------------------------- #
+[tool.meritum-conventions]
+max-lines = 250
+
+[tool.meritum-conventions.constants-exceptions]
+"src/meritum_worker/corpus/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check search keeps its own"
+"src/meritum_worker/corpus/archive_constants.py" = "constants.py is at the 250-line limit; the page archive keeps its own"
+"src/meritum_worker/checks/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check step keeps its own"
+
+[tool.meritum-conventions.line-limit-exceptions]
+"src/meritum_worker/main.py" = "registers every DBOS workflow; split into a main/ package in its own PR, so parallel PRs do not conflict on a move"
+
+# --------------------------------------------------------------------------- #
+# Dead code (vulture) and security (bandit)
+# --------------------------------------------------------------------------- #
+[tool.vulture]
+paths = ["src", "scripts", "tests", "features"]
+# DBOS and behave register functions through their decorators.
+ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator", "@field_validator", "@pytest.fixture"]
+ignore_names = ["before_scenario", "model_config", "__call__", "mask", "pytestmark"]  # behave hook; pytest module marks; Pydantic settings; Protocol call signatures; PiiGatePort.mask, called by core
+min_confidence = 60
+
+# bandit is a security linter, not a dead-code tool. Ruff's S rules already run
+# bandit's checks; bandit itself runs too because the team asked for it.
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
 
 # --------------------------------------------------------------------------- #
 # pytest
@@ -80,8 +148,11 @@ error-on-warning = true
 minversion = "9.0"
 testpaths = ["tests"]
 strict = true
-addopts = ["-ra", "--import-mode=importlib"]
+# Integration tests (real PostgreSQL or provider) run only locally:
+# `uv run pytest -m integration` (the last -m wins).
+markers = ["integration: needs real PostgreSQL or a real provider; local only"]
+addopts = ["-ra", "--import-mode=importlib", "-m", "not integration"]
 filterwarnings = ["error"]
 
 [tool.uv.sources]
-meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", branch = "main" }
+meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "93263aecf944dda66eba81feae68e205a6e86403" }

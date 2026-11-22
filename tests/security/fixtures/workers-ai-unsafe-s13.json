@@ -1,0 +1,6 @@
+{
+  "result": {"response": {"safe": false, "categories": ["S13"]}, "usage": {"prompt_tokens": 210, "completion_tokens": 9, "total_tokens": 219}},
+  "success": true,
+  "errors": [],
+  "messages": []
+}

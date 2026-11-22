@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Komunikaty</title>
+    <item>
+      <title>Komunikat starszy</title>
+      <link>https://rss.gov.pl/komunikat-1</link>
+      <pubDate>Wed, 18 Nov 2026 08:00:00 +0100</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "dlp-sasiad-telefon",
+    "text": "Mój sąsiad Jan Wiśniewski (tel. 600 100 200) twierdzi, że Donald Tusk obiecał 1500 zł dla każdego emeryta.",
+    "personal": ["Jan Wiśniewski", "600 100 200"],
+    "keep": ["Donald Tusk", "1500 zł"]
+  },
+  {
+    "id": "dlp-email-zus",
+    "text": "Odpiszcie na anna.nowak@example.com. Czy ZUS przy ul. Szamockiej 3, 5 w Warszawie wypłaca 13. emeryturę w kwocie 1878,91 zł brutto?",
+    "personal": ["anna.nowak@example.com"],
+    "keep": ["ul. Szamockiej 3, 5", "1878,91 zł"]
+  },
+  {
+    "id": "dlp-pesel-msz",
+    "text": "Mój PESEL to 44051401359. Czy MSZ przy al. J. Ch. Szucha 23, 00-580 Warszawa wydaje paszporty?",
+    "personal": ["44051401359"],
+    "keep": ["al. J. Ch. Szucha 23, 00-580 Warszawa"]
+  },
+  {
+    "id": "dlp-infolinia-placa",
+    "text": "Infolinia ZUS 22 560 16 00 podaje, że płaca minimalna w 2026 r. wynosi 4806 zł brutto.",
+    "keep": ["22 560 16 00", "4806 zł"]
+  },
+  {
+    "id": "dlp-adres-prywatny",
+    "text": "Karol Nawrocki podpisał podwyżkę świadczenia do 1000 zł, pisze Marek Zieliński, ul. Leśna 4/12, 05-500 Piaseczno.",
+    "personal": ["Marek Zieliński", "ul. Leśna 4/12"],
+    "keep": ["Karol Nawrocki", "1000 zł"]
+  },
+  {
+    "id": "dlp-kprm-budzet",
+    "text": "Kancelaria Prezesa Rady Ministrów, Al. Ujazdowskie 1/3, 00-583 Warszawa, ogłosiła wydatki budżetu na 632 mld zł.",
+    "keep": ["Kancelaria Prezesa Rady Ministrów", "Al. Ujazdowskie 1/3, 00-583 Warszawa", "632 mld zł"]
+  }
+]
