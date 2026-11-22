@@ -19,6 +19,7 @@ from meritum_core.shared.blobs import BlobStore
 from meritum_core.shared.llm import LlmPort
 
 from meritum_worker.corpus import FactCheckPort, FakeFactCheck, LivePagesPort
+from meritum_worker.evidence import SanctionsList
 from meritum_worker.moderation import ModerationDeps
 
 
@@ -45,10 +46,11 @@ class CheckDeps:
         fact_check: Google Fact Check Tools API, or the stub that finds nothing.
         live_pages: takes pages past quarantine into the corpus for the next
             snapshot; None where the worker may not write ``corpus``.
+        sanctions: the local copy of the EU sanctions list; empty finds nothing.
 
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
-        US-POW-01, US-KOR-04, F-06, F-08, F-09, F-12, F-13, F-22
+        US-POW-01, US-KOR-04, US-ZRD-07, F-06, F-08, F-09, F-12, F-13, F-22, F-34
     """
 
     llm: LlmPort
@@ -68,3 +70,4 @@ class CheckDeps:
     web_search_provider: str = "stub"
     fact_check: FactCheckPort = field(default_factory=FakeFactCheck)
     live_pages: LivePagesPort | None = None
+    sanctions: SanctionsList = field(default_factory=SanctionsList)

@@ -34,6 +34,7 @@ from meritum_worker.corpus import (
     ingestion_enabled,
 )
 from meritum_worker.corpus.adapters import GoogleFactCheck
+from meritum_worker.evidence import sanctions_from_env
 from meritum_worker.moderation import build_moderation_deps
 from meritum_worker.security import InjectionGateSettings, build_detector
 
@@ -97,6 +98,7 @@ def build_check_deps(
         )
         if ingestion_enabled(os.environ)
         else None,
+        sanctions=sanctions_from_env(os.environ),
     )
 
 
