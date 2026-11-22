@@ -35,7 +35,7 @@ def _calls(tree: ast.AST, name: str) -> list[ast.Call]:
 
 def test_only_known_modules_call_the_model() -> None:
     callers = {
-        str(path.relative_to(SRC))
+        path.relative_to(SRC).as_posix()
         for path in SRC.rglob("*.py")
         if _calls(ast.parse(path.read_text(encoding="utf-8")), "complete")
     }
