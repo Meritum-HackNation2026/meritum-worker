@@ -47,6 +47,7 @@ from meritum_worker.corpus.constants import (
     WEB_SOURCE_ID_PREFIX,
     WEB_TITLE_MAX_CHARS,
 )
+from meritum_worker.corpus.language import detect_language
 
 _log = logging.getLogger(__name__)
 
@@ -169,7 +170,7 @@ class _Quarantine:
             return None
         scan = await self.ports.injection.scan(text)
         if not scan.detected:
-            return SourceDocument(source=_source(page, entry), text=text)
+            return SourceDocument(source=_source(page, entry, text), text=text)
         first = scan.spans[0]
         return InjectionEvent(
             location="source",
@@ -179,7 +180,7 @@ class _Quarantine:
         )
 
 
-def _source(page: FetchedPage, entry: CatalogEntry) -> Source:
+def _source(page: FetchedPage, entry: CatalogEntry, text: str) -> Source:
     digest = hashlib.sha256(page.url.encode()).hexdigest()[:WEB_SOURCE_ID_HASH_CHARS]
     published = page.published_at
     return Source(
@@ -197,4 +198,5 @@ def _source(page: FetchedPage, entry: CatalogEntry) -> Source:
         else datetime.combine(published, time(), UTC),
         fetched_at=datetime.now(UTC),
         via="web_search",
+        language=detect_language(text),
     )

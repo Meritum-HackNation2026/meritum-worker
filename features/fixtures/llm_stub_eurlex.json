@@ -1,0 +1,35 @@
+{
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "Rozporządzenie o pomocy państwa weszło w życie 5 stycznia 2026",
+        "claim_en": "The state aid regulation entered into force on 5 January 2026",
+        "kind": "fact",
+        "explanation": "Twierdzenie o akcie prawnym, które da się sprawdzić w EUR-Lex.",
+        "claim_date": "2026-01-05",
+        "claim_date_source": "text"
+      }
+    ]
+  },
+  "AnswerDraft": {
+    "claims": [
+      {
+        "explanation": "Jedyne źródło jest po angielsku: akt wszedł w życie 5 stycznia 2026.",
+        "unresolved": "Brak drugiego źródła."
+      }
+    ],
+    "limitations": [
+      "Jedyny dowód to dokument po angielsku."
+    ]
+  },
+  "StanceJudgement": {
+    "relevant": true,
+    "fragment": "This Regulation shall enter into force on 5 January 2026.",
+    "stance": "supports"
+  },
+  "InjectionClassification": {
+    "injected": false,
+    "instructions": []
+  }
+}

@@ -60,10 +60,18 @@ async def _research(
 ) -> Reranking:
     async with slots:
         # The query is embedded and reranked by outside providers: mask it first.
-        query = (await mask_personal_data(fact.claim, deps.pii)).text
-        found = await deps.corpus.search(
-            query,
-            claim_date=fact.claim_date or today,
-            corpus_version=deps.corpus_version,
+        # Polish and English queries find Polish and English sources; the reranker
+        # is multilingual, so it ranks the merged passages against the Polish claim.
+        queries = [(await mask_personal_data(q, deps.pii)).text for q in fact.queries]
+        found = await asyncio.gather(
+            *(
+                deps.corpus.search(
+                    q,
+                    claim_date=fact.claim_date or today,
+                    corpus_version=deps.corpus_version,
+                )
+                for q in queries
+            )
         )
-        return await rerank_passages(deps.reranker, query, found)
+        merged = {p.passage_id: p for passages in found for p in passages}
+        return await rerank_passages(deps.reranker, queries[0], list(merged.values()))

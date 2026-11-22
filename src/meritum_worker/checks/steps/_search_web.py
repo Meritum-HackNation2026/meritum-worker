@@ -12,7 +12,7 @@ from meritum_worker.checks.models import CheckDeps, CheckState
 async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
     """Search catalogue domains live; pages past quarantine become evidence.
 
-    Each fact is one query, masked before it leaves. A page with an
+    Each fact is a Polish and an English query, masked before they leave. A page with an
     instruction is dropped: its ``source_dropped`` event goes to the record
     and its address to the limitations. A check with no fact skips the step.
 
@@ -32,7 +32,7 @@ async def search_web(state: CheckState, deps: CheckDeps) -> CheckState:
     """
     if state.result is not None:
         return state
-    facts = [claim.claim for claim in state.claims if claim.is_fact]
+    facts = [q for claim in state.claims if claim.is_fact for q in claim.queries]
     if not facts:
         return state.model_copy(
             update={"skipped_steps": [*state.skipped_steps, SEARCH_WEB_STEP]}
