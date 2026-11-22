@@ -5,7 +5,7 @@ Features:
 """
 
 import statistics
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from meritum_worker.observability.constants import (
     ABSTAINING_VERDICTS,
@@ -28,6 +28,7 @@ from meritum_worker.observability.quality import (
     share,
 )
 from meritum_worker.observability.report import (
+    CaseRubric,
     CaseRun,
     CaseScore,
     EvalReport,
@@ -175,3 +176,60 @@ def _scenarios(scores: Sequence[CaseScore]) -> tuple[ScenarioScore, ...]:
             )
         )
     return tuple(result)
+
+
+def with_judgements(
+    report: EvalReport,
+    *,
+    rubrics: Mapping[str, CaseRubric],
+    citations: Mapping[str, Sequence[bool]] | None = None,
+) -> EvalReport:
+    """Add the judge's rubric and citation verdicts to a scored report.
+
+    Args:
+        report: The report from ``score_runs``.
+        rubrics: Each judged case's rubric, by case id.
+        citations: The judge's answer per citation, by case id; None keeps
+            the citation precision as it is.
+
+    Returns:
+        The report with rubric scores per case, per scenario and overall, and
+        the citation precision overall and per scenario.
+
+    Features:
+        US-OBS-04, US-OBS-05, F-27
+    """
+    hits = citations or {}
+    outcomes = tuple(
+        o.model_copy(update={"rubric": rubrics.get(o.id)}) for o in report.outcomes
+    )
+    scenarios = tuple(
+        s.model_copy(update=_judged(outcomes, hits, s.scenario))
+        for s in report.scenarios
+    )
+    overall = _judged(outcomes, hits, None)
+    if citations is None:
+        overall.pop("citation_precision")
+    return report.model_copy(
+        update={"outcomes": outcomes, "scenarios": scenarios} | overall
+    )
+
+
+def _judged(
+    outcomes: Sequence[CaseScore],
+    hits: Mapping[str, Sequence[bool]],
+    scenario: str | None,
+) -> dict[str, Ratio]:
+    own = [o for o in outcomes if scenario in {None, o.scenario}]
+    rubrics = [o.rubric for o in own if o.rubric is not None]
+    scores = [r.score for r in rubrics if r.score is not None]
+    passes = [r.passed for r in rubrics if r.passed is not None]
+    return {
+        "rubric_pass_rate": _mean(passes),
+        "rubric_score": _mean(scores),
+        "citation_precision": share([h for o in own for h in hits.get(o.id, ())]),
+    }
+
+
+def _mean(values: Sequence[float]) -> Ratio:
+    return _round(statistics.mean(values)) if values else None

@@ -54,19 +54,41 @@ async def judge_citations(runs: Sequence[CaseRun], llm: LlmPort) -> Ratio:
     Features:
         US-OBS-04, US-OBS-05, US-ZRD-01, F-15, F-27
     """
-    prompts = [
-        Prompt(
-            instructions=CITATION_JUDGE_INSTRUCTIONS,
-            data=(claim.claim, STANCE_WORDS[c.stance], c.fragment, *_source(c)),
+    hits = await citation_hits(runs, llm)
+    return share([hit for case in hits.values() for hit in case])
+
+
+async def citation_hits(
+    runs: Sequence[CaseRun], llm: LlmPort
+) -> dict[str, tuple[bool, ...]]:
+    """The judge's answer about each citation, grouped by case.
+
+    Args:
+        runs: One run per case.
+        llm: The judge model.
+
+    Returns:
+        Whether the judge confirms each citation, by case id, in claim order.
+
+    Features:
+        US-OBS-04, US-OBS-05, US-ZRD-01, F-15, F-27
+    """
+
+    async def one(run: CaseRun) -> tuple[str, tuple[bool, ...]]:
+        prompts = [
+            Prompt(
+                instructions=CITATION_JUDGE_INSTRUCTIONS,
+                data=(claim.claim, STANCE_WORDS[c.stance], c.fragment, *_source(c)),
+            )
+            for claim in run.result.claims
+            for c in claim.citations
+        ]
+        answers = await asyncio.gather(
+            *(llm.complete(p, CitationJudgement) for p in prompts)
         )
-        for run in runs
-        for claim in run.result.claims
-        for c in claim.citations
-    ]
-    answers = await asyncio.gather(
-        *(llm.complete(p, CitationJudgement) for p in prompts)
-    )
-    return share([answer.output.correct for answer in answers])
+        return run.case.id, tuple(answer.output.correct for answer in answers)
+
+    return dict(await asyncio.gather(*map(one, runs)))
 
 
 def _source(citation: Citation) -> tuple[str, str, str]:

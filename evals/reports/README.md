@@ -59,3 +59,13 @@ Dostawcę NLI i klasyfikatora wejścia wybiera zespół. Każdy nowy dostawca do
 - `2026-11-22-embeddingi.json`: `meritum-eval --compare-embeddings` na zastępczym korpusie z 12 źródeł golden setu (pole `corpus`); prawdziwy korpus czeka na worker#113.
 - Od worker#113 `--compare-embeddings` szuka w migawce korpusu: `--corpus-version <wersja>` czyta ją z bazy (`MERITUM_CORPUS_DATABASE_URL`, rola z odczytem schematu `corpus`), a `--corpus-file` z pliku JSON (`SnapshotCorpus`). Każdy kandydat od nowa embeduje fragmenty migawki, po 100 na wywołanie, i przeszukuje je wyszukiwaniem hybrydowym z top 20. Celem są źródła golden setu: pytania, których źródeł nie ma w migawce, liczy `queries` i nie liczy `queries_with_targets`. Pole `corpus` podaje `corpus_version`, a `cost_usd` obejmuje embedding całej migawki. Raportu z prawdziwego korpusu jeszcze nie ma.
 - `macro_f1` jest niskie u wszystkich modeli (0,08 do 0,13), a `citation_correctness` puste, bo przebieg nie ma korpusu z bazy (worker#17): sprawdzenie nie ma źródeł, na których mogłoby oprzeć werdykt. Porównanie nadaje się do czasu, tokenów na sekundę i kosztu, nie do wyboru modelu po trafności werdyktów.
+
+## Rubryka tekstu odpowiedzi (#252)
+
+`meritum-eval --api … --judge` ocenia, oprócz cytatów, sam tekst odpowiedzi. Sędzia (model z `MERITUM_LLM_*`) dostaje pytanie, odpowiedź wzorcową przypadku (`expected_behavior`), odpowiedź tak, jak widzi ją czytelnik (wyjaśnienia, cytaty z tytułem, datą i adresem źródła, oceny fact-checkerów, komunikat, ograniczenia), a przy powtórzeniu (G, H) także odpowiedź na pierwsze pytanie. Kryteria są w `evals/rubric.json`: dwa wspólne i kilka na każdy scenariusz A–J, spisane z odpowiedzi wzorcowych właściciela.
+
+- Sędzia daje każdemu kryterium `met`, `not_met` albo `not_applicable` z krótkim powodem. Pominięte kryterium liczy się jako niespełnione.
+- `--judge-votes` (domyślnie 2) to liczba głosów na przypadek. Przypadek przechodzi w głosie, gdy żadne kryterium nie jest niespełnione; `passed` to udział takich głosów, więc przy dwóch głosach różnych przypadek ma 0,5.
+- `rubric_score` to średni udział spełnionych kryteriów, które dotyczą przypadku.
+- Raport ma `rubric_pass_rate` i `rubric_score` ogółem i w `scenarios`, obok `accuracy`. `scenarios` ma też `citation_precision` scenariusza, a każdy przypadek w `outcomes` ma `rubric` z niespełnionymi kryteriami i wszystkimi głosami do ręcznej kontroli.
+- Głos, którego wywołanie się nie udało, wypada. Przebieg nie przepada przez awarię sędziego.
