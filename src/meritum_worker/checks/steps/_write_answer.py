@@ -1,11 +1,13 @@
 """Write the answer with the model and hold it to the CheckResult rules.
 
 Features:
-    US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, F-07, F-22
+    US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, US-BEZ-07, F-07, F-22
 """
 
+from datetime import UTC, datetime
+
 from meritum_core.checks import CheckResult
-from meritum_core.checks.contracts import ClaimResult
+from meritum_core.checks.contracts import ClaimResult, ModelUsage, ai_marker_for
 from meritum_core.shared.llm import Prompt
 from pydantic import ValidationError
 
@@ -31,13 +33,14 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
         deps: the ports; only the model is called.
 
     Returns:
-        The state with the result: done, or technical_failure without claims
-        when the answer breaks the contract rules.
+        The state with the result: done with the AI marker of the answering call,
+        or technical_failure without claims when the answer breaks the contract
+        rules.
 
     A model failure propagates; the workflow maps it to technical_failure.
 
     Features:
-        US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, F-07, F-22
+        US-SPR-01, US-SPR-03, US-SPR-06, US-ZRD-05, US-OBS-01, US-BEZ-07, F-07, F-22
     """
     if state.result is not None:
         return state
@@ -45,16 +48,20 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
     data = (state.question, *(fact.claim for fact in facts))
     prompt = Prompt(instructions=ANSWER_INSTRUCTIONS, data=data)
     answer = await deps.llm.complete(prompt, AnswerDraft)
-    models = [*state.models, model_usage(answer.usage)]
+    usage = model_usage(answer.usage)
+    models = [*state.models, usage]
     try:
-        result = _result_from_draft(state, facts, answer.output)
+        result = _result_from_draft(state, facts, answer.output, usage)
     except ValidationError:
         result = state.technical_failure()
     return state.model_copy(update={"result": result, "models": models})
 
 
 def _result_from_draft(
-    state: CheckState, facts: list[ExtractedClaim], draft: AnswerDraft
+    state: CheckState,
+    facts: list[ExtractedClaim],
+    draft: AnswerDraft,
+    usage: ModelUsage,
 ) -> CheckResult:
     if not facts:
         # Only opinions: nothing for the model to judge, whatever it answered.
@@ -70,6 +77,7 @@ def _result_from_draft(
         claims=[*answered, *unverifiable],
         limitations=[*draft.limitations, *state.limitations],
         corpus_version=state.corpus_version,
+        ai_marker=ai_marker_for(usage, datetime.now(UTC)),
     )
 
 

@@ -1,0 +1,13 @@
+{
+  "name": "dlp-tylko-wzorce",
+  "gate": "dlp",
+  "runs_on": {
+    "provider": "none",
+    "model": "wzorce telefonów, e-maili i PESEL z meritum-core",
+    "version": "meritum-core",
+    "region": "lokalnie",
+    "price_per_call_usd": 0
+  },
+  "settings": { "gate": "none" },
+  "cases": "dlp-cases.json"
+}

@@ -20,6 +20,7 @@ from meritum_worker.checks.models import (
     ClaimExtraction,
     ExtractedClaim,
 )
+from meritum_worker.checks.notifications import save_notification
 from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.workflow import pipeline, run_check
 
@@ -38,5 +39,6 @@ __all__ = [
     "ogg_opus",
     "pipeline",
     "run_check",
+    "save_notification",
     "web_ports",
 ]

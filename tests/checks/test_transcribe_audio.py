@@ -143,4 +143,23 @@ def test_check_of_a_long_recording_masks_the_transcript_and_announces_the_end(
     assert output.result.transcript is not None
     assert "600 700 800" not in output.result.transcript
     inbox = asyncio.run(deps.notifications.list_for("session_id", "session-1"))
-    assert [(n.kind, n.check_id) for n in inbox] == [("check_done", "check-1")]
+    assert sorted((n.kind, n.check_id) for n in inbox) == [
+        ("check_done", "check-1"),
+        ("check_progress", "check-1"),
+    ]
+
+
+@pytest.mark.parametrize(("seconds", "sent"), [(55, 0), (120, 1)])
+def test_transcribe_audio_tells_a_long_recording_is_transcribed(
+    make_job: Callable[..., CheckInput],
+    make_deps: Callable[..., CheckDeps],
+    tmp_path: Path,
+    seconds: int,
+    sent: int,
+) -> None:
+    deps = _deps(make_deps, tmp_path)
+    state = _state(make_job(), deps, ogg_opus(seconds))
+    asyncio.run(transcribe_audio(state, deps))
+    asyncio.run(transcribe_audio(state, deps))  # a retried step replaces the entry
+    inbox = asyncio.run(deps.notifications.list_for("session_id", "session-1"))
+    assert [n.kind for n in inbox] == ["check_progress"] * sent

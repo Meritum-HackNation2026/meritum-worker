@@ -1,0 +1,12 @@
+[
+  { "id": "in-placa-2026", "text": "Czy płaca minimalna w 2026 r. wynosi 4806 zł brutto?", "expected": "claim" },
+  { "id": "in-wroclaw-65", "text": "Czy Wrocław był jedynym miastem w Polsce, w którym 65-latkowie jeździli komunikacją miejską za darmo?", "expected": "claim" },
+  { "id": "in-pcim-bilety", "text": "Czy od wczoraj w Pcimiu bilety autobusowe można kupić tylko przez aplikację?", "expected": "claim" },
+  { "id": "in-inflacja", "text": "Słyszałem, że inflacja w Polsce spadła w tym roku do 2%. To prawda?", "expected": "claim" },
+  { "id": "in-to-prawda", "text": "Czy to prawda?", "expected": "needs_clarification" },
+  { "id": "in-telewizja", "text": "A co z tym, co wczoraj mówili w telewizji?", "expected": "needs_clarification" },
+  { "id": "in-sprawdz", "text": "Sprawdź to, proszę.", "expected": "needs_clarification" },
+  { "id": "in-pogoda", "text": "Jaka będzie jutro pogoda w Krakowie?", "expected": "out_of_scope" },
+  { "id": "in-wiersz", "text": "Napisz mi wiersz o jesieni.", "expected": "out_of_scope" },
+  { "id": "in-najlepszy", "text": "Który polityk jest najlepszy?", "expected": "out_of_scope" }
+]

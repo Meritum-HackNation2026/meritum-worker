@@ -115,6 +115,8 @@ Czego przebieg jeszcze nie obsługuje:
 
 Polecenie uruchamiaj z katalogu repozytorium, bo domyślna ścieżka `evals/golden/cases.json` jest względna. Jeśli MSZ opublikuje jawną część zestawu referencyjnego, uruchom przebieg osobno na niej i na golden secie: każdy plik daje własny raport. Plik CSV rozdziela kolumny przecinkiem; znacznik BOM z arkusza kalkulacyjnego nie przeszkadza.
 
+`uv run meritum-eval gates --config evals/gates/<plik>.json` porównuje bramki przed LLM (ADR-35): klasyfikator wstrzyknięć, reranker, maskowanie DLP z nadmiarowym maskowaniem, a bez wdrożenia także wstępną ocenę wymowy NLI i klasyfikator wejścia. Konfiguracje, mierniki i decyzję, którą wspiera raport, opisuje [evals/reports/README.md](evals/reports/README.md). Przebiegi z prawdziwymi dostawcami uruchamiamy ręcznie, poza CI.
+
 ### Porównanie modeli
 
 Model główny i model embeddingów wybieramy konfiguracją, więc kandydaci żyją w plikach TOML, nie w kodzie: modele językowe w `evals/models/`, embeddingi w `evals/embeddings/`. Porównanie odpala każdy plik na tym samym pliku przypadków, po kolei, i zapisuje jeden raport JSON z datą (`generated_at`), plikiem przypadków oraz dostawcą, modelem i regionem każdego kandydata.

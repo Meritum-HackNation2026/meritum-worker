@@ -1,0 +1,12 @@
+{
+  "name": "injection-workers-ai",
+  "gate": "injection",
+  "runs_on": {
+    "provider": "workers_ai",
+    "model": "@cf/meta/llama-guard-3-8b",
+    "version": "llama-guard-3-8b",
+    "region": "sieć Cloudflare, bez gwarancji UE",
+    "price_per_call_usd": 0.00005
+  },
+  "settings": { "provider": "workers_ai", "model": "@cf/meta/llama-guard-3-8b" }
+}
