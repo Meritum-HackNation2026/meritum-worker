@@ -49,6 +49,8 @@ Workflow `check` bierze model, repozytorium zapisów, fetcher stron (ochrona SSR
 
 Przy `technical_failure` wynik zawiera `failure_code` z kontraktu meritum-core. Pole `message` w wynikach bez werdyktu zawiera tekst diagnostyczny do użytku wewnętrznego.
 
+W kroku `write_answer` worker publikuje zamaskowany szkic odpowiedzi do 4000 znaków w `AnalysisStatus.draft`. Szkic jest widoczny do chwili opublikowania końcowego wyniku.
+
 Tabele schematu aplikacji tworzy `meritum-migrate-app` z meritum-core, uruchamiany przez deploy (worker#32). Lokalny test z prawdziwym DBOS i PostgreSQL, także z restartem workera, potrzebuje dwóch adresów; `MERITUM_TEST_DATABASE_URL` wskazuje bazę, w której test tworzy i usuwa schemat `app_integration`:
 
 ```bash
