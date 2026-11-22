@@ -20,6 +20,8 @@ from meritum_worker.observability.constants import (
     API_RETRY_AFTER_SECONDS,
     API_SESSION_HEADER,
     API_TIMEOUT_SECONDS,
+    CACHE_TAG_BITS,
+    CACHE_TAG_DIGITS,
     FAILURE_CODE,
     FAILURE_MESSAGE,
     NO_CORPUS_VERSION,
@@ -49,6 +51,8 @@ class ApiChecks:
             by ``aclose``.
         poll_seconds: Pause between status reads.
         timeout_seconds: Longest wait for a result; then a technical failure.
+        fresh: Tag every text with this run's invisible suffix, so the API's
+            result cache (keyed by the normalized text) misses and the check runs.
 
     Features:
         US-OBS-04, US-OBS-05, F-27, ADR-28
@@ -61,11 +65,19 @@ class ApiChecks:
         *,
         poll_seconds: float = API_POLL_SECONDS,
         timeout_seconds: float = API_TIMEOUT_SECONDS,
+        fresh: bool = False,
     ) -> None:
         self._url = base_url.rstrip("/") + API_CHECKS_PATH
         self._client = client or AsyncClient(timeout=API_REQUEST_TIMEOUT_SECONDS)
         self._poll = poll_seconds
         self._timeout = timeout_seconds
+        # Zero-width characters change the cache key, not what the model reads.
+        tag = secrets.randbits(CACHE_TAG_BITS) if fresh else None
+        self._suffix = (
+            ""
+            if tag is None
+            else f"{tag:0{CACHE_TAG_BITS}b}".translate(CACHE_TAG_DIGITS)
+        )
 
     async def check(self, case: GoldenCase) -> CaseRun:
         """Check one case; any API failure ends it as a technical failure.
@@ -92,7 +104,8 @@ class ApiChecks:
         await self._client.aclose()
 
     async def _start(self, case: GoldenCase) -> str:
-        body = {"channel": "web", "text": case.text, "url": case.url}
+        text = None if case.text is None else case.text + self._suffix
+        body = {"channel": "web", "text": text, "url": case.url}
         payload = {k: str(v) for k, v in body.items() if v is not None}
         headers = {API_SESSION_HEADER: secrets.token_hex(16)}
         for _ in range(API_RATE_LIMIT_RETRIES):

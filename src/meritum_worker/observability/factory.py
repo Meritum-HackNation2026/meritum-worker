@@ -123,11 +123,12 @@ def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckD
     )
 
 
-def build_api_checks(base_url: str) -> ApiChecks:
+def build_api_checks(base_url: str, *, fresh: bool = False) -> ApiChecks:
     """Checks through a deployed API, e.g. dev with its real providers.
 
     Args:
         base_url: The API's origin.
+        fresh: Make the API's result cache miss with an invisible tag.
 
     Returns:
         The adapter whose ``check`` runs one case; close it with ``aclose``.
@@ -135,7 +136,7 @@ def build_api_checks(base_url: str) -> ApiChecks:
     Features:
         US-OBS-04, US-OBS-05, F-27, ADR-28
     """
-    return ApiChecks(base_url)
+    return ApiChecks(base_url, fresh=fresh)
 
 
 def build_case_sets(golden: Path, blobs: BlobStore) -> EvalCaseSets:

@@ -88,6 +88,9 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
     parser.add_argument(
         "--judge", action="store_true", help="judge citations with MERITUM_LLM_*"
     )
+    parser.add_argument(
+        "--fresh", action="store_true", help="bypass the API's result cache"
+    )
     args = parser.parse_args(argv)
     try:
         cases = load_eval_cases(args.cases)
@@ -147,7 +150,7 @@ async def _compare(
 async def _through_api(
     cases: GoldenSet, args: argparse.Namespace, concurrency: int
 ) -> EvalReport:
-    checks = build_api_checks(args.api)
+    checks = build_api_checks(args.api, fresh=args.fresh)
     try:
         runs = await run_cases(cases, checks.check, concurrency)
     finally:

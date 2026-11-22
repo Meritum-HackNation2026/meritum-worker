@@ -90,13 +90,13 @@ uv run meritum-eval                                  # golden set, raport JSON n
 uv run meritum-eval --cases jury.csv --output raport.json --max-concurrency 4
 ```
 
-Z `--api https://meritum-dev.gburek.app` przypadki idą przez API wdrożonego środowiska jako sprawdzenia z kanału web, z prawdziwą wyszukiwarką, Fact Check API i modelem tego środowiska; czas to zegar od wysłania do wyniku. `--judge` dodaje `citation_precision`: model z `MERITUM_LLM_*` ocenia każdy cytat. Taki przebieg uruchamiamy ręcznie, nigdy w CI:
+Z `--api https://meritum-dev.gburek.app` przypadki idą przez API wdrożonego środowiska jako sprawdzenia z kanału web, z prawdziwą wyszukiwarką, Fact Check API i modelem tego środowiska; czas to zegar od wysłania do wyniku. `--judge` dodaje `citation_precision`: model z `MERITUM_LLM_*` ocenia każdy cytat. `--fresh` dopisuje do tekstów niewidoczny znacznik przebiegu (znaki o zerowej szerokości), żeby pamięć podręczna wyników API (2 h, klucz z tekstu) nie oddała odpowiedzi sprzed wdrożenia. Taki przebieg uruchamiamy ręcznie, nigdy w CI:
 
 ```bash
 set -a; source ../.env; set +a                       # OPENROUTER_API_KEY dla sędziego, nigdy w repozytorium
 MERITUM_LLM_PROVIDER=openrouter MERITUM_LLM_MODEL=anthropic/claude-haiku-5.5 \
   uv run meritum-eval --cases evals/golden/fact-checks.json --api https://meritum-dev.gburek.app \
-  --judge --max-concurrency 4 --output evals/reports/fact-checks-$(date +%F)-n.json
+  --judge --fresh --max-concurrency 4 --output evals/reports/fact-checks-$(date +%F)-n.json
 ```
 
 Model wybiera konfiguracja `MERITUM_LLM_*` (tabela wyżej), więc jeden przebieg na model daje porównywalny raport. Na stubie (`MERITUM_LLM_PROVIDER=stub`) wystarczy `MERITUM_LLM_STUB_FIXTURES`; Vertex AI potrzebuje `MERITUM_LLM_MODEL`, `MERITUM_LLM_REGION` (region UE) i poświadczeń ADC (`gcloud auth application-default login`). Zapisy przebiegu zostają w pamięci procesu, więc ewaluacja nic nie pisze do bazy aplikacji. Pełny przebieg woła model, dlatego nie jest krokiem CI (ADR-28); w CI biegną tylko testy mierników i scenariusze behave na stubie.

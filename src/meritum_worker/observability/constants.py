@@ -188,3 +188,9 @@ STANCE_WORDS: Final = {
     "context": "daje tło, nie potwierdza i nie obala",
 }
 """Polish words for a citation's stance, as the citation judge reads them."""
+
+CACHE_TAG_BITS: Final = 16
+"""Length of a fresh run's invisible tag; one random bit per character."""
+
+CACHE_TAG_DIGITS: Final = str.maketrans({"0": "\u200b", "1": "\u200c"})
+"""Zero-width space and non-joiner: the two invisible characters of the tag."""

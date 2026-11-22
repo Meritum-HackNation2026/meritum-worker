@@ -22,6 +22,8 @@ def _client(
     seen: list[httpx2.Request],
     poll_seconds: float = 0,
     timeout_seconds: float = 5,
+    *,
+    fresh: bool = False,
 ) -> ApiChecks:
     def reply(request: httpx2.Request) -> httpx2.Response:
         seen.append(request)
@@ -29,7 +31,11 @@ def _client(
 
     client = httpx2.AsyncClient(transport=httpx2.MockTransport(reply))
     return ApiChecks(
-        BASE, client, poll_seconds=poll_seconds, timeout_seconds=timeout_seconds
+        BASE,
+        client,
+        poll_seconds=poll_seconds,
+        timeout_seconds=timeout_seconds,
+        fresh=fresh,
     )
 
 
@@ -81,3 +87,18 @@ def test_unavailable_api_waits_and_retries(case: Callable[..., GoldenCase]) -> N
     checks = _client([restarting, _accepted(), httpx2.Response(200, json=DONE)], seen)
     run = asyncio.run(checks.check(case()))
     assert run.result.status == "done"
+
+
+def test_a_fresh_run_tags_the_text_so_the_result_cache_misses(
+    case: Callable[..., GoldenCase],
+) -> None:
+    texts = []
+    for _ in range(2):
+        seen: list[httpx2.Request] = []
+        replies = [_accepted(), httpx2.Response(200, json=DONE)]
+        asyncio.run(_client(replies, seen, fresh=True).check(case()))
+        texts.append(json.loads(seen[0].content)["text"])
+    suffixes = [t.removeprefix(case().text) for t in texts]
+    assert all(t.startswith(case().text) for t in texts)
+    assert suffixes[0] != suffixes[1]
+    assert all(set(s) <= {"\u200b", "\u200c"} for s in suffixes)
