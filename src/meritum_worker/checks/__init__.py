@@ -14,6 +14,7 @@ from meritum_worker.checks.announcements import (
     notify_new_evidence,
     notify_service_state,
 )
+from meritum_worker.checks._image_fakes import ImagePorts, image_ports, png
 from meritum_worker.checks.answers import AnswerDraft
 from meritum_worker.checks.fakes import (
     AudioPorts,
@@ -46,14 +47,17 @@ __all__ = [
     "FailingCheckRuntime",
     "FakeCorpusSearch",
     "FakePageFetcher",
+    "ImagePorts",
     "InlineCheckRuntime",
     "audio_ports",
     "corpus_ports",
     "notify_case_answers",
     "notify_new_evidence",
     "notify_service_state",
+    "image_ports",
     "ogg_opus",
     "pipeline",
+    "png",
     "run_check",
     "save_notification",
     "web_ports",

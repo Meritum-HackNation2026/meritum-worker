@@ -9,7 +9,13 @@ from typing import Literal
 
 from meritum_core.checks import CheckResult, InjectionEvent
 from meritum_core.checks.constants import MIN_TEXT_CHARS
-from meritum_core.checks.contracts import FailureCode, ModelUsage
+from meritum_core.checks.contracts import (
+    FailureCode,
+    LimitationCode,
+    ModelUsage,
+    OutOfScopeCode,
+)
+from meritum_core.checks.ocr import ImageInfo
 from meritum_core.corpus import RankedPassage
 from meritum_core.evidence.models import SourceDocument
 from meritum_core.jobs.contracts import CheckInput
@@ -45,6 +51,11 @@ class CheckState(BaseModel):
         published_at: the linked page's publication date from its metadata, if any.
         transcript: the masked automatic transcript, once transcribe_audio ran.
         audio_seconds: the recording's length, once transcribe_audio read it.
+        image_text: the masked OCR text, once read_image ran.
+        image_date: the first date written in the image's text.
+        image_info: the image file's format and size; context only, never read
+            by the verdict.
+        image_notes: limitations of an image check, each with its code.
         skipped_steps: step codes that had nothing to do for this input.
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
         evidence: source documents found for the claims, each past quarantine.
@@ -74,6 +85,10 @@ class CheckState(BaseModel):
     published_at: date | None = None
     transcript: str | None = None
     audio_seconds: float | None = None
+    image_text: str | None = None
+    image_date: date | None = None
+    image_info: ImageInfo | None = None
+    image_notes: list[tuple[LimitationCode, str]] = []
     skipped_steps: list[str] = []
     claims: list[ExtractedClaim] = []
     evidence: list[SourceDocument] = []
@@ -93,19 +108,29 @@ class CheckState(BaseModel):
 
     @property
     def question(self) -> str:
-        """The masked question: text, else page, transcript, link or audio id."""
+        """The masked question: text, else page, transcript, OCR text, link or id."""
         request = self.job.request
         if self.has_text:
             return request.text or ""
         link = str(request.url or "")
-        return self.page_text or self.transcript or link or request.audio_id or ""
+        spoken = self.page_text or self.transcript or self.image_text
+        return spoken or link or request.audio_id or ""
 
-    def with_message(self, status: NotAVerdict, message: str) -> CheckResult:
+    def with_message(
+        self,
+        status: NotAVerdict,
+        message: str,
+        *,
+        out_of_scope_code: OutOfScopeCode | None = None,
+        limitation: tuple[LimitationCode, str] | None = None,
+    ) -> CheckResult:
         """Build a non-verdict result with a diagnostic message.
 
         Args:
             status: needs_clarification, out_of_scope or technical_failure.
             message: diagnostic text for internal use.
+            out_of_scope_code: what is not handled, for out_of_scope.
+            limitation: the code and text explaining why, if any.
 
         Returns:
             The result.
@@ -116,6 +141,9 @@ class CheckState(BaseModel):
             status=status,
             message=message,
             failure_code=TECHNICAL_FAILURE_CODE if failed else None,
+            out_of_scope_code=out_of_scope_code,
+            limitations=[limitation[1]] if limitation else [],
+            limitation_codes=[limitation[0]] if limitation else [],
             corpus_version=self.corpus_version,
         )
 

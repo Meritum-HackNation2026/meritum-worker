@@ -88,6 +88,11 @@ def _dated(claim: ExtractedClaim, state: CheckState) -> ExtractedClaim:
         return claim.model_copy(
             update={"claim_date": page_date, "claim_date_source": "input_published_at"}
         )
+    if is_undated and state.image_date is not None:
+        # A date read from the image is text, not a publication date (F-33).
+        return claim.model_copy(
+            update={"claim_date": state.image_date, "claim_date_source": "text"}
+        )
     if is_undated:
         today = state.job.received_at.date()
         return claim.model_copy(

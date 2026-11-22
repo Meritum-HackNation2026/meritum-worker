@@ -7,6 +7,7 @@ Features:
 import os
 
 from httpx2 import AsyncClient
+from meritum_core.checks.ocr import OcrSettings, build_image_search, build_ocr
 from meritum_core.checks.transcription import TranscriptionSettings, build_transcriber
 from meritum_core.corpus import CorpusSettings, build_corpus_search
 from meritum_core.corpus.catalog import load_catalog
@@ -57,9 +58,9 @@ def build_check_deps(
             and prd.
         blobs: blob store settings, usually ``BlobSettings()``; the in-memory
             store when None (no ``MERITUM_BLOB_PROVIDER``). Transcription reads
-            ``MERITUM_TRANSCRIPTION_*``; corpus search ``MERITUM_CORPUS_*`` and
-            ``MERITUM_EMBEDDINGS_*``, the reranker ``MERITUM_RERANKER``, the
-            snapshot ``MERITUM_CORPUS_VERSION``.
+            ``MERITUM_TRANSCRIPTION_*``, OCR ``MERITUM_OCR_*``; corpus search
+            ``MERITUM_CORPUS_*`` and ``MERITUM_EMBEDDINGS_*``, the reranker
+            ``MERITUM_RERANKER``, the snapshot ``MERITUM_CORPUS_VERSION``.
 
     Returns:
         The ports.
@@ -99,6 +100,8 @@ def build_check_deps(
         if ingestion_enabled(os.environ)
         else None,
         sanctions=sanctions_from_env(os.environ),
+        ocr=build_ocr(OcrSettings(), store),
+        image_search=build_image_search(),
     )
 
 

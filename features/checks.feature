@@ -105,6 +105,23 @@ Funkcja: Smoke test workera
     Gdy workflow sprawdzania działa
     Wtedy wynik ma stan out_of_scope z komunikatem, co można wysłać zamiast
 
+  Scenariusz: zrzut ekranu z twierdzeniem
+    Zakładając zdjęcie z tekstem "Od 1 grudnia zakaz wjazdu aut spalinowych do Warszawy. Opublikowano 12.11.2026."
+    Gdy workflow sprawdza obraz
+    Wtedy twierdzenie z OCR dostaje werdykt
+    Oraz odpowiedź mówi, że nie szukano wcześniejszych wystąpień obrazu
+    Oraz odpowiedź mówi, że data na obrazie nie potwierdza daty publikacji
+
+  Scenariusz: awaria OCR
+    Zakładając dostawca OCR zwraca błąd
+    Gdy workflow sprawdza obraz
+    Wtedy wynik obrazu ma stan technical_failure
+
+  Scenariusz: nieobsługiwany obraz
+    Zakładając plik, który nie jest obrazem PNG, JPEG ani WebP
+    Gdy workflow sprawdza obraz
+    Wtedy wynik obrazu ma stan out_of_scope z kodem image i kodem ograniczenia
+
   Scenariusz: trzy twierdzenia sprawdzane równolegle
     Zakładając tekst z 4 twierdzeniami
     Gdy workflow uruchamia agenty badawcze

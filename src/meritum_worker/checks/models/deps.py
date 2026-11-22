@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 
 from meritum_core.checks import CheckRecordRepository
 from meritum_core.checks.contracts import CatalogEntry
+from meritum_core.checks.ocr import ImageSearchPort, OcrPort
 from meritum_core.checks.transcription import TranscriptionPort
 from meritum_core.corpus import CorpusSearchPort, RerankerPort
 from meritum_core.corpus.fetching import PageFetcherPort
@@ -51,6 +52,12 @@ class CheckDeps:
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
         US-POW-01, US-KOR-04, US-ZRD-07, F-06, F-08, F-09, F-12, F-13, F-22, F-34
+        ocr: reads text from an uploaded image; None fails an image check.
+        image_search: earlier-occurrence search; None means it did not run.
+
+    Features:
+        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
+        US-POW-01, US-KOR-04, US-SPR-08, F-33, F-06, F-08, F-09, F-12, F-13, F-22
     """
 
     llm: LlmPort
@@ -71,3 +78,5 @@ class CheckDeps:
     fact_check: FactCheckPort = field(default_factory=FakeFactCheck)
     live_pages: LivePagesPort | None = None
     sanctions: SanctionsList = field(default_factory=SanctionsList)
+    ocr: OcrPort | None = None
+    image_search: ImageSearchPort | None = None
