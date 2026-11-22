@@ -89,7 +89,7 @@ async def archive_page(
         expires_at=expires_at,
     )
     copy = ArchiveCopy(
-        archive_id=ref.blob_id,
+        archive_id=request.archive_id or ref.blob_id,
         blob_id=ref.blob_id,
         url=page.url,
         owner_id=request.owner_id,

@@ -241,6 +241,10 @@ Test na prawdziwym DBOS i PostgreSQL sprawdza, że po usunięciu żaden wiersz s
 MERITUM_TEST_DATABASE_URL=postgresql://... uv run pytest -m integration tests/security/test_erasure_integration.py
 ```
 
+## Archiwizacja strony na prośbę obywatela
+
+Workflow `archive_page` (zleca go backend przez `POST /api/v1/archives`) pobiera jedną publiczną stronę fetcherem z core (SSRF, robots.txt, TDM; logowania ani paywalla nie omija), zapisuje tekst w `BlobStore` na 30 dni, a metadane z SHA-256 w tabeli `page_archives` (migracja 0008 z core). Id kopii nadaje backend i jest ono zarazem id workflowu. Jedna osoba może zlecić 5 kopii na godzinę. Kopia nie trafia do korpusu. Bez `MERITUM_DATABASE_*` rejestr kopii jest w pamięci.
+
 ## Lokalna kopia EUvsDisinfo
 
 Workflow `euvsdisinfo_sync` (`src/meritum_worker/corpus/`) czyta wszystkie przypadki i artykuły EUvsDisinfo przez serwer MCP, stronami po 100, i zapisuje różnicę: nowe wpisy dodaje, zmienione podmienia, a zniknięte ze źródła oznacza jako usunięte. Opisy przypadków i teksty fact dostają embeddingi z portu core, a teksty fact trafiają do kopii jako `Source` z `via = mcp`. Domeny z `linksToDisinformation` są zapisane w kopii (`flagged_domains()`) i czekają na ostrzeżenie o domenie z [worker#42](https://github.com/Meritum-HackNation2026/meritum-worker/issues/42). Bez `EUVSDISINFO_MCP_API_KEY` workflow nic nie pobiera i zwraca `missing_env`; tę samą listę daje `corpus.missing_env()` dla raportu gotowości.

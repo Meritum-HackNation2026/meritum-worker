@@ -155,4 +155,4 @@ addopts = ["-ra", "--import-mode=importlib", "-m", "not integration"]
 filterwarnings = ["error"]
 
 [tool.uv.sources]
-meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "8ed19f22e1d22926056b561e645e85c80e9ecaa5" }
+meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "47d6361c6406892b9eb213728f2e68e40ef6a13b" }

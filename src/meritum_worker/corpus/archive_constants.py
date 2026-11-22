@@ -51,3 +51,26 @@ MESSAGE_FETCH_FAILED: Final = "Nie udało się pobrać strony, więc nie powsta�
 
 MESSAGE_RATE_LIMIT: Final = "Wykorzystano limit próśb o archiwizację. Spróbuj później."
 """Told to the citizen over the rate limit."""
+
+INSERT_ARCHIVE_SQL: Final = """
+INSERT INTO page_archives (archive_id, blob_id, url, owner_id, sha256, archived_at,
+    expires_at, legal_basis, access_rule, deletion_procedure)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+ON CONFLICT (archive_id) DO NOTHING
+"""
+"""Stores one copy (core migration 0008); a retried step does not duplicate it."""
+
+SELECT_ARCHIVE_SQL: Final = """
+SELECT archive_id, blob_id, url, owner_id, sha256, archived_at, expires_at,
+    legal_basis, access_rule, deletion_procedure
+FROM page_archives WHERE archive_id = %s
+"""
+"""Reads one copy."""
+
+DELETE_ARCHIVE_SQL: Final = "DELETE FROM page_archives WHERE archive_id = %s"
+"""Forgets one copy."""
+
+COUNT_ARCHIVES_SQL: Final = (
+    "SELECT count(*) FROM page_archives WHERE owner_id = %s AND archived_at >= %s"
+)
+"""Counts one person's copies in the rate-limit window."""
