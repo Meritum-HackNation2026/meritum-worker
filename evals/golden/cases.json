@@ -755,6 +755,7 @@
     "acceptable_verdicts": [
       "misleading"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Nie. Zdjęcie jest prawdziwe, ale pokazuje pożar składu paliw Shahran w Teheranie po izraelskim ataku w czerwcu 2025 r., a nie Tel Awiw. Odpowiedź przywraca miejsce i datę zdjęcia i podaje analizę Demagoga.",
     "sources": [
       {
@@ -784,6 +785,7 @@
     "acceptable_verdicts": [
       "false"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Zdjęcie jest autentyczne i pochodzi z Bukaresztu, ale zrobiono je 5 lutego 2017 r. podczas protestów przeciw korupcji, na długo przed pandemią. Odpowiedź przywraca datę i powód protestu i powołuje się na Demagoga, AFP Sprawdzam lub fakenews.pl.",
     "sources": [
       {
@@ -819,6 +821,7 @@
     "acceptable_verdicts": [
       "misleading"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Nie. Nagranie jest prawdziwe, ale pochodzi z 24 grudnia 2022 r., z zamieszek po zabójstwie trzech osób przy kurdyjskim ośrodku kultury w Paryżu, i wielokrotnie wracało jako rzekomo aktualne. Odpowiedź podaje datę i okoliczności nagrania.",
     "sources": [
       {
@@ -848,6 +851,7 @@
     "acceptable_verdicts": [
       "misleading"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Nie. Zdjęcie jest stare: krążyło już w lutym 2022 r., tuż po rosyjskiej inwazji na Ukrainę, a Orlen poinformował, że w tygodniu po wyborach takich cen nie odnotował na żadnej stacji. Odpowiedź przywraca datę zdjęcia i podaje analizę Konkret24.",
     "sources": [
       {
@@ -871,6 +875,7 @@
     "acceptable_verdicts": [
       "misleading"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Nie. Zdjęcie zrobiono 1 marca 2011 r. na włoskiej wyspie Lampedusa; przedstawia imigrantów z Tunezji czekających na ewakuację i nie ma związku z Wałbrzychem ani z przekazywaniem migrantów z Niemiec. Odpowiedź przywraca miejsce i datę zdjęcia.",
     "sources": [
       {
@@ -894,6 +899,7 @@
     "acceptable_verdicts": [
       "false"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Nagranie jest prawdziwe, ale pochodzi z ceremonii otwarcia Pucharu Świata w Rugby we wrześniu 2023 r.; Macron nie przemawiał na zamknięciu igrzysk. Odpowiedź przywraca wydarzenie i datę nagrania i powołuje się na Demagoga, który ocenił wpis jako manipulację.",
     "sources": [
       {
@@ -917,6 +923,7 @@
     "acceptable_verdicts": [
       "misleading"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Nie. Kadr pochodzi z nagrania pociągu z czołgami w Mannheim opublikowanego w marcu 2022 r., na którym nie ma żadnych nazistowskich znaków; obraz wyjęto z kontekstu i zmanipulowano. Odpowiedź przywraca pochodzenie nagrania i wskazuje analizę EUvsDisinfo.",
     "sources": [
       {
@@ -940,6 +947,7 @@
     "acceptable_verdicts": [
       "false"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Słowa padły, ale to ucięty fragment eseju „Polak rozłamany” z miesięcznika „Znak” z 1987 r., napisanego w odpowiedzi na pytanie „Czym jest polskość?”. W dalszej części Tusk pisze, że utożsamia się z tą postawą i że polskość pozostaje wspólnym świadomym wyborem. Odpowiedź przywraca źródło, rok i dalszy ciąg tekstu.",
     "sources": [
       {
@@ -969,6 +977,7 @@
     "acceptable_verdicts": [
       "false"
     ],
+    "category": "fact_checked",
     "expected_behavior": "Tusk wypowiedział te słowa w Sejmie 17 stycznia 2024 r., ale jako cytat: przytoczył wypowiedź Marcina Horały z TVN24 z listopada 2023 r., żeby ją wyśmiać. Odpowiedź przywraca, kto jest autorem słów, i wskazuje stenogram Sejmu.",
     "sources": [
       {
@@ -1002,6 +1011,7 @@
     "expected_status": "done",
     "expected_verdict": "misleading",
     "acceptable_verdicts": [],
+    "category": "fact_checked",
     "expected_behavior": "Cytat jest ucięty. Tusk mówił w Sierakowicach 22 września 2025 r. o wspieraniu Izraela w konfrontacji z terroryzmem, a w tej samej wypowiedzi nazwał to, co dzieje się w Gazie, absolutnie nie do zaakceptowania. Odpowiedź przywraca dalszą część wypowiedzi.",
     "sources": [
       {
@@ -1023,6 +1033,7 @@
     "expected_status": "done",
     "expected_verdict": "misleading",
     "acceptable_verdicts": [],
+    "category": "fact_checked",
     "expected_behavior": "Obie liczby GUS są prawdziwe, ale porównanie jest wybiórcze: grudzień 2022 r. to jeden z najwyższych odczytów za poprzedniego rządu, a gdy obecny rząd zaczynał w grudniu 2023 r., inflacja wynosiła już 6,2 proc. Odpowiedź podaje punkt startowy z grudnia 2023 r. i przypomina, że inflacja spadała też w całej UE.",
     "sources": [
       {
@@ -1056,6 +1067,7 @@
     "expected_status": "done",
     "expected_verdict": "misleading",
     "acceptable_verdicts": [],
+    "category": "fact_checked",
     "expected_behavior": "Wzrost z 2023 na 2024 r. był niewielki (o ok. 2,3 tys., 0,72 proc.), a w każdym roku 2018–2022 za rządów PiS wydano więcej zezwoleń niż w 2024 r. Odpowiedź pokazuje dłuższy okres porównania, a nie tylko ostatni rok poprzedniego rządu.",
     "sources": [
       {
@@ -1063,27 +1075,6 @@
         "publisher": "Demagog",
         "title": "Pozwolenia na pracę dla cudzoziemców. Który rząd wydawał ich więcej?",
         "quote": "Manipulacja"
-      }
-    ],
-    "checked_at": "2026-11-22"
-  },
-  {
-    "id": "A-op-najlepszy-premier",
-    "scenario": "A",
-    "origin": "own",
-    "channel": "web",
-    "text": "Czy to prawda, że Donald Tusk będzie najlepszym premierem w historii Polski?",
-    "main_claim": "Donald Tusk będzie najlepszym premierem w historii Polski.",
-    "expected_status": "done",
-    "expected_verdict": "not_verifiable",
-    "acceptable_verdicts": [],
-    "expected_behavior": "To opinia i prognoza zarazem, nie twierdzenie o faktach, więc nie da się jej potwierdzić ani obalić. Odpowiedź mówi to wprost, nie wydaje werdyktu prawda/fałsz i może zaproponować sprawdzenie konkretnych, mierzalnych twierdzeń o rządzie.",
-    "sources": [
-      {
-        "url": "https://demagog.org.pl/metodologia/",
-        "publisher": "Demagog",
-        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
-        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
       }
     ],
     "checked_at": "2026-11-22"
@@ -1100,6 +1091,7 @@
     "acceptable_verdicts": [
       "insufficient_evidence"
     ],
+    "category": "opinion",
     "expected_behavior": "To prognoza o przyszłości, której dziś nie da się zweryfikować. Odpowiedź tak ją nazywa i nie wydaje werdyktu; może wskazać, że oficjalne projekcje, np. NBP, podają przedział niepewności, a nie pewny wynik.",
     "sources": [
       {
@@ -1112,18 +1104,19 @@
     "checked_at": "2026-11-22"
   },
   {
-    "id": "A-op-ceny-mieszkan-2027",
+    "id": "A-op-wybory-prezydenckie-2030",
     "scenario": "A",
     "origin": "own",
-    "channel": "sms",
-    "text": "Znajomy twierdzi, że w 2027 roku ceny mieszkań w Polsce spadną o połowę. Czy to prawda?",
-    "main_claim": "W 2027 r. ceny mieszkań w Polsce spadną o połowę.",
+    "channel": "web",
+    "text": "Czy to prawda, że Karol Nawrocki wygra wybory prezydenckie w 2030 roku?",
+    "main_claim": "Karol Nawrocki wygra wybory prezydenckie w 2030 r.",
     "expected_status": "done",
     "expected_verdict": "not_verifiable",
     "acceptable_verdicts": [
       "insufficient_evidence"
     ],
-    "expected_behavior": "To prognoza na przyszłość, więc nie można jej dziś potwierdzić ani nazwać fałszem, nawet jeśli wydaje się mało prawdopodobna. Odpowiedź mówi, że twierdzenie nie podlega weryfikacji, i nie przedstawia własnej prognozy jako faktu.",
+    "category": "opinion",
+    "expected_behavior": "To przewidywanie wyniku wyborów, które się jeszcze nie odbyły, więc nie da się go potwierdzić ani obalić. Odpowiedź mówi to wprost i nie traktuje sondaży jako dowodu na wynik.",
     "sources": [
       {
         "url": "https://demagog.org.pl/metodologia/",
@@ -1135,30 +1128,56 @@
     "checked_at": "2026-11-22"
   },
   {
-    "id": "A-op-cpk-najgorsza-inwestycja",
+    "id": "A-op-ai-praca-polowa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Czytałem, że w ciągu 10 lat sztuczna inteligencja zabierze pracę połowie Polaków. Czy to prawda?",
+    "main_claim": "W ciągu 10 lat sztuczna inteligencja zabierze pracę połowie Polaków.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ],
+    "category": "opinion",
+    "expected_behavior": "To prognoza na dekadę naprzód, więc dziś nie można jej potwierdzić ani nazwać fałszem. Odpowiedź mówi, że twierdzenie nie podlega weryfikacji, i nie przedstawia żadnej prognozy jako faktu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/metodologia/",
+        "publisher": "Demagog",
+        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
+        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-polska-powinna-wyjsc-z-ue",
     "scenario": "A",
     "origin": "own",
     "channel": "extension",
-    "text": "Polityk napisał, że Centralny Port Komunikacyjny to najgorsza inwestycja w historii Polski. Sprawdzisz to?",
-    "main_claim": "Centralny Port Komunikacyjny to najgorsza inwestycja w historii Polski.",
+    "text": "Poseł napisał, że Polska powinna wystąpić z Unii Europejskiej. Sprawdzisz, czy ma rację?",
+    "main_claim": "Polska powinna wystąpić z Unii Europejskiej.",
     "expected_status": "done",
     "expected_verdict": "not_verifiable",
     "acceptable_verdicts": [],
-    "expected_behavior": "To ocena wartościująca, nie twierdzenie o faktach: „najgorsza” zależy od przyjętych kryteriów. Odpowiedź wyjaśnia, że nie wydaje werdyktu w sprawie opinii, i może zaproponować sprawdzenie konkretnych faktów, np. kosztów lub harmonogramu.",
+    "category": "opinion",
+    "expected_behavior": "To postulat polityczny, czyli ocena, co należy zrobić, a nie twierdzenie o faktach. Odpowiedź nie wydaje werdyktu prawda/fałsz i może zaproponować sprawdzenie konkretnych faktów, którymi poseł uzasadnia swój postulat.",
     "sources": [],
     "checked_at": "2026-11-22"
   },
   {
-    "id": "A-op-najpiekniejsze-miasto",
+    "id": "A-op-lewandowski-najlepszy",
     "scenario": "A",
     "origin": "own",
     "channel": "mcp",
-    "text": "Czy Wrocław jest najpiękniejszym miastem w Polsce?",
-    "main_claim": "Wrocław jest najpiękniejszym miastem w Polsce.",
+    "text": "Czy Robert Lewandowski to najlepszy polski piłkarz w historii?",
+    "main_claim": "Robert Lewandowski to najlepszy polski piłkarz w historii.",
     "expected_status": "done",
     "expected_verdict": "not_verifiable",
     "acceptable_verdicts": [],
-    "expected_behavior": "To kwestia gustu, a nie fakt, więc nie podlega weryfikacji. Odpowiedź mówi to krótko i nie przypisuje opinii werdyktu prawda ani fałsz.",
+    "category": "opinion",
+    "expected_behavior": "To ocena wartościująca: „najlepszy” zależy od przyjętych kryteriów, więc twierdzenie nie podlega weryfikacji. Odpowiedź mówi to krótko i może dodać, że sprawdzić da się tylko konkretne fakty, np. liczbę goli w reprezentacji.",
     "sources": [],
     "checked_at": "2026-11-22"
   }
