@@ -19,7 +19,7 @@ from meritum_worker.checks import (
     web_ports,
 )
 from meritum_worker.checks.steps import assess_evidence
-from meritum_worker.evidence import VerifiedCitation, judge
+from meritum_worker.evidence import judge, with_validity
 
 CATALOG = (
     CatalogEntry.model_validate(
@@ -39,7 +39,7 @@ CATALOG = (
 )
 
 
-def test_assess_evidence_sets_validity_and_judge_uses_catalog_threshold() -> None:
+def test_assess_evidence_dates_claims_and_judge_uses_catalog_threshold() -> None:
     job = CheckInput(
         request=CheckRequest(channel="web", text="test"),
         received_at=datetime(2026, 11, 21, 12, 0, tzinfo=UTC),
@@ -66,10 +66,6 @@ def test_assess_evidence_sets_validity_and_judge_uses_catalog_threshold() -> Non
         check_id="check-1",
         job=job,
         claims=[fact],
-        citations=[
-            VerifiedCitation(fact=0, citation=old),
-            VerifiedCitation(fact=0, citation=fresh),
-        ],
     )
     web = web_ports()
     deps = CheckDeps(
@@ -84,7 +80,9 @@ def test_assess_evidence_sets_validity_and_judge_uses_catalog_threshold() -> Non
         **corpus_ports(),
     )
     out = asyncio.run(assess_evidence(state, deps))
-    citations = [v.citation for v in out.citations]
-    result = judge(citations, catalog={"gov.pl": CATALOG[0]}, claim_date=CLAIM_DATE)
+    catalog = {"gov.pl": CATALOG[0]}
+    assert out.claims[0].claim_date == CLAIM_DATE
+    dated = with_validity([old, fresh], catalog, claim_date=CLAIM_DATE)
+    result = judge(dated, catalog=catalog, claim_date=CLAIM_DATE)
     assert result.strength is not None
     assert result.strength.premises.newest_source_age_hours == 11 * 24

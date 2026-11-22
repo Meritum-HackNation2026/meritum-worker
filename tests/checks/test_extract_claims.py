@@ -2,7 +2,6 @@ import asyncio
 from datetime import date
 
 import pytest
-from meritum_core.checks.contracts import ClaimResult
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.security.pii import NullPiiGate
 from meritum_core.shared.llm import (
@@ -26,6 +25,7 @@ from meritum_worker.checks import (
     web_ports,
 )
 from meritum_worker.checks.steps import extract_claims, write_answer
+from meritum_worker.evidence import ClaimExplanation
 
 
 def _deps(llm: LlmPort) -> CheckDeps:
@@ -232,13 +232,7 @@ def test_only_opinions_are_done_with_model_limitations_even_if_it_judged_them(
 ) -> None:
     opinion = _claim("Rząd sobie nie radzi.", "opinion")
     extracted, _ = _extract(state, opinion)
-    judged = ClaimResult(
-        claim="Rząd sobie nie radzi.",
-        claim_date=date(2026, 1, 1),
-        claim_date_source="today",
-        verdict="not_verifiable",
-        explanation="Ocena, a nie fakt do sprawdzenia.",
-    )
+    judged = ClaimExplanation(explanation="Ocena, a nie fakt do sprawdzenia.")
     draft = AnswerDraft(claims=[judged], limitations=["Brak faktów do sprawdzenia."])
     deps = _deps(_RecordingLlm(draft))
     out = asyncio.run(write_answer(extracted, deps))

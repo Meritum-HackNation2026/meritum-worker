@@ -25,5 +25,8 @@
     "limitations": [
       "Odpowiedź z modelu zastępczego, bez przeszukania korpusu."
     ]
+  },
+  "StanceJudgement": {
+    "relevant": false
   }
 }
