@@ -180,13 +180,11 @@ PARAGRAPH_SEPARATOR: Final = "\n\n"
 """Joins the paragraphs grouped into one passage."""
 
 INGESTED_METHODS: Final = frozenset({"static", "rss", "sitemap"})
-"""Catalogue ``ingest`` values fetched as web pages; ``mcp`` is the EUvsDisinfo
-sync, ``live`` and ``web_search`` are queried per check (ADR-32), and ``api``
-answers JSON the page fetcher refuses, so it waits for per-API adapters."""
+"""Catalogue ``ingest`` values fetched as web pages (ADR-32); ``api`` answers JSON
+the page fetcher refuses, so it waits for per-API adapters (worker#82)."""
 
 EVIDENCE_ROLE: Final = "evidence"
-"""Catalogue ``role`` of entries ingested as evidence; ``source_status`` lists
-only feed a neutral warning."""
+"""Catalogue ``role`` of entries ingested as evidence (not ``source_status``)."""
 
 TDM_RESERVED_ENTRY: Final = "reserved"
 """Catalogue ``tdm_reservation`` of an owner who opted out of text and data mining."""
@@ -240,8 +238,7 @@ EMPTY_TEXT: Final = "empty_text"
 """Failure reason of a page with no main text."""
 
 ENTRY_NOT_INGESTIBLE: Final = "entry_not_ingestible"
-"""Failure reason of a page whose catalogue entry is excluded or reserved for
-text and data mining; such a page is never stored, live search included."""
+"""Failure reason of a page of an excluded or TDM-reserved catalogue entry."""
 
 EMBEDDINGS_UNAVAILABLE: Final = "embeddings_unavailable"
 """Failure reason of a page whose passages could not be embedded."""
@@ -250,5 +247,4 @@ EMBED_BATCH: Final = 100
 """Passages embedded per call."""
 
 CORPUS_WRITE_LOCK: Final = 17_0001
-"""Advisory lock key (issue number + 0001): document writes take it shared, a
-snapshot exclusive, so ``taken_at`` follows every write it covers (ADR-19)."""
+"""Advisory lock: writes take it shared, a snapshot exclusive (ADR-19)."""
