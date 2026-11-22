@@ -31,6 +31,15 @@ def test_acceptable_alternative_is_a_correct_outcome(
     assert report.macro_f1 == pytest.approx(1.0)
 
 
+def test_strict_macro_f1_counts_the_label_the_pipeline_gave(
+    case: Case, claim: Claim, result: Result, run: Run
+) -> None:
+    golden = case(expected_verdict="misleading", acceptable_verdicts=["false"])
+    report = score_runs([run(golden, result(claims=(claim("false"),)))])
+    assert report.macro_f1 == pytest.approx(1.0)
+    assert report.macro_f1_strict == pytest.approx(0.0)
+
+
 def test_accuracy_is_the_share_of_correct_cases(
     case: Case, claim: Claim, result: Result, run: Run
 ) -> None:

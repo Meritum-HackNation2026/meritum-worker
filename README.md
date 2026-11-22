@@ -108,8 +108,9 @@ Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 | Pole | Co liczy |
 | --- | --- |
 | `macro_f1` | werdykt głównego twierdzenia; każdy stan niebędący werdyktem to jedna osobna klasa błędu; werdykt z `acceptable_verdicts` liczy się jak oczekiwany |
+| `macro_f1_strict` | to samo z etykiet, które potok naprawdę zwrócił: werdykt z `acceptable_verdicts` zalicza przypadek, ale nie klasę, więc klasa, której potok nigdy nie zwraca, ma F1 = 0 |
 | `accuracy` | przypadki z poprawnym wynikiem |
-| `citation_precision` | cytaty, których wymowę potwierdza model-sędzia (tylko z `--judge`); dosłowność fragmentu sprawdza już samo sprawdzenie |
+| `citation_precision` | cytaty, których wymowę potwierdza model-sędzia (tylko z `--judge`); sędzia widzi fragment oraz tytuł, datę i adres źródła, czyli to, co czytelnik pod cytatem; dosłowność fragmentu sprawdza już samo sprawdzenie |
 | `citation_recall` | średni udział hostów z `sources` przypadku, które odpowiedź cytuje albo podaje jako ocenę fact-checkera |
 | `abstention_rate` | sprawdzenia `done`, w których żadne twierdzenie nie dostało werdyktu rozstrzygającego |
 | `fact_check_hit_rate` | przypadki `category: fact_checked`, w których odpowiedź pokazuje ocenę fact-checkera |
