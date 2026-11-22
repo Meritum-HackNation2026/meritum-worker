@@ -177,7 +177,8 @@ ARTICLE_TEXT = "Inflacja w październiku wyniosła 2,8%. Bezrobocie 03.2025: 5,3
 @given("link do posta na Facebooku wymagającego logowania")
 def facebook_post_behind_login(context: Context) -> None:
     wall = LoginWallError(FetchFailureReason.LOGIN_WALL)
-    context.deps = deps("llm_stub_answer.json", FakePageFetcher(wall))
+    # The address of a post names no claim, so the model finds none.
+    context.deps = deps("claims_none.json", FakePageFetcher(wall))
     context.link = FACEBOOK_POST
 
 

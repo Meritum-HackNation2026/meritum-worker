@@ -85,3 +85,32 @@ PUBLISHED_ON_INSTRUCTIONS: Final = (
     " yesterday or last week from that day (claim_date_source text)."
 )
 """Appended to EXTRACTION_INSTRUCTIONS when the linked page's metadata dates it."""
+
+LINKED_PAGE_INSTRUCTIONS: Final = (
+    " The text to check is a page the user linked. List only its two to four"
+    " main checkable claims, the ones a reader would most want verified, each as"
+    " a full statement with its names, places, numbers and dates; skip the"
+    " background and side details."
+)
+"""Appended to EXTRACTION_INSTRUCTIONS when the linked page was read (worker#256)."""
+
+QUESTION_AND_PAGE_INSTRUCTIONS: Final = (
+    " There are two data items: the user's own text, then the text of the page"
+    " the user linked. A user text that only asks about the page (is this"
+    " article true, what is false in it) or only names it states no claim of"
+    " its own and is not a request for clarification: list the page's claims. A"
+    " user text with its own claims: list those, and add the page's claims only"
+    " when the user asks to check the page too."
+)
+"""Appended after LINKED_PAGE_INSTRUCTIONS when the citizen wrote text next to
+the link (worker#256)."""
+
+UNREAD_LINK_INSTRUCTIONS: Final = (
+    " The page the user linked could not be read; only its address is in the"
+    " data. When the user text states no claim of its own, read the headline"
+    " from the words of the address path and list it as one fact, in Polish,"
+    " only when those words make a checkable statement; add nothing the address"
+    " does not say."
+)
+"""Appended to EXTRACTION_INSTRUCTIONS when the link's page was not read, so
+live search and the fact-checkers' index still get a claim (worker#256)."""
