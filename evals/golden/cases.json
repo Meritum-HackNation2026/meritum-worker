@@ -1088,9 +1088,7 @@
     "main_claim": "Inflacja w Polsce spadnie w przyszłym roku.",
     "expected_status": "done",
     "expected_verdict": "not_verifiable",
-    "acceptable_verdicts": [
-      "insufficient_evidence"
-    ],
+    "acceptable_verdicts": [],
     "category": "opinion",
     "expected_behavior": "To prognoza o przyszłości, której dziś nie da się zweryfikować. Odpowiedź tak ją nazywa i nie wydaje werdyktu; może wskazać, że oficjalne projekcje, np. NBP, podają przedział niepewności, a nie pewny wynik.",
     "sources": [
@@ -1112,9 +1110,7 @@
     "main_claim": "Karol Nawrocki wygra wybory prezydenckie w 2030 r.",
     "expected_status": "done",
     "expected_verdict": "not_verifiable",
-    "acceptable_verdicts": [
-      "insufficient_evidence"
-    ],
+    "acceptable_verdicts": [],
     "category": "opinion",
     "expected_behavior": "To przewidywanie wyniku wyborów, które się jeszcze nie odbyły, więc nie da się go potwierdzić ani obalić. Odpowiedź mówi to wprost i nie traktuje sondaży jako dowodu na wynik.",
     "sources": [
@@ -1136,9 +1132,7 @@
     "main_claim": "W ciągu 10 lat sztuczna inteligencja zabierze pracę połowie Polaków.",
     "expected_status": "done",
     "expected_verdict": "not_verifiable",
-    "acceptable_verdicts": [
-      "insufficient_evidence"
-    ],
+    "acceptable_verdicts": [],
     "category": "opinion",
     "expected_behavior": "To prognoza na dekadę naprzód, więc dziś nie można jej potwierdzić ani nazwać fałszem. Odpowiedź mówi, że twierdzenie nie podlega weryfikacji, i nie przedstawia żadnej prognozy jako faktu.",
     "sources": [
