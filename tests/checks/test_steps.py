@@ -12,7 +12,7 @@ from meritum_core.shared.llm import LlmPort, LlmResult, Prompt, ProviderUnavaila
 from pydantic import BaseModel
 
 from meritum_worker.checks import CheckDeps, CheckState
-from meritum_worker.checks.constants import ANSWER_INSTRUCTIONS
+from meritum_worker.checks.prompts import ANSWER_INSTRUCTIONS
 from meritum_worker.checks.steps import save_record, write_answer
 
 type MakeDeps = Callable[..., CheckDeps]

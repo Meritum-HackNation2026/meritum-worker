@@ -7,18 +7,20 @@ Features:
 from meritum_core.shared.llm import Prompt
 
 from meritum_worker.checks.constants import (
-    EXTRACTION_INSTRUCTIONS,
     LIMITATION_MAX_CHARS,
     MAX_CLAIMS_PER_CHECK,
     NEEDS_CLARIFICATION_MESSAGE,
     OUT_OF_SCOPE_MESSAGE,
-    PUBLISHED_ON_INSTRUCTIONS,
 )
 from meritum_worker.checks.models import (
     CheckDeps,
     CheckState,
     ClaimExtraction,
     ExtractedClaim,
+)
+from meritum_worker.checks.prompts import (
+    EXTRACTION_INSTRUCTIONS,
+    PUBLISHED_ON_INSTRUCTIONS,
 )
 from meritum_worker.checks.usage import model_usage
 
