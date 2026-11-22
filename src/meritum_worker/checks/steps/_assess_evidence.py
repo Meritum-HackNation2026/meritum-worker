@@ -7,8 +7,8 @@ Features:
 import asyncio
 from datetime import date
 
-from meritum_core.checks.contracts import ClaimReviewPremise, Validity
-from meritum_core.evidence import CitationDraft, SourceDocument, rate_review
+from meritum_core.checks.contracts import Validity
+from meritum_core.evidence import CitationDraft, SourceDocument
 from meritum_core.shared.llm import LlmUsage
 
 from meritum_worker import corpus, evidence
@@ -104,11 +104,10 @@ async def _corpus_documents(
 async def _compared(
     deps: CheckDeps, facts: list[ExtractedClaim], finding: corpus.ClaimReviewFinding
 ) -> tuple[bool, LlmUsage | None]:
-    # Only a rating that could be a premise needs the comparison; the rest is context.
-    rated = rate_review(finding.found, cache_control=finding.cache_control)
+    # Context ratings are compared too: only one of our claim is shown (worker#261).
     fact = facts[finding.fact] if finding.fact < len(facts) else None
     close = finding.similar  # a rated claim far from ours stays context (worker#84)
-    if not isinstance(rated.evidence, ClaimReviewPremise) or fact is None or not close:
+    if fact is None or not close:
         return False, None
     return await evidence.review_matches(
         deps.llm, fact.claim, _stated_date(fact), finding.claim_reviewed

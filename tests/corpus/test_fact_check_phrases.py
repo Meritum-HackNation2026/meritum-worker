@@ -88,11 +88,13 @@ def test_the_same_review_from_several_queries_is_kept_once() -> None:
     assert len(found.findings) == 1
 
 
-def test_a_review_below_the_threshold_is_context_not_a_candidate() -> None:
+def test_a_related_review_goes_on_to_the_comparison() -> None:
+    # Cosine 0.7: a longer quote holding our claim scores like another city,
+    # so the model, not the embeddings, tells them apart (worker#261).
     port, _ = _recorded({PHRASES[1]: "fact_check_demagog_krakow.json"})
     [finding] = _search(port).findings
     assert finding.claim_reviewed == KRAKOW
-    assert not finding.similar
+    assert finding.similar
 
 
 def test_an_unrelated_review_is_dropped() -> None:

@@ -1,0 +1,19 @@
+{
+  "claims": [
+    {
+      "text": "To rezygnacja z przychodów z tytułu biletów, a to jest w 7 mld budżecie naprawdę skromna kwota - 200 mln zł około. Natomiast MPK [we Wrocławiu - przyp. Demagog] i tak nas kosztuje bodajże ok. 700 mln zł.",
+      "claimant": "Polityk",
+      "claimDate": "2024-03-01T00:00:00Z",
+      "claimReview": [
+        {
+          "publisher": {"name": "Demagog", "site": "demagog.org.pl"},
+          "url": "https://demagog.org.pl/wypowiedzi/darmowa-komunikacja-jaka-kwote-musialby-dolozyc-wroclaw/",
+          "title": "Darmowa komunikacja. Jaką kwotę musiałby dołożyć Wrocław?",
+          "reviewDate": "2024-03-12T10:00:00Z",
+          "textualRating": "Częściowa prawda",
+          "languageCode": "pl"
+        }
+      ]
+    }
+  ]
+}
