@@ -3,8 +3,8 @@
 A search gives addresses only. Each one is fetched by the SSRF-safe fetcher,
 which honours robots.txt and Content-Signal for sources, and becomes evidence
 only after the injection detector finds no instruction in it (ADR-07, ADR-12).
-The page never joins the shared corpus during the check (worker#90 adds it to
-the next snapshot).
+The page never joins the shared corpus during the check: the result hands it on
+and ``LivePagesPort`` adds it to the next snapshot (worker#90).
 
 Features:
     US-KOR-04, US-SPR-04, US-WTY-03, F-13, ADR-07, ADR-12
@@ -14,7 +14,7 @@ import asyncio
 import hashlib
 import logging
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, time
 
 from meritum_core.checks import InjectionEvent
@@ -58,6 +58,7 @@ class LiveSearchResult(BaseModel):
     Attributes:
         calls: how many web searches were sent.
         documents: pages that passed quarantine, as evidence with their text.
+        pages: the same pages as fetched, for the corpus to take in (worker#90).
         dropped: one ``source_dropped`` event per page that held an instruction.
 
     Features:
@@ -68,6 +69,7 @@ class LiveSearchResult(BaseModel):
 
     calls: int
     documents: list[SourceDocument]
+    pages: list[FetchedPage]
     dropped: list[InjectionEvent]
 
 
@@ -160,6 +162,7 @@ async def _admitted(
     return LiveSearchResult(
         calls=calls,
         documents=list(documents.values()),
+        pages=[quarantine.passed[source_id] for source_id in documents],
         dropped=[s for s in scanned if isinstance(s, InjectionEvent)],
     )
 
@@ -176,6 +179,7 @@ async def _ask(
 class _Quarantine:
     ports: LiveSearchPorts
     deadline: float
+    passed: dict[str, FetchedPage] = field(default_factory=dict)
 
     async def admit(self, url: str) -> SourceDocument | InjectionEvent | None:
         # Fail closed: a page not scanned in time, or at all, is never evidence.
@@ -198,7 +202,9 @@ class _Quarantine:
             return None
         scan = await self.ports.injection.scan(text)
         if not scan.detected:
-            return SourceDocument(source=_source(page, entry, text), text=text)
+            source = _source(page, entry, text)
+            self.passed[source.id] = page
+            return SourceDocument(source=source, text=text)
         first = scan.spans[0]
         return InjectionEvent(
             location="source",

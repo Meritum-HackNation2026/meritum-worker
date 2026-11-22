@@ -66,6 +66,7 @@ from meritum_worker.corpus.ingest import (
     take_snapshot,
 )
 from meritum_worker.corpus.language import detect_language
+from meritum_worker.corpus.live_pages import CorpusLivePages, LivePagesPort
 from meritum_worker.corpus.live_search import (
     LiveSearchPorts,
     LiveSearchResult,
@@ -124,6 +125,7 @@ __all__ = [
     "WEB_SEARCH_MARGIN",
     "WEB_SEARCH_TIMEOUT",
     "ClaimReviewFinding",
+    "CorpusLivePages",
     "CorpusRetentionPort",
     "CorpusSnapshot",
     "CorpusWriterPort",
@@ -150,6 +152,7 @@ __all__ = [
     "IngestDeps",
     "IngestFailure",
     "IngestReport",
+    "LivePagesPort",
     "LiveSearchPorts",
     "LiveSearchResult",
     "ManifestEntry",

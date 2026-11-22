@@ -26,6 +26,11 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Wtedy strona z gov.pl po skanie jest dowodem w tym sprawdzeniu z Source.via = web_search i jest w CheckRecord.source_ids
     I do wspólnego korpusu dołącza dopiero z następną migawką
 
+  Scenariusz: strona z wyszukiwania na żywo trafia do następnej migawki
+    Zakładając sprawdzenie, w którym strona z gov.pl przeszła kwarantannę
+    Gdy rusza następna ingestia korpusu
+    Wtedy strona jest w nowej migawce z Source.via = web_search, a bieżąca migawka się nie zmienia
+
   Scenariusz: wynik spoza katalogu
     Zakładając wyszukiwarka zwraca adres z domeny spoza katalogu
     Gdy wynik przechodzi nasz filtr domen

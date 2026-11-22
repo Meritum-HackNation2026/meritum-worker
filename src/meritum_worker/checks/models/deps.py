@@ -18,7 +18,7 @@ from meritum_core.security.pii import PiiGatePort
 from meritum_core.shared.blobs import BlobStore
 from meritum_core.shared.llm import LlmPort
 
-from meritum_worker.corpus import FactCheckPort, FakeFactCheck
+from meritum_worker.corpus import FactCheckPort, FakeFactCheck, LivePagesPort
 from meritum_worker.moderation import ModerationDeps
 
 
@@ -43,6 +43,8 @@ class CheckDeps:
         moderation: the ports of moderator cases; None skips the cases step.
         web_search_provider: the web search provider, the key of WEB_SEARCH_PRICES.
         fact_check: Google Fact Check Tools API, or the stub that finds nothing.
+        live_pages: takes pages past quarantine into the corpus for the next
+            snapshot; None where the worker may not write ``corpus``.
 
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
@@ -65,3 +67,4 @@ class CheckDeps:
     moderation: ModerationDeps | None = None
     web_search_provider: str = "stub"
     fact_check: FactCheckPort = field(default_factory=FakeFactCheck)
+    live_pages: LivePagesPort | None = None
