@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from meritum_core.checks.contracts import CheckRecord
+from meritum_core.checks.contracts import CheckRecord, Notification
 from meritum_core.shared.blobs import BlobSettings
 from meritum_core.shared.database import DatabaseSettings
 
@@ -215,3 +215,33 @@ def test_erasure_drops_a_recheck_whose_own_record_names_the_person() -> None:
     payload = {"kind": "channel_user_hash", "value": HASH}
     asyncio.run(erase_subject(payload, deps))
     assert store.ids() == set()
+
+
+USER = "usr_" + "e" * 12
+
+
+def _note(note_id: str, **fields: object) -> Notification:
+    return Notification.model_validate(
+        {
+            "id": note_id,
+            "user_id": USER,
+            "link": "/",
+            "created_at": NOW,
+            "retention_until": NOW + timedelta(days=30),
+            **fields,
+        }
+    )
+
+
+def test_erasure_keeps_the_persons_case_assignments_and_system_messages() -> None:
+    deps = _deps(InMemoryWorkflowStore())
+    notes = (
+        _note("n_done", kind="check_done", check_id="chk_1"),
+        _note("n_case", kind="case_assigned", case_id="#S-1"),
+        _note("n_sys", kind="system", message_code="maintenance_planned"),
+    )
+    for note in notes:
+        asyncio.run(deps.app.notifications.save(note))
+    asyncio.run(erase_subject({"kind": "user_id", "value": USER}, deps))
+    kept = asyncio.run(deps.app.notifications.list_for("user_id", USER))
+    assert {n.kind for n in kept} == {"case_assigned", "system"}
