@@ -11,6 +11,7 @@ from ._feed_transport import FeedTransport
 from ._json_transport import JsonAsTextTransport, build_api_fetcher
 from ._mcp import McpEuvsDisinfo
 from ._memory import MemoryEuvsCopy
+from ._memory_archive import MemoryArchiveRegistry
 from ._memory_corpus import MemoryCorpusWriter
 from ._migrations import apply_corpus_migrations
 from ._openrouter_ranking import OpenRouterReranker
@@ -29,6 +30,7 @@ __all__ = [
     "GoogleFactCheck",
     "JsonAsTextTransport",
     "McpEuvsDisinfo",
+    "MemoryArchiveRegistry",
     "MemoryCorpusWriter",
     "MemoryEuvsCopy",
     "OpenRouterReranker",

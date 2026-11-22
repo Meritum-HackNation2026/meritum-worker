@@ -129,3 +129,29 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Zakładając kanał RSS zwraca błąd 500
     Gdy workflow odświeżania działa
     Wtedy błąd jest zapisany z domeną i czasem, a pozostałe źródła są odświeżone
+
+  Scenariusz: archiwizacja na prośbę
+    Zakładając obywatel prosi o archiwizację publicznej strony gov.pl
+    Gdy workflow archiwizacji kończy się
+    Wtedy kopia ma zapisaną podstawę prawną, retencję, kontrolę dostępu i procedurę usunięcia
+    I widzi ją tylko ta osoba i moderatorzy, a kopia nie trafia do korpusu ani do odpowiedzi dla innych
+
+  Scenariusz: strona za logowaniem
+    Zakładając obywatel prosi o archiwizację posta, który wymaga logowania
+    Gdy workflow archiwizacji działa
+    Wtedy kopia nie powstaje, a obywatel dostaje komunikat
+
+  Scenariusz: strona z zastrzeżeniem TDM albo robots
+    Zakładając obywatel prosi o archiwizację strony, której robots.txt zabrania pobierania
+    Gdy workflow archiwizacji działa
+    Wtedy kopia nie powstaje, a obywatel dostaje komunikat
+
+  Scenariusz: limit próśb o archiwizację
+    Zakładając obywatel, który wykorzystał limit próśb o archiwizację
+    Gdy prosi o kolejną archiwizację
+    Wtedy kopia nie powstaje, a obywatel dostaje komunikat
+
+  Scenariusz: usunięcie kopii na wniosek
+    Zakładając obywatel ma zarchiwizowaną stronę gov.pl
+    Gdy zlecający prosi o usunięcie kopii
+    Wtedy kopii nie ma ani w rejestrze, ani w magazynie
