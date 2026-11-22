@@ -141,7 +141,12 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Zakładając twierdzenie "Tylko we Wrocławiu seniorzy po 65. roku życia jeżdżą komunikacją za darmo" z frazami kluczowymi
     I API zwraca ClaimReview o darmowej komunikacji dla seniorów w innym mieście
     Gdy system bada twierdzenie z oceną fact-checkera
-    Wtedy podobieństwo jest poniżej progu, a ocena zostaje kontekstem z linkiem
+    Wtedy model porównuje ocenę z twierdzeniem i uznaje ją za inną, a ocena zostaje kontekstem z linkiem
+
+  Scenariusz: ocena dłuższej wypowiedzi, której częścią jest nasze twierdzenie, jest przesłanką
+    Zakładając twierdzenie "Wrocław wydaje na komunikację około 700 mln zł" i ocena Demagogu "Częściowa prawda" wypowiedzi o kosztach MPK we Wrocławiu z podobieństwem 0,7
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy model porównuje ocenę z twierdzeniem i uznaje ją za ocenę naszego twierdzenia
 
   Scenariusz: kilka zapytań mieści się w budżecie czasu
     Zakładając twierdzenie "Tylko we Wrocławiu seniorzy po 65. roku życia jeżdżą komunikacją za darmo" z trzema frazami kluczowymi

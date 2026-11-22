@@ -62,7 +62,11 @@ REVIEW_MATCH_INSTRUCTIONS: Final = (
     " generally (Szczepionki powodują autyzm for a claim about COVID-19"
     " vaccines) or with an added detail such as a ranking, a reason or who said"
     " it (Szwecja jest pierwszym krajem, który zlikwidował gotówkę for Szwecja"
-    " zlikwidowała gotówkę)."
+    " zlikwidowała gotówkę). It is also the same when a longer statement holds"
+    " our claim as one of its parts (MPK i tak nas kosztuje ok. 700 mln zł inside"
+    " a longer quote, for Wrocław wydaje na komunikację około 700 mln zł) or when"
+    " the rated item is a film, post or photo that asserts our claim (Film"
+    " przedstawia argumenty, że Ziemia jest płaska, for Ziemia jest płaska)."
 )
 """Instructions of the call that decides whether a rating is about our claim."""
 

@@ -28,7 +28,6 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from meritum_worker.corpus.errors import FactCheckUnavailableError
 from meritum_worker.corpus.fact_check_constants import (
-    FACT_CHECK_CONTEXT_MIN_SIMILARITY,
     FACT_CHECK_LANGUAGE,
     FACT_CHECK_PARALLEL_QUERIES,
     FACT_CHECK_SIMILARITY_THRESHOLD,
@@ -99,8 +98,8 @@ async def search_fact_checks(  # ruff: ignore[too-many-arguments]  # the two opt
     phrases (names, places, numbers) are searched too, in parallel and masked
     first. The reviews are merged by link per fact. With ``embeddings`` each
     ``claimReviewed`` is compared with the fact: from
-    FACT_CHECK_SIMILARITY_THRESHOLD it goes on to the model's comparison, from
-    FACT_CHECK_CONTEXT_MIN_SIMILARITY it stays context, below it is dropped.
+    FACT_CHECK_SIMILARITY_THRESHOLD it goes on to the model's comparison, below
+    it is dropped.
     The vectors are not kept anywhere. Without embeddings (or when they fail)
     every review goes on to the comparison.
 
@@ -175,8 +174,6 @@ async def _by_similarity(
         score = cosine(vectors[finding.fact], vector)
         if score >= FACT_CHECK_SIMILARITY_THRESHOLD:
             kept.append(finding)
-        elif score >= FACT_CHECK_CONTEXT_MIN_SIMILARITY:
-            kept.append(finding.model_copy(update={"similar": False}))
     return kept
 
 
