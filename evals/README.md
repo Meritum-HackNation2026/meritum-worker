@@ -22,13 +22,14 @@ Plik jury ma ten sam format: lista przypadków w JSON. Model walidacji to `Golde
 | `main_claim` | tak | główne twierdzenie; werdykt przypadku to jego werdykt |
 | `expected_status` | tak | `done`, `needs_clarification`, `out_of_scope`, `technical_failure` |
 | `expected_verdict` | gdy `done` | werdykt głównego twierdzenia (`confirmed`, `false`, `misleading`, `insufficient_evidence`, `not_verifiable`) |
-| `acceptable_verdicts` | nie | inne werdykty, których rzetelny sprawdzający może bronić (np. `misleading` obok `false` przy brakującym „brutto”); liczą się jako poprawne |
+| `acceptable_verdicts` | nie | inne werdykty, których rzetelny sprawdzający może bronić (np. `misleading` obok `false` przy brakującym „brutto”); liczą się jako poprawne; tylko obok `expected_verdict`, bez jego powtórzenia i bez duplikatów |
 | `category` | nie | rodzaj przypadku w benchmarku sprawdzania faktów: `true`, `false`, `partial`, `misleading`, `numbers`, `public_figure`, `opinion`, `fact_checked`, `out_of_scope` |
 | `expected_behavior` | tak | co odpowiedź musi powiedzieć, po polsku |
 | `sources` | nie | `url`, `publisher`, `title`, `quote` (najwyżej 300 znaków), opcjonalnie `validity` (`superseded` dla dowodu zastąpionego) |
 | `variant`, `related_case` | nie | powtórzenie (`same_session`, `other_channel`) wskazuje w `related_case` pierwszy przypadek; scenariusz I ma `same_material` albo `other_material` bez `related_case` |
 | `injection` | nie | atak: `place` (`user_text` albo `source_page`), `payload` i `clean_case`, czyli ten sam przypadek bez polecenia |
 | `fault` | nie | wymuszona awaria dostawcy (`fact_check_api`, `web_search`, `llm`); oczekiwany stan to wtedy `technical_failure` |
+| `checked_at` | nie | dzień, w którym ostatnio sprawdziliśmy źródła przypadku, w formacie ISO, np. `2026-11-22` |
 
 Walidacja odrzuca plik, gdy:
 
@@ -36,7 +37,11 @@ Walidacja odrzuca plik, gdy:
 - odwołanie wskazuje nieistniejący przypadek,
 - powtórzenie stoi w pliku przed przypadkiem, który powtarza, albo wskazuje samo siebie,
 - atak ma inne główne twierdzenie albo inną etykietę niż jego `clean_case`, albo `clean_case` sam jest atakiem (ADR-23),
-- powtórzenie `same_session` ma inny kanał albo sesję, a `other_channel` ten sam kanał.
+- powtórzenie `same_session` ma inny kanał albo sesję, a `other_channel` ten sam kanał,
+- `acceptable_verdicts` stoi bez `expected_verdict`, powtarza go albo wymienia ten sam werdykt dwa razy,
+- `checked_at` nie jest datą ISO.
+
+Werdykt z `acceptable_verdicts` liczy się w ocenie przypadku jako `correct`, a w macro-F1 i we wstrzymaniu jako trafienie oczekiwanej klasy. W raporcie przy przypadku zostaje werdykt, który system faktycznie zwrócił. W pliku CSV kolumna `acceptable_verdicts` trzyma listę w JSON, tak jak `sources`. Id przypadków nie powtarzają się między `golden/cases.json` a `golden/fact-checks.json`.
 
 Przypadek `B-org-nagranie-moskwa` nie ma `url`: film z analizy Demagoga wrzuciła na Facebooka osoba prywatna, a do repozytorium nie trafiają linki do profili osób prywatnych. Pytanie opisuje nagranie słowami, a źródłem jest analiza Demagoga.
 

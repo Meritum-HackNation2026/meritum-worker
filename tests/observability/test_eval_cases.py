@@ -2,6 +2,7 @@
 
 import csv
 import json
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -41,6 +42,19 @@ def test_csv_holds_the_same_cases_as_json(tmp_path: Path) -> None:
     path = tmp_path / "jury.csv"
     _write_csv(path, list(golden.root))
     assert load_eval_cases(path) == golden
+
+
+def test_csv_keeps_alternative_verdicts_and_check_date(tmp_path: Path) -> None:
+    golden = list(load_golden_set(GOLDEN).root)
+    first = golden[0].model_copy(
+        update={
+            "acceptable_verdicts": ("not_verifiable",),
+            "checked_at": date(2026, 11, 22),
+        }
+    )
+    path = tmp_path / "jury.csv"
+    _write_csv(path, [first, *golden[1:]])
+    assert load_eval_cases(path).root[0] == first
 
 
 def test_too_small_file_names_the_required_count(tmp_path: Path) -> None:
