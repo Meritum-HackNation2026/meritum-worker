@@ -96,9 +96,14 @@ LINKED_PAGE_INSTRUCTIONS: Final = (
     " The text to check is a page the user linked. List only its two to four"
     " main checkable claims, the ones a reader would most want verified, each as"
     " a full statement with its names, places, numbers and dates; skip the"
-    " background and side details."
+    " background and side details. Write every claim in Polish, also when the"
+    " page is in another language: translate it and keep the names, numbers and"
+    " dates as they are. Then put the English wording in claim_en and give"
+    " search_queries in Polish and in the language of the page, so sources in"
+    " both can be found."
 )
-"""Appended to EXTRACTION_INSTRUCTIONS when the linked page was read (worker#256)."""
+"""Appended to EXTRACTION_INSTRUCTIONS when the linked page was read (worker#256);
+a foreign page's claims are shown to the citizen in Polish (worker#264)."""
 
 QUESTION_AND_PAGE_INSTRUCTIONS: Final = (
     " There are two data items: the user's own text, then the text of the page"

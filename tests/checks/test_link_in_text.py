@@ -189,3 +189,13 @@ def test_check_of_a_question_with_a_link_reads_the_article(
     assert pages.calls == [(LINK, FetchPurpose.USER_LINK)]
     assert statuses["fetch_url"] == "done"
     assert output.result.status == "done"
+
+
+def test_claims_of_a_foreign_page_are_asked_for_in_polish_with_both_queries(
+    make_job: MakeJob, make_deps: MakeDeps
+) -> None:
+    state = _state(make_job, url=LINK).model_copy(update={"page_text": PAGE_TEXT})
+    _, prompt = _extract(state, make_deps(), FACT)
+    assert "Write every claim in Polish" in prompt
+    assert "claim_en" in LINKED_PAGE_INSTRUCTIONS
+    assert "language of the page" in LINKED_PAGE_INSTRUCTIONS

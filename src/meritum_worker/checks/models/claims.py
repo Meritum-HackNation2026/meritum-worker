@@ -15,7 +15,8 @@ class ExtractedClaim(BaseModel):
     """One claim the model found in the input, before any evidence is searched.
 
     Attributes:
-        claim: the claim as written in the input.
+        claim: the claim as written in the input; in Polish when it comes from
+            a linked page in another language.
         claim_en: the claim in English, for English-language sources; None when
             the claim is already English.
         search_queries: up to 4 web search queries the model wrote for the claim:
