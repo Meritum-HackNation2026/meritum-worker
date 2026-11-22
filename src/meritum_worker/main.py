@@ -20,6 +20,7 @@ from meritum_core.corpus.catalog import load_catalog
 from meritum_core.jobs.constants import READINESS_KEY
 from meritum_core.jobs.contracts import (
     APPLICATION_NAME,
+    ARCHIVE_PAGE,
     CHECK,
     DEFAULT_QUEUE,
     DELETE_SUBJECT,
@@ -44,7 +45,7 @@ from meritum_worker import (
     security,
 )
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
-from meritum_worker.corpus.adapters import apply_corpus_migrations
+from meritum_worker.corpus.adapters import apply_corpus_migrations, build_archive_deps
 
 
 @cache
@@ -408,6 +409,38 @@ async def eval_run_workflow(payload: dict[str, Any]) -> dict[str, Any]:
     return await DBOS.run_step_async(
         {"name": "finish", "retries_allowed": True}, finish, done
     )
+
+
+@cache
+def _archive_deps() -> corpus.ArchiveDeps:
+    blobs = BlobSettings() if security.BLOB_PROVIDER_ENV in os.environ else None
+    return build_archive_deps(DatabaseSettings(), blobs)
+
+
+async def _archive(payload: dict[str, Any]) -> dict[str, Any]:
+    return await corpus.run_archive_page(
+        payload, _archive_deps(), now=datetime.now(UTC)
+    )
+
+
+@DBOS.workflow(
+    name=ARCHIVE_PAGE.name, serialization_type=WorkflowSerializationFormat.PORTABLE
+)
+async def archive_page_workflow(payload: dict[str, Any]) -> dict[str, Any]:
+    """Archive one public page for the citizen who asked (ARCHIVE_PAGE).
+
+    The backend enqueues it with ``archive_id`` as the workflow id and polls it.
+
+    Args:
+        payload: the ``ArchivePageInput`` JSON object.
+
+    Returns:
+        The ``ArchivePageOutput`` JSON object: the copy or the refusal.
+
+    Features:
+        US-KOR-07, F-38, ADR-03
+    """
+    return await DBOS.run_step_async({"retries_allowed": True}, _archive, payload)
 
 
 def _retention_deps() -> security.RetentionDeps:

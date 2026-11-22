@@ -28,6 +28,8 @@ class ArchiveRequest(BaseModel, frozen=True):
     Attributes:
         url: the page; the page fetcher rejects anything but public http(s).
         owner_id: who asked; only they and moderators may read the copy.
+        archive_id: the copy's id the backend chose (the workflow id); the blob
+            id when None.
 
     Features:
         US-KOR-07, F-38
@@ -35,6 +37,7 @@ class ArchiveRequest(BaseModel, frozen=True):
 
     url: str
     owner_id: str
+    archive_id: str | None = None
 
 
 class ArchiveCopy(BaseModel):

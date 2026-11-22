@@ -10,6 +10,7 @@ Features:
 
 from meritum_worker.corpus.archive import archive_page, delete_archive, read_archive
 from meritum_worker.corpus.archive_constants import ARCHIVE_RATE_LIMIT
+from meritum_worker.corpus.archive_job import run_archive_page
 from meritum_worker.corpus.archive_models import (
     ArchiveCopy,
     ArchiveOutcome,
@@ -210,6 +211,7 @@ __all__ = [
     "missing_env",
     "read_archive",
     "rerank_passages",
+    "run_archive_page",
     "run_euvsdisinfo_sync",
     "search_fact_checks",
     "search_live",
