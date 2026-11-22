@@ -6,12 +6,9 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.security.pii import NullPiiGate
 from meritum_core.shared.llm import (
     LlmPort,
-    LlmResult,
-    LlmUsage,
-    Prompt,
     ProviderUnavailableError,
 )
-from pydantic import BaseModel
+from tests.llm_fakes import RecordingLlm
 
 from meritum_worker.checks import (
     AnswerDraft,
@@ -40,28 +37,6 @@ def _deps(llm: LlmPort) -> CheckDeps:
     )
 
 
-USAGE = LlmUsage(
-    provider="stub", model="stub", region="local", input_tokens=0, output_tokens=0
-)
-
-
-class _RecordingLlm:
-    """Answers each output model from ``answers`` and keeps every prompt."""
-
-    def __init__(self, *answers: BaseModel) -> None:
-        self.answers = {type(answer).__name__: answer for answer in answers}
-        self.prompts: list[Prompt] = []
-
-    async def complete[T: BaseModel](
-        self, prompt: Prompt, output: type[T]
-    ) -> LlmResult[T]:
-        self.prompts.append(prompt)
-        if output.__name__ not in self.answers:
-            raise ProviderUnavailableError(output.__name__)
-        answer = output.model_validate(self.answers[output.__name__].model_dump())
-        return LlmResult[T](output=answer, usage=USAGE)
-
-
 def _claim(text: str, kind: str = "fact", **date_fields: object) -> ExtractedClaim:
     return ExtractedClaim.model_validate(
         {
@@ -75,8 +50,8 @@ def _claim(text: str, kind: str = "fact", **date_fields: object) -> ExtractedCla
 
 def _extract(
     state: CheckState, *claims: ExtractedClaim, out_of_scope: bool = False
-) -> tuple[CheckState, _RecordingLlm]:
-    llm = _RecordingLlm(ClaimExtraction(out_of_scope=out_of_scope, claims=[*claims]))
+) -> tuple[CheckState, RecordingLlm]:
+    llm = RecordingLlm(ClaimExtraction(out_of_scope=out_of_scope, claims=[*claims]))
     return asyncio.run(
         extract_claims(state.model_copy(update={"claims": []}), _deps(llm))
     ), llm
@@ -203,7 +178,7 @@ def test_user_text_goes_to_the_model_only_as_data(state: CheckState) -> None:
 
 
 def test_provider_failure_reaches_the_workflow(state: CheckState) -> None:
-    deps = _deps(_RecordingLlm())
+    deps = _deps(RecordingLlm())
     with pytest.raises(ProviderUnavailableError):
         asyncio.run(extract_claims(state, deps))
 
@@ -211,7 +186,7 @@ def test_provider_failure_reaches_the_workflow(state: CheckState) -> None:
 def test_answer_with_other_count_than_facts_is_technical_failure(
     state: CheckState,
 ) -> None:
-    llm = _RecordingLlm(AnswerDraft(claims=[], limitations=["Brak korpusu."]))
+    llm = RecordingLlm(AnswerDraft(claims=[], limitations=["Brak korpusu."]))
     deps = _deps(llm)
     out = asyncio.run(write_answer(state, deps))
     assert out.result is not None
@@ -220,7 +195,7 @@ def test_answer_with_other_count_than_facts_is_technical_failure(
 
 def test_write_answer_keeps_a_result_set_by_extraction(state: CheckState) -> None:
     done, _ = _extract(state)
-    llm = _RecordingLlm()
+    llm = RecordingLlm()
     deps = _deps(llm)
     out = asyncio.run(write_answer(done, deps))
     assert out.result == done.result
@@ -234,11 +209,11 @@ def test_only_opinions_are_done_with_model_limitations_even_if_it_judged_them(
     extracted, _ = _extract(state, opinion)
     judged = ClaimExplanation(explanation="Ocena, a nie fakt do sprawdzenia.")
     draft = AnswerDraft(claims=[judged], limitations=["Brak faktów do sprawdzenia."])
-    deps = _deps(_RecordingLlm(draft))
+    deps = _deps(RecordingLlm(draft))
     out = asyncio.run(write_answer(extracted, deps))
     assert out.result is not None
     assert out.result.status == "done"
     assert [(c.claim, c.verdict) for c in out.result.claims] == [
         ("Rząd sobie nie radzi.", "not_verifiable")
     ]
-    assert out.result.limitations == ["Brak faktów do sprawdzenia."]
+    assert out.result.limitation_codes == ["corpus_scope"]

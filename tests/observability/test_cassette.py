@@ -19,6 +19,7 @@ from meritum_core.shared.llm import (
     ProviderUnavailableError,
 )
 from pydantic import BaseModel
+from tests.llm_fakes import NoTools
 
 from meritum_worker.checks import FakePageFetcher
 from meritum_worker.observability import Cassette, CassetteMissError
@@ -46,7 +47,7 @@ USAGE = LlmUsage(
 )
 
 
-class _Answers:
+class _Answers(NoTools):
     """LlmPort answering "a", "b", ... on successive calls."""
 
     def __init__(self) -> None:
@@ -62,7 +63,7 @@ class _Answers:
         return LlmResult[T](output=output.model_validate({"text": text}), usage=USAGE)
 
 
-class _Broken:
+class _Broken(NoTools):
     @staticmethod
     async def complete[T: BaseModel](prompt: Prompt, output: type[T]) -> LlmResult[T]:
         raise ProviderUnavailableError(prompt, output)

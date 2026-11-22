@@ -12,6 +12,7 @@ from meritum_core.checks import CheckResult
 from meritum_core.checks.contracts import (
     CatalogEntry,
     ClaimResult,
+    LimitationCode,
     ModelUsage,
     ai_marker_for,
 )
@@ -86,6 +87,8 @@ def _result_from_draft(
     if len(draft.claims) != len(facts):
         # One result per fact, or the answer cannot be tied to its claims.
         return state.technical_failure()
+    # Skipped claims and dropped sources: what the check could not cover.
+    skipped: list[LimitationCode] = ["corpus_scope"] * len(state.limitations)
     answered = list(map(_answered, facts, judged, draft.claims, strict=True))
     unverifiable = [_not_verifiable(c) for c in state.claims if not c.is_fact]
     return CheckResult(
@@ -96,9 +99,18 @@ def _result_from_draft(
             *(plain_text(text, LIMITATION_MAX_CHARS) for text in draft.limitations),
             *state.limitations,
         ],
+        limitation_codes=[
+            *[_draft_code(state, facts)] * len(draft.limitations),
+            *skipped,
+        ],
         corpus_version=state.corpus_version,
         ai_marker=ai_marker_for(usage, datetime.now(UTC)),
     )
+
+
+def _draft_code(state: CheckState, facts: list[ExtractedClaim]) -> LimitationCode:
+    # Facts searched with nothing found in the corpus or on the web.
+    return "no_publications" if facts and not state.evidence else "corpus_scope"
 
 
 def _judge(

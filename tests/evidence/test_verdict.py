@@ -52,3 +52,30 @@ def test_older_supporting_evidence_superseded_by_newer_official_one() -> None:
     assert (result.verdict, result.technique) == ("false", "outdated")
     assert result.strength is not None
     assert result.strength.premises.independent_sources == 1
+
+
+def test_expired_support_does_not_conflict_with_a_fresh_refutation() -> None:
+    citations = [
+        cite("supports", "kprm", "primary", domain="gov.pl", published_at=OLD),
+        cite("refutes", "demagog", published_at=FRESH, page="b"),
+    ]
+    result = judge(citations, catalog=CATALOG, claim_date=CLAIM_DATE)
+    assert result.verdict == "false"
+
+
+def test_expired_evidence_on_both_sides_still_conflicts() -> None:
+    citations = [
+        cite("supports", "kprm", "primary", domain="gov.pl", published_at=OLD),
+        cite("refutes", "demagog", published_at=OLD, page="b"),
+    ]
+    result = judge(citations, catalog=CATALOG, claim_date=CLAIM_DATE)
+    assert result.verdict == "insufficient_evidence"
+
+
+def test_citation_source_carries_the_catalog_age_threshold() -> None:
+    citations = [
+        cite("supports", "kprm", "primary", domain="gov.pl"),
+        cite("supports", "demagog", page="b"),
+    ]
+    dated = with_validity(citations, CATALOG, claim_date=CLAIM_DATE)
+    assert [c.source.max_age_hours for c in dated] == [48, None]

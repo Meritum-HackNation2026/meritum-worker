@@ -9,7 +9,7 @@ from datetime import datetime
 
 from meritum_core.checks.contracts import Source, SourceTier
 from meritum_core.evidence import SourceDocument
-from meritum_core.shared.llm import LlmResult, Prompt
+from meritum_core.shared.llm import LlmResult, LlmToolResult, Prompt, Tool
 from meritum_core.shared.llm.errors import ProviderUnavailableError
 from pydantic import BaseModel
 
@@ -64,6 +64,22 @@ class RecordedLlm:
         return LlmResult[T](
             output=output.model_validate(recorded.model_dump()), usage=FAKE_USAGE
         )
+
+    @staticmethod
+    async def complete_with_tools[T: BaseModel](
+        prompt: Prompt, output: type[T], tools: tuple[Tool, ...]
+    ) -> LlmToolResult[T]:
+        """Fail: no evidence step offers the model tools.
+
+        Args:
+            prompt: the prompt.
+            output: the model to answer with.
+            tools: the tools offered.
+
+        Raises:
+            NotImplementedError: always.
+        """
+        raise NotImplementedError(prompt, output, tools)
 
 
 def document(  # ruff: ignore[too-many-arguments]  # a fake source names every field a test varies

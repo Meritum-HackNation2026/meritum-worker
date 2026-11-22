@@ -1,10 +1,12 @@
 import asyncio
 from collections.abc import Callable
 from dataclasses import replace
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from meritum_core.checks import InjectionEvent
+from meritum_core.checks.contracts import Source
+from meritum_core.evidence.models import SourceDocument
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.shared.llm import LlmPort, LlmResult, Prompt, ProviderUnavailableError
 from pydantic import BaseModel
@@ -30,6 +32,39 @@ def test_write_answer_builds_done_result_and_records_model_usage(
         out.models[-1].provider,
         out.models[-1].model,
     )
+
+
+def test_write_answer_codes_a_model_limitation_no_publications_when_nothing_was_found(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    skipped = state.model_copy(update={"limitations": ["Opinia numer 6"]})
+    out = asyncio.run(write_answer(skipped, make_deps()))
+    assert out.result is not None
+    assert out.result.limitation_codes == ["no_publications", "corpus_scope"]
+
+
+def test_write_answer_codes_a_model_limitation_corpus_scope_when_evidence_was_found(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    found = state.model_copy(update={"evidence": [_document()]})
+    out = asyncio.run(write_answer(found, make_deps()))
+    assert out.result is not None
+    assert out.result.limitation_codes == ["corpus_scope"]
+
+
+def _document() -> SourceDocument:
+    source = Source(
+        id="gus-a",
+        title="Płaca minimalna",
+        publisher="GUS",
+        publisher_id="gus",
+        url="https://gus.example.pl/a",
+        domain="gus.example.pl",
+        kind="instytucja",
+        tier="primary",
+        fetched_at=datetime(2026, 11, 21, tzinfo=UTC),
+    )
+    return SourceDocument(source=source, text="Płaca minimalna wynosi 4806 zł.")
 
 
 class _Priced:

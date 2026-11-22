@@ -18,6 +18,7 @@ from meritum_core.shared.llm import (
     build_llm,
 )
 from pydantic import BaseModel
+from tests.llm_fakes import NoTools
 
 from meritum_worker.checks import (
     CheckDeps,
@@ -48,7 +49,7 @@ class _SlowRecords(InMemoryCheckRecordRepository):
         await super().save(record.model_copy(update={"answered_at": late}))
 
 
-class _BrokenLlm:
+class _BrokenLlm(NoTools):
     @staticmethod
     async def complete[T: BaseModel](prompt: Prompt, output: type[T]) -> LlmResult[T]:
         raise RuntimeError(prompt, output)
@@ -90,12 +91,10 @@ def test_a_check_that_raises_ends_as_technical_failure() -> None:
     assert all(0 <= r.seconds < 1 and r.models == () for r in runs)
 
 
-def test_forced_model_fault_fails_only_its_case(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("MERITUM_LLM_PROVIDER", "stub")
-    monkeypatch.setenv("MERITUM_LLM_STUB_FIXTURES", str(STUB_ANSWER))
-    deps_for = build_eval_deps(LlmSettings())
+def test_forced_model_fault_fails_only_its_case() -> None:
+    deps_for = build_eval_deps(
+        LlmSettings(provider=LlmProvider.STUB, stub_fixtures=STUB_ANSWER)
+    )
 
     def status(case: GoldenCase) -> str:
         return next(r for r in runs if r.case.id == case.id).result.status
