@@ -152,3 +152,35 @@ def test_documents_keep_catalog_metadata_and_full_text(
         corpus.ingest_catalog([ENTRY], deps, now=NOW + timedelta(days=1))
     )
     assert again == corpus.IngestReport(unchanged=2)
+
+
+@pytest.mark.integration
+def test_documents_keep_the_way_they_came_into_the_corpus(
+    settings: CorpusSettings,
+) -> None:
+    """Gherkin: dokument z kanału RSS zapisuje drogę pozyskania (worker#154)."""
+    store = corpus.build_corpus_writer(settings)
+    site = FakeCatalogSite(pages_per_domain=1)
+    deps = corpus.IngestDeps(
+        discovery=site,
+        fetcher=site,
+        embeddings=build_embeddings(EmbeddingsSettings()),
+        store=store,
+        injection=CleanInjectionDetector(),
+    )
+    asyncio.run(corpus.ingest_catalog([ENTRY], deps, now=NOW))
+    page = FetchedPage(
+        url="https://urzad.gov.pl/komunikat",
+        content_type="text/html",
+        untrusted_text="Komunikat urzędowy z kanału RSS.",
+    )
+    found = corpus.DiscoveredPage(url=page.url, via="rss")
+    asyncio.run(corpus.store_page(page, ENTRY, deps, now=NOW, found=found))
+    url = os.environ["MERITUM_TEST_DATABASE_URL"]
+    with psycopg.connect(url) as conn:
+        rows = conn.execute("SELECT url, via FROM corpus.documents").fetchall()
+    assert dict(rows) == {
+        "https://urzad.gov.pl/strona-0": "corpus",
+        "https://urzad.gov.pl/komunikat": "rss",
+    }
+    assert {d.via for d in asyncio.run(store.documents())} == {"corpus", "rss"}

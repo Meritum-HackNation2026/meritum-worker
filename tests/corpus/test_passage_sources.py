@@ -61,6 +61,17 @@ def test_passages_of_one_document_make_one_source_with_catalogue_metadata() -> N
     assert source.fetched_at == FETCHED_AT
 
 
+def test_source_keeps_the_way_its_document_came_into_the_corpus() -> None:
+    meta = _meta("doc-a").model_copy(update={"via": "rss"})
+    passages = {"burze": [_ranked("doc-a", "a1", "RCB ostrzega przed burzami.")]}
+
+    found = asyncio.run(
+        passage_documents(passages, FakeCorpusDocuments([meta]), CATALOG)
+    )
+
+    assert found["burze"][0].source.via == "rss"
+
+
 def test_passage_without_document_or_catalogue_entry_is_left_out() -> None:
     passages = {
         "burze": [

@@ -160,6 +160,11 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Wtedy 3 nowe dokumenty trafiają do korpusu z datą publikacji z kanału
     I wpisy już wczytane i powtórzone z innym znacznikiem nie są pobierane ponownie
 
+  Scenariusz: dokument z kanału RSS zapisuje drogę pozyskania
+    Zakładając wczytywanie RSS pobrało dokument z kanału z katalogu
+    Gdy magazyn korpusu zapisuje dokument
+    Wtedy dokument z kanału ma via "rss", a dokument z wczytywania katalogu ma via "corpus"
+
   Scenariusz: nowe adresy z mapy strony
     Zakładając pozycja katalogu z indeksem map strony
     Gdy workflow odświeżania działa

@@ -1,6 +1,7 @@
 """Corpus writer over the shared ``corpus`` schema (documents, passages, snapshots).
 
-The tables come from meritum-core's corpus migrations 0001 and 0003. Document
+The tables come from meritum-core's corpus migrations 0001, 0003 and 0007
+(``documents.via``). Document
 writes take ``CORPUS_WRITE_LOCK`` shared and a snapshot takes it exclusive, so
 ``taken_at`` (the database clock) follows every write it covers and no later
 commit can change a published snapshot (ADR-19).
@@ -73,7 +74,7 @@ class PostgresCorpusWriter:
             await cursor.execute(
                 """
                 SELECT source_id, url, domain, publisher_id, license,
-                    published_on, fetched_at, checksum
+                    published_on, fetched_at, checksum, via
                 FROM corpus.documents
                 WHERE retired_at IS NULL
                   AND (%(id)s::text IS NULL OR source_id = %(id)s)
@@ -134,13 +135,15 @@ class PostgresCorpusWriter:
             await cursor.execute(
                 """
 INSERT INTO corpus.documents (source_id, url, domain, publisher_id, license,
-    published_on, fetched_at, checksum, full_text, added_at)
+    published_on, fetched_at, checksum, full_text, via, added_at)
 VALUES (%(source_id)s, %(url)s, %(domain)s, %(publisher_id)s, %(license)s,
-    %(published_on)s, %(fetched_at)s, %(checksum)s, %(full_text)s, clock_timestamp())
+    %(published_on)s, %(fetched_at)s, %(checksum)s, %(full_text)s, %(via)s,
+    clock_timestamp())
 ON CONFLICT (source_id) DO UPDATE SET url = excluded.url, domain = excluded.domain,
     publisher_id = excluded.publisher_id, license = excluded.license,
     published_on = excluded.published_on, fetched_at = excluded.fetched_at,
-    checksum = excluded.checksum, full_text = excluded.full_text, retired_at = NULL
+    checksum = excluded.checksum, full_text = excluded.full_text, via = excluded.via,
+    retired_at = NULL
 """,
                 document.model_dump(),
             )
