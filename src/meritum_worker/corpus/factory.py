@@ -22,6 +22,7 @@ from meritum_worker.corpus.adapters import (
     MemoryEuvsCopy,
     OpenRouterReranker,
     OrganiserFile,
+    PostgresCorpusRetention,
     PostgresCorpusWriter,
     PostgresEuvsCopy,
     VertexReranker,
@@ -42,6 +43,7 @@ from meritum_worker.corpus.ports import (
     EuvsDisinfoPort,
     IngestDeps,
 )
+from meritum_worker.corpus.removals import CorpusRetentionPort
 from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
 from meritum_worker.corpus.sync import missing_env, sync_euvsdisinfo
 
@@ -122,6 +124,27 @@ def build_organiser_file() -> OrganiserFilePort:
         US-KOR-02, F-10, ADR-32
     """
     return OrganiserFile()
+
+
+def build_corpus_retention(
+    settings: CorpusSettings | None = None,
+) -> CorpusRetentionPort:
+    """Build the corpus side of the retention and publisher removal workflows.
+
+    Args:
+        settings: As for ``build_corpus_writer``; None or memory: an empty corpus.
+
+    Returns:
+        The PostgreSQL retention or an in-memory writer.
+
+    Raises:
+        ValueError: postgres without a database URL (settings built unvalidated).
+
+    Features:
+        US-KOR-05, F-10, ADR-13
+    """  # ruff: ignore[docstring-extraneous-exception]  # raised by _postgres_url
+    url = _postgres_url(settings)
+    return MemoryCorpusWriter() if url is None else PostgresCorpusRetention(url)
 
 
 def build_document_discovery() -> DocumentDiscoveryPort:

@@ -325,7 +325,8 @@ async def eval_run_workflow(payload: dict[str, Any]) -> dict[str, Any]:
 
 def _retention_deps() -> security.RetentionDeps:
     blobs = BlobSettings() if security.BLOB_PROVIDER_ENV in os.environ else None
-    return security.build_retention_deps(DatabaseSettings(), blobs)
+    documents = CorpusSettings() if corpus.ingestion_enabled(os.environ) else None
+    return security.build_retention_deps(DatabaseSettings(), blobs, corpus=documents)
 
 
 async def _erase(payload: dict[str, object]) -> int:
@@ -375,6 +376,40 @@ async def retention_workflow(scheduled_at: datetime, _context: object) -> None:
         scheduled_at,
     )
     DBOS.logger.info("retention deleted %s", report.model_dump())
+
+
+async def _remove_for_publisher(payload: dict[str, Any]) -> dict[str, Any]:
+    request = corpus.PublisherRemovalRequest.model_validate(payload)
+    store = corpus.build_corpus_retention(CorpusSettings())
+    removal = await security.remove_publisher_document(
+        store, request, datetime.now(UTC)
+    )
+    if security.removal_is_late(removal):
+        DBOS.logger.warning("publisher removal done after the 7-day deadline")
+    return removal.model_dump(mode="json")
+
+
+@DBOS.workflow(
+    name=security.PUBLISHER_REMOVAL_WORKFLOW,
+    serialization_type=WorkflowSerializationFormat.PORTABLE,
+)
+async def publisher_removal_workflow(payload: dict[str, Any]) -> dict[str, Any]:
+    """Remove a page on its publisher's request (within 7 days) and log it.
+
+    An operator starts it with the ``PublisherRemovalRequest`` JSON object.
+
+    Args:
+        payload: the ``PublisherRemovalRequest`` JSON object.
+
+    Returns:
+        The ``PublisherRemoval`` ledger row as JSON.
+
+    Features:
+        US-KOR-05, F-10, ADR-13
+    """
+    return await DBOS.run_step_async(
+        {"retries_allowed": True}, _remove_for_publisher, payload
+    )
 
 
 @cache

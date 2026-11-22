@@ -6,6 +6,7 @@ Features:
 
 from google.auth.credentials import Credentials
 from httpx2 import AsyncClient
+from meritum_core.corpus import CorpusSettings
 from meritum_core.observability import build_app_repositories
 from meritum_core.security.injection import (
     InjectionDetectorPort,
@@ -17,6 +18,7 @@ from meritum_core.shared.blobs import BlobProvider, BlobSettings, build_blob_sto
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.llm import LlmPort
 
+from meritum_worker.corpus import CorpusRetentionPort, build_corpus_retention
 from meritum_worker.security.adapters import (
     DbosWorkflowStore,
     ModelArmorGate,
@@ -98,6 +100,8 @@ def build_retention_deps(
     blobs: BlobSettings | None,
     *,
     workflows: WorkflowStore | None = None,
+    corpus: CorpusSettings | None = None,
+    corpus_store: CorpusRetentionPort | None = None,
 ) -> RetentionDeps:
     """Build the ports of the retention and ``delete_subject`` workflows.
 
@@ -106,18 +110,22 @@ def build_retention_deps(
         blobs: blob store settings, usually ``BlobSettings()``; None when the
             worker has no ``MERITUM_BLOB_PROVIDER`` and so no files to delete.
         workflows: the DBOS workflow data; DBOS itself when None.
+        corpus: corpus settings, usually ``CorpusSettings()`` when the worker
+            ingests the catalogue; None: an empty in-memory corpus.
+        corpus_store: the corpus retention itself (tests); wins over ``corpus``.
 
     Returns:
         The ports.
 
     Features:
-        US-BEZ-05, US-POW-04, F-20, ADR-13
+        US-BEZ-05, US-POW-04, US-KOR-05, F-10, F-20, ADR-13
     """
     return RetentionDeps(
         app=build_app_repositories(database),
         workflows=DbosWorkflowStore() if workflows is None else workflows,
         blobs=_blob_cleaner(blobs),
         removed_checks=_removed_checks(database),
+        corpus=build_corpus_retention(corpus) if corpus_store is None else corpus_store,
     )
 
 

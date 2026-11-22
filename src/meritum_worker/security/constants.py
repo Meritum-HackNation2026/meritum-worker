@@ -107,3 +107,14 @@ REQUEST_FIELD: Final = "request"
 
 AUDIO_ID_FIELD: Final = "audio_id"
 """Field of a ``CheckRequest`` naming its uploaded audio."""
+
+FULL_TEXT_RETENTION: Final = timedelta(days=90)
+"""How long a corpus document keeps its full text after ``fetched_at``; a refetch
+starts the period again. Metadata and passages stay (US-KOR-05, F-10, ADR-13)."""
+
+PUBLISHER_REMOVAL_DEADLINE: Final = timedelta(days=7)
+"""A publisher's request to remove its page is done within this time (US-KOR-05)."""
+
+PUBLISHER_REMOVAL_WORKFLOW: Final = "publisher_removal"
+"""DBOS name of the workflow that removes a page on its publisher's request; an
+operator starts it with the ``PublisherRemovalRequest`` JSON object."""

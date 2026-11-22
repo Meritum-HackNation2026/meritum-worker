@@ -14,6 +14,7 @@ from meritum_worker.corpus.documents import (
     DocumentPassage,
     ManifestEntry,
 )
+from meritum_worker.corpus.removals import PublisherRemoval, PublisherRemovalRequest
 
 
 def _utc_now() -> datetime:
@@ -25,7 +26,9 @@ def _meta(document: Document) -> DocumentMeta:
 
 
 class MemoryCorpusWriter:
-    """Documents, passages and snapshots held in process.
+    """Documents, passages, snapshots and the removal ledger held in process.
+
+    It is the in-memory CorpusRetentionPort too.
 
     Args:
         clock: Gives a snapshot's ``taken_at``; the wall clock by default.
@@ -40,6 +43,9 @@ class MemoryCorpusWriter:
     def __init__(self, clock: Callable[[], datetime] = _utc_now) -> None:
         self._clock = clock
         self._documents: dict[str, Document] = {}
+        self._cleared: set[str] = set()
+        self._passage_sources: dict[str, str] = {}
+        self._removals: list[PublisherRemoval] = []
         self._snapshots: dict[str, CorpusSnapshot] = {}
         self._attempts: dict[str, datetime] = {}
         self.passages: dict[str, DocumentPassage] = {}
@@ -94,6 +100,10 @@ class MemoryCorpusWriter:
             passages: Its new passages.
         """
         self._documents[document.source_id] = document
+        self._cleared.discard(document.source_id)
+        self._passage_sources.update(
+            (p.passage_id, document.source_id) for p in passages
+        )
         self.passages.update((p.passage_id, p) for p in passages)
 
     async def take_snapshot(self, version: str) -> CorpusSnapshot:
@@ -127,3 +137,72 @@ class MemoryCorpusWriter:
             The snapshot or None.
         """
         return self._snapshots.get(version)
+
+    async def full_text(self, source_id: str) -> str | None:
+        """Return a document's text (see ``CorpusWriterPort.full_text``).
+
+        Args:
+            source_id: The document.
+
+        Returns:
+            The text or None.
+        """
+        found = self._documents.get(source_id)
+        if found is None or source_id in self._cleared:
+            return None
+        return found.full_text
+
+    async def clear_full_texts(self, *, fetched_before: datetime, limit: int) -> int:
+        """Clear old texts (see ``CorpusWriterPort.clear_full_texts``).
+
+        Args:
+            fetched_before: The retention cutoff.
+            limit: The most documents cleared.
+
+        Returns:
+            How many were cleared.
+        """
+        due = [
+            d.source_id
+            for d in self._documents.values()
+            if d.fetched_at < fetched_before and d.source_id not in self._cleared
+        ][:limit]
+        self._cleared.update(due)
+        return len(due)
+
+    async def remove_for_publisher(
+        self, request: PublisherRemovalRequest, removed_at: datetime
+    ) -> PublisherRemoval:
+        """Remove a publisher's page (see ``CorpusWriterPort.remove_for_publisher``).
+
+        Args:
+            request: The publisher's request.
+            removed_at: When the removal runs.
+
+        Returns:
+            The ledger row.
+        """
+        gone = {
+            d.source_id
+            for d in self._documents.values()
+            if d.url == request.url and d.publisher_id == request.publisher_id
+        }
+        for source_id in gone:
+            del self._documents[source_id]
+            self._cleared.discard(source_id)
+        for passage_id, source_id in list(self._passage_sources.items()):
+            if source_id in gone:
+                del self.passages[passage_id], self._passage_sources[passage_id]
+        removal = PublisherRemoval(
+            **request.model_dump(), removed_at=removed_at, documents=len(gone)
+        )
+        self._removals.append(removal)
+        return removal
+
+    async def removals(self) -> list[PublisherRemoval]:
+        """Return the ledger (see ``CorpusWriterPort.removals``).
+
+        Returns:
+            Every removal, oldest first.
+        """
+        return list(self._removals)

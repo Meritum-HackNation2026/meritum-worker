@@ -1,7 +1,8 @@
 """Security slice: the injection classifier gate, retention and erasure on request.
 
 Public API: gate settings and factories, the retention and ``delete_subject``
-workflow bodies, their ports and the in-memory workflow store.
+workflow bodies (corpus full texts and publisher removals included), their ports
+and the in-memory workflow store.
 
 Features:
     US-BEZ-01, US-BEZ-05, US-POW-04, F-19, F-20, ADR-12, ADR-13, ADR-35
@@ -10,6 +11,8 @@ Features:
 from meritum_worker.security.constants import (
     BLOB_PROVIDER_ENV,
     ERASURE_SETTLE,
+    FULL_TEXT_RETENTION,
+    PUBLISHER_REMOVAL_WORKFLOW,
     RETENTION_CRON,
     RETENTION_SCHEDULE_NAME,
     RETENTION_WORKFLOW,
@@ -28,6 +31,10 @@ from meritum_worker.security.models import (
     StoredWorkflow,
 )
 from meritum_worker.security.ports import BlobCleaner, RemovedCaseChecks, WorkflowStore
+from meritum_worker.security.publisher_removal import (
+    removal_is_late,
+    remove_publisher_document,
+)
 from meritum_worker.security.retention import run_retention
 from meritum_worker.security.selection import about_checks, audio_id, names_subject
 from meritum_worker.security.settings import (
@@ -38,6 +45,8 @@ from meritum_worker.security.settings import (
 __all__ = [
     "BLOB_PROVIDER_ENV",
     "ERASURE_SETTLE",
+    "FULL_TEXT_RETENTION",
+    "PUBLISHER_REMOVAL_WORKFLOW",
     "RETENTION_CRON",
     "RETENTION_SCHEDULE_NAME",
     "RETENTION_WORKFLOW",
@@ -59,5 +68,7 @@ __all__ = [
     "build_retention_deps",
     "erase_subject",
     "names_subject",
+    "removal_is_late",
+    "remove_publisher_document",
     "run_retention",
 ]
