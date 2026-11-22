@@ -88,8 +88,7 @@ and pages; this backstop adds WEB_SEARCH_MARGIN so pages drop out first.
 
 Transcription allows for the core batch mode (up to 15 min for 10 min of
 audio); model codes allow for the core adapter's retries; a timeout ends the check as
-technical_failure. receive also runs read_image, whose OCR makes up to 3 calls
-of 30 s.
+technical_failure. receive also runs read_image (OCR: 3 calls of 30 s).
 """
 
 TRANSCRIPTION_FAILED_CODE: Final[FailureCode] = "transcription_failed"
