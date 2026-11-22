@@ -197,9 +197,13 @@ def _done(
 
 def _case(started_at: datetime, run: CaseRun, score: CaseScore) -> EvalCaseResult:
     # The CheckRecord times are not kept per case; the case starts with the run.
+    # The contract derives the outcome from expected and predicted, so a hit on
+    # an acceptable alternative is stored with that alternative as expected.
+    expected = score.predicted if score.outcome == "correct" else score.expected
     return EvalCaseResult.model_validate(
-        score.model_dump(include={"scenario", "expected", "predicted", "outcome"})
+        score.model_dump(include={"scenario", "predicted", "outcome"})
         | {
+            "expected": expected,
             "case_id": score.id,
             "check_id": run.result.check_id,
             "received_at": started_at,
