@@ -15,10 +15,11 @@ from pathlib import Path
 
 from meritum_core.shared.embeddings import build_embeddings
 from meritum_core.shared.llm import LlmSettings
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.comparison import (
+    ModelComparison,
     ModelConfig,
     compare_models,
     load_model_config,
@@ -30,7 +31,9 @@ from meritum_worker.observability.constants import (
 )
 from meritum_worker.observability.factory import build_eval_deps
 from meritum_worker.observability.models import GoldenSet
+from meritum_worker.observability.report import EvalReport
 from meritum_worker.observability.retrieval import (
+    EmbeddingsComparison,
     EmbeddingsConfig,
     compare_embeddings,
     load_embeddings_config,
@@ -90,7 +93,7 @@ async def _report(
     models: Sequence[ModelConfig],
     embeddings: Sequence[EmbeddingsConfig],
     concurrency: int,
-) -> BaseModel:
+) -> EvalReport | ModelComparison | EmbeddingsComparison:
     now = datetime.now(UTC)
     if models:
         entries = [

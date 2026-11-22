@@ -23,11 +23,12 @@ from meritum_core.shared.embeddings import (
 from pydantic import BaseModel, ConfigDict, Field
 
 from meritum_worker.observability.constants import (
-    CHARS_PER_MILLION,
+    CHARS_PER_PRICE_UNIT,
     COST_DECIMALS,
     COST_SAMPLE_QUERIES,
     REPORT_DECIMALS,
     RETRIEVAL_TOP_K,
+    STAND_IN_CORPUS,
 )
 from meritum_worker.observability.models import GoldenSet
 
@@ -61,7 +62,7 @@ class RetrievalScore(BaseModel):
         model: Model ID of the provider.
         region: Region of the provider.
         dimensions: Vector size.
-        queries: Cases with sources, each one query.
+        queries: Distinct main claims of the cases with sources.
         documents: Distinct source URLs embedded as the corpus.
         top_k: Ranks that count as a hit.
         hit_rate: Queries with one of their sources in the top k.
@@ -97,6 +98,7 @@ class EmbeddingsComparison(BaseModel):
     Attributes:
         generated_at: When the comparison ran.
         cases_file: The case file every candidate ran on.
+        corpus: What the queries searched; a stand-in until the real corpus.
         models: One entry per config file, in the order given.
 
     Features:
@@ -107,6 +109,7 @@ class EmbeddingsComparison(BaseModel):
 
     generated_at: datetime
     cases_file: str
+    corpus: str = STAND_IN_CORPUS
     models: tuple[RetrievalScore, ...]
 
 
@@ -137,7 +140,8 @@ async def score_retrieval(
     """Rank the golden set's sources for each case's main claim.
 
     Args:
-        cases: The case file; cases without sources are skipped.
+        cases: The case file; cases without sources are skipped, and cases
+            with the same main claim are one query.
         config: The candidate, for its label and price.
         embeddings: The candidate's model.
         top_k: Ranks that count as a hit.
@@ -148,21 +152,19 @@ async def score_retrieval(
     Features:
         US-WDR-02, US-OBS-04, F-27
     """
-    documents: dict[str, str] = {}
-    for case in cases.root:
-        for source in case.sources:
-            documents.setdefault(str(source.url), f"{source.title}\n{source.quote}")
+    documents = _corpus(cases)
     index = {url: i for i, url in enumerate(documents)}
     vectors = await embeddings.embed_documents(list(documents.values()))
-    queried = [case for case in cases.root if case.sources]
+    queries = _queries(cases)
     ranks: list[int] = []
-    for case in queried:
-        order = _ranking(await embeddings.embed_query(case.main_claim), vectors)
-        own = {index[str(source.url)] for source in case.sources}
+    for claim, urls in queries.items():
+        order = _ranking(await embeddings.embed_query(claim), vectors)
+        own = {index[url] for url in urls}
+        # Every query's own sources are in the corpus, so a rank always exists.
         ranks.append(next(r for r, i in enumerate(order, 1) if i in own))
-    query_chars = sum(len(case.main_claim) for case in queried)
+    query_chars = sum(map(len, queries))
     characters = query_chars + sum(len(text) for text in documents.values())
-    mean_query = query_chars / max(len(queried), 1)
+    mean_query = query_chars / max(len(queries), 1)
     settings = config.embeddings
     return RetrievalScore(
         name=config.name,
@@ -170,7 +172,7 @@ async def score_retrieval(
         model=settings.model,
         region=settings.region,
         dimensions=settings.dimensions,
-        queries=len(queried),
+        queries=len(queries),
         documents=len(index),
         top_k=top_k,
         hit_rate=_mean([rank <= top_k for rank in ranks]),
@@ -202,6 +204,26 @@ def compare_embeddings(
     )
 
 
+def _corpus(cases: GoldenSet) -> dict[str, str]:
+    # Each source URL once, as its title and cited fragment.
+    documents: dict[str, str] = {}
+    for case in cases.root:
+        for source in case.sources:
+            documents.setdefault(str(source.url), f"{source.title}\n{source.quote}")
+    return documents
+
+
+def _queries(cases: GoldenSet) -> dict[str, set[str]]:
+    # One query per distinct main claim, so a claim repeated by H or E cases
+    # weighs as much as any other; its own sources are every case's sources.
+    queries: dict[str, set[str]] = {}
+    for case in cases.root:
+        if case.sources:
+            urls = queries.setdefault(case.main_claim, set())
+            urls.update(str(source.url) for source in case.sources)
+    return queries
+
+
 def _ranking(query: Vector, documents: Sequence[Vector]) -> list[int]:
     # Document indices from the most similar; ties keep file order.
     similarity = [_cosine(query, document) for document in documents]
@@ -218,5 +240,5 @@ def _mean(values: Sequence[float]) -> float:
 
 
 def _price(characters: float, config: EmbeddingsConfig) -> float:
-    cost = characters * config.usd_per_million_chars / CHARS_PER_MILLION
+    cost = characters * config.usd_per_million_chars / CHARS_PER_PRICE_UNIT
     return round(cost, COST_DECIMALS)

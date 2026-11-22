@@ -112,8 +112,10 @@ def team_compares_embeddings(context: Context) -> None:
 )
 def report_compares_embeddings(context: Context) -> None:
     report = json.loads(context.report_path.read_text(encoding="utf-8"))
+    assert "stand-in" in report["corpus"]
     assert [m["name"] for m in report["models"]] == ["a", "b"]
     for model in report["models"]:
         assert model["queries"] > 0
         assert 0 <= model["hit_rate"] <= 1
+        assert 0 < model["mean_reciprocal_rank"] <= 1
         assert model["cost_usd"] > 0

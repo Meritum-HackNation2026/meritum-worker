@@ -68,17 +68,19 @@ def _cases(case: Make[GoldenCase]) -> GoldenSet:
         [
             case(id="D-own-a", main_claim="Strefa A", sources=[_source("a")]),
             case(id="D-own-b", main_claim="Strefa B", sources=[_source("b")]),
+            # A repeat of the same claim is one query, not a second vote.
+            case(id="D-own-a-again", main_claim="Strefa A", sources=[_source("a")]),
             case(id="D-own-none", main_claim="Bez źródeł"),
         ]
     )
 
 
-def test_hit_rate_and_reciprocal_rank_over_cases_with_sources(
+def test_hit_rate_at_first_rank_and_reciprocal_rank_per_distinct_claim(
     tmp_path: Path, case: Make[GoldenCase]
 ) -> None:
     config = load_embeddings_config(_config(tmp_path))
 
-    score = asyncio.run(score_retrieval(_cases(case), config, _Fake(VECTORS), top_k=1))
+    score = asyncio.run(score_retrieval(_cases(case), config, _Fake(VECTORS)))
 
     assert (score.queries, score.documents, score.top_k) == (2, 2, 1)
     assert score.hit_rate == pytest.approx(0.5)
@@ -90,7 +92,7 @@ def test_cost_counts_every_embedded_character(
 ) -> None:
     config = load_embeddings_config(_config(tmp_path))
 
-    score = asyncio.run(score_retrieval(_cases(case), config, _Fake(VECTORS), top_k=1))
+    score = asyncio.run(score_retrieval(_cases(case), config, _Fake(VECTORS)))
 
     # 8 + 8 query chars, 16 + 16 document chars, at 2 USD per million chars.
     assert score.characters == 48
@@ -102,11 +104,12 @@ def test_comparison_keeps_config_order_and_date(
     tmp_path: Path, case: Make[GoldenCase]
 ) -> None:
     config = load_embeddings_config(_config(tmp_path))
-    score = asyncio.run(score_retrieval(_cases(case), config, _Fake(VECTORS), top_k=1))
+    score = asyncio.run(score_retrieval(_cases(case), config, _Fake(VECTORS)))
 
     comparison = compare_embeddings([score, score], "cases.json", AT)
 
     assert comparison.generated_at == AT
+    assert "stand-in" in comparison.corpus
     assert [m.name for m in comparison.models] == ["e", "e"]
     assert comparison.models[0].provider == "stub"
 
