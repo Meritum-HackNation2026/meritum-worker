@@ -38,6 +38,7 @@ from meritum_worker.evidence import (
     AssessedCitation,
     VerifiedCitation,
 )
+from meritum_worker.moderation import ModerationDeps
 
 
 class ExtractedClaim(BaseModel):
@@ -105,6 +106,7 @@ class CheckDeps:
         corpus: hybrid search of the corpus snapshots, called in process (ADR-32).
         reranker: the gate passages pass before stance assessment (ADR-35).
         corpus_version: the snapshot checks search; NO_CORPUS_VERSION skips it.
+        moderation: the ports of moderator cases; None skips the cases step.
 
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
@@ -124,6 +126,7 @@ class CheckDeps:
     corpus: CorpusSearchPort
     reranker: RerankerPort
     corpus_version: str
+    moderation: ModerationDeps | None = None
 
 
 class CheckState(BaseModel):

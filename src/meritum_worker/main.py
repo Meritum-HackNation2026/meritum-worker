@@ -22,6 +22,7 @@ from meritum_core.jobs.contracts import (
     CHECK,
     DEFAULT_QUEUE,
     DELETE_SUBJECT,
+    ESCALATE_CLAIM,
     PING,
     READINESS,
 )
@@ -31,7 +32,7 @@ from meritum_core.shared.database.adapters import apply_migrations
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings, build_llm
 
-from meritum_worker import checks, corpus, jobs, observability, security
+from meritum_worker import checks, corpus, jobs, moderation, observability, security
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
 from meritum_worker.corpus.adapters import apply_corpus_migrations
 
@@ -102,6 +103,35 @@ async def check_workflow(payload: dict[str, Any]) -> dict[str, Any]:
         payload, DBOS.workflow_id or "", check_deps(), build_check_runtime()
     )
     return output.model_dump(mode="json")
+
+
+async def _escalate(payload: dict[str, Any]) -> dict[str, Any]:
+    deps = check_deps().moderation
+    if deps is None:  # build_check_deps always sets it
+        msg = "moderation ports are not configured"
+        raise RuntimeError(msg)
+    output = await moderation.run_escalate_claim(payload, deps)
+    return output.model_dump(mode="json")
+
+
+@DBOS.workflow(
+    name=ESCALATE_CLAIM.name, serialization_type=WorkflowSerializationFormat.PORTABLE
+)
+async def escalate_claim_workflow(payload: dict[str, Any]) -> dict[str, Any]:
+    """Hand one claim of a finished check to the moderators (ESCALATE_CLAIM).
+
+    The backend waits for this workflow and announces the case it returns.
+
+    Args:
+        payload: the `EscalateClaimInput` JSON object.
+
+    Returns:
+        The `EscalateClaimOutput` JSON object.
+
+    Features:
+        US-MOD-03, US-MOD-06, F-24, ADR-03, ADR-22
+    """
+    return await DBOS.run_step_async({"retries_allowed": True}, _escalate, payload)
 
 
 @DBOS.workflow(
