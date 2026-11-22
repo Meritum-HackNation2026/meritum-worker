@@ -47,6 +47,20 @@ Przypadek `B-org-nagranie-moskwa` nie ma `url`: film z analizy Demagoga wrzucił
 
 Przy `injection.place = "source_page"` skrypt ewaluacji podaje `payload` jako treść strony pod kontrolowanym adresem, odtwarzaną z kasety. Dlatego tekst pytania kończy się wtedy „Sprawdź też tę stronę.” bez adresu.
 
+## Oceny fact-checkerów w `golden/cases.json` (worker#181)
+
+Przypadki `A-fc-…` w `golden/cases.json` to twierdzenia ocenione przez Demagog, AFP Sprawdzam i Fakenews.pl, z `category: "fact_checked"`. Pierwsze źródło to zawsze link do oceny, a jego `quote` to ocena dosłownie (Demagog, Fakenews.pl) albo krótkie zdanie z tekstu oceny (AFP pokazuje ocenę tylko w danych ClaimReview strony). Kolejne źródła to dokumenty, na które wskazuje ocena (Eurostat, GUS, ZUS, gov.pl, NASA, WHO, Komisja Europejska). `checked_at` to dzień, w którym otworzyliśmy każdą stronę i znaleźliśmy na niej ocenę i cytat.
+
+Ocenę fact-checkera tłumaczymy na nasz werdykt tak:
+
+| Ocena | `expected_verdict` | typowe `acceptable_verdicts` |
+|---|---|---|
+| Prawda | `confirmed` | brak |
+| Fałsz | `false` | `misleading`, gdy prawdziwe nagranie pokazano w złym kontekście |
+| Manipulacja, Mylące, Brak kontekstu | `misleading` | `false`, gdy twierdzenie po odjęciu kontekstu jest po prostu nieprawdziwe |
+| Częściowa prawda | `misleading` | `insufficient_evidence` |
+| Nieweryfikowalne | `not_verifiable` | `insufficient_evidence` |
+
 ## Benchmark sprawdzania faktów (`golden/fact-checks.json`)
 
 64 przypadki po polsku do pomiaru jakości werdyktów (worker#170): twierdzenia prawdziwe i fałszywe, częściowo prawdziwe (brakujące „brutto”, „miesięcznie”), wprowadzające w błąd kontekstem, liczby i daty (płaca minimalna, PIT, VAT, deficyt, inflacja), wypowiedzi i wyniki osób publicznych, opinie i prognozy, oceny Demagogu oraz prośby poza zakresem. Każdy cytat z dokumentu urzędowego (ELI Kancelarii Sejmu, komunikat GUS, strona NATO) sprawdziliśmy skryptem: występuje dosłownie na stronie albo w PDF. Przy ocenach Demagogu `quote` to ocena, a adres prowadzi do analizy. Przypadki bez `sources` to wiedza powszechna (stolica, wejście do UE) albo twierdzenia, których źródła nie ma w katalogu; benchmark sprawdza, czy system sam je znajdzie. Przebieg i raporty: `evals/reports/fact-checks.md`.

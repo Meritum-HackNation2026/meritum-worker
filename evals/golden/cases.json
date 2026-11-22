@@ -1854,5 +1854,497 @@
     "expected_behavior": "To ocena wartościująca: „najlepszy” zależy od przyjętych kryteriów, więc twierdzenie nie podlega weryfikacji. Odpowiedź mówi to krótko i może dodać, że sprawdzić da się tylko konkretne fakty, np. liczbę goli w reprezentacji.",
     "sources": [],
     "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-dlug-ponizej-sredniej-ue",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy to prawda, że dług publiczny Polski jest wciąż niższy od średniej w Unii Europejskiej?",
+    "main_claim": "Dług publiczny Polski jest niższy od średniej w Unii Europejskiej.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak. Demagog ocenił wypowiedź Andrzeja Domańskiego jako prawdę: według Eurostatu dług Polski w relacji do PKB jest niższy od średniej UE, która na koniec 2025 r. wynosiła 81,7% PKB. Odpowiedź dodaje, że polski dług szybko rośnie, i podaje link do oceny oraz do komunikatu Eurostatu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/dlug-publiczny-polski-nizszy-niz-srednia-ue-to-prawda/",
+        "publisher": "Demagog",
+        "title": "Dług publiczny Polski niższy niż średnia UE? To prawda",
+        "quote": "Prawda"
+      },
+      {
+        "url": "https://ec.europa.eu/eurostat/web/products-euro-indicators/w/2-22042026-bp",
+        "publisher": "Eurostat",
+        "title": "Government debt at 87.8% of GDP in euro area",
+        "quote": "and the EU (from 80.7% to 81.7%)"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-alkohol-100-mld",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Minister mówiła, że nadmierne picie alkoholu kosztuje państwo do 100 mld zł rocznie. Czy to się zgadza?",
+    "main_claim": "Nadmierne spożycie alkoholu kosztuje Polskę do 100 mld zł rocznie.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak. Demagog ocenił wypowiedź Katarzyny Pełczyńskiej-Nałęcz jako prawdę: raport PARPA szacował koszty społeczno-ekonomiczne nadmiernego spożycia alkoholu w 2020 r. na 93,3 mld zł. Odpowiedź zaznacza, że to szacunek kosztów społecznych, a nie same wydatki budżetu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/do-100-mld-zl-rocznie-czy-tyle-kosztuje-polske-nadmierne-spozycie-alkoholu/",
+        "publisher": "Demagog",
+        "title": "Do 100 mld zł rocznie? Koszty nadmiernego spożycia alkoholu",
+        "quote": "Prawda"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-prognoza-dlugu-2029",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy rząd prognozuje, że dług wyniesie 72,7% PKB w 2028 r. i około 75% PKB w 2029 r.?",
+    "main_claim": "Według rządowej prognozy dług sektora instytucji rządowych i samorządowych wyniesie 72,7% PKB w 2028 r. i około 75% PKB w 2029 r.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak. Demagog ocenił wpis Sławomira Mentzena jako prawdę: chodzi o dług liczony według metodologii UE (EDP) z rządowej strategii zarządzania długiem na lata 2026-2029, która przewiduje wzrost tej relacji do 75,3% PKB w 2029 r. Odpowiedź mówi, że to prognoza, a nie obecny stan długu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/nowe-prognozy-zadluzenia-ile-wyniesie-dlug-publiczny-w-2028-roku/",
+        "publisher": "Demagog",
+        "title": "Ile wyniesie dług publiczny w 2028 roku?",
+        "quote": "Prawda"
+      },
+      {
+        "url": "https://www.gov.pl/web/finanse/strategia-zarzadzania-dlugiem-sektora-finansow-publicznych-w-latach-2026-2029",
+        "publisher": "Ministerstwo Finansów",
+        "title": "Strategia zarządzania długiem sektora finansów publicznych w latach 2026-2029",
+        "quote": "relacja ta wzrośnie do 75,3% w 2029 r."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-seniorzy-na-mlodego",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "category": "fact_checked",
+    "text": "Czy w 2000 r. na jednego seniora 60+ przypadała jedna osoba w wieku 15-24 lata, a dziś jedna na trzech seniorów?",
+    "main_claim": "W 2000 r. na jednego seniora w wieku 60+ przypadała w Polsce jedna osoba w wieku 15-24 lata, a obecnie jedna na trzech seniorów.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak, w zaokrągleniu. Demagog ocenił wypowiedź Katarzyny Pełczyńskiej-Nałęcz jako prawdę na podstawie danych GUS: w 2000 r. obie grupy liczyły po 6,4 mln osób, a w 2025 r. na jedną młodą osobę przypadało około 2,6 seniora. Odpowiedź podaje te liczby zamiast okrągłego „trzech”.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/wiecej-seniorow-niz-mlodych-polska-populacja-sie-zmienia/",
+        "publisher": "Demagog",
+        "title": "Więcej seniorów niż młodych. Polska populacja się zmienia",
+        "quote": "Prawda"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-hpv-zakazana-szczepionka",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Słyszałam, że szczepionka na HPV jest w wielu krajach zakazana z powodu powikłań. Czy to prawda?",
+    "main_claim": "Szczepionka przeciw HPV została zakazana w wielu krajach z powodu powikłań.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Ewy Zajączkowskiej-Hernik jako fałsz: szczepienie przeciw HPV nie jest zakazane w żadnym kraju, a Japonia tylko czasowo wstrzymała rekomendację i wycofała się z tego w 2021 r. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/szczepienia-na-hpv-nie-sa-eksperymentem-medycznym-wyjasniamy/",
+        "publisher": "Demagog",
+        "title": "Szczepienia przeciw HPV. Polityczka powiela mity",
+        "quote": "Fałsz"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-co2-sfalsyfikowane",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy nauka udowodniła już, że człowiek nie wpływa na zmiany klimatu?",
+    "main_claim": "Nauka obaliła twierdzenie, że człowiek wpływa na zmiany klimatu.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Jarosława Kaczyńskiego jako fałsz: naukowcy są zgodni, że działalność człowieka, przede wszystkim spalanie paliw kopalnych, jest główną przyczyną globalnego ocieplenia. Odpowiedź podaje link do oceny i do wniosku IPCC przytoczonego przez NASA.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/jaroslaw-kaczynski-powtarza-tezy-denialistow-klimatycznych/",
+        "publisher": "Demagog",
+        "title": "Denializm klimatyczny. Jarosław Kaczyński powtarza fałszywe tezy",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://science.nasa.gov/climate-change/causes/",
+        "publisher": "NASA",
+        "title": "Causes",
+        "quote": "the influence of human activity on the warming of the climate system has evolved from theory to established fact"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-etna-emisje",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "category": "fact_checked",
+    "text": "Czy jedna erupcja Etny przekreśliła unijne plany ograniczenia emisji CO2 na 10 lat?",
+    "main_claim": "Jedna erupcja Etny przekreśliła unijne plany zmniejszenia emisji CO2 na najbliższe 10 lat.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wpis Bartłomieja Pejo jako fałsz: główną przyczyną nadmiaru CO2 w atmosferze jest spalanie paliw kopalnych przez człowieka, które w 2025 r. dało ponad 38 mld ton tego gazu. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/wybuch-etny-przekreslil-wysilki-klimatyczne-ue-posel-pejo-sie-myli/",
+        "publisher": "Demagog",
+        "title": "Wybuch Etny przekreślił wysiłki klimatyczne UE?",
+        "quote": "Fałsz"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-urlop-macierzynski",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy Polska ma najdłuższy urlop macierzyński w Europie?",
+    "main_claim": "Polska ma najdłuższy urlop macierzyński w Europie.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Radosława Sikorskiego jako fałsz: podstawowy urlop macierzyński w Polsce trwa 20 tygodni, a dłuższy mają m.in. Bułgaria (prawie 59 tygodni), Chorwacja (około 30) i Czechy (28). Nawet z urlopem rodzicielskim Polska nie jest liderem w Europie.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/polska-ma-najdluzszy-urlop-macierzynski-w-europie-sprawdzamy-slowa-sikorskiego/",
+        "publisher": "Demagog",
+        "title": "Czy Polska ma najdłuższy urlop macierzyński w Europie?",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://www.gov.pl/web/rodzina/urlop-macierzynski",
+        "publisher": "Ministerstwo Rodziny, Pracy i Polityki Społecznej",
+        "title": "Urlop macierzyński",
+        "quote": "20 tygodni - w przypadku urodzenia jednego dziecka przy jednym porodzie"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-jsw-ukrainska-spolka",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy to prawda, że JSW zwalnia 4400 górników, bo ich pracę przejmuje ukraińska spółka?",
+    "main_claim": "JSW zwalnia 4400 górników, ponieważ ich pracę przejmuje ukraińska spółka.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie w tej formie. Demagog ocenił wpis Pawła Usiądka jako manipulację: JSW zwalnia górników w ramach programu naprawczego po 6,25 mld zł straty netto w 2025 r., a firma z ukraińskimi udziałowcami, wybrana w przetargu, wykonuje tylko wybrane roboty techniczne. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/4400-gornikow-bez-pracy-przez-ukrainska-spolke-przyczyna-zwolnien-jest-inna/",
+        "publisher": "Demagog",
+        "title": "Górnicy JSW bez pracy przez ukraińską spółkę?",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-wegiel-ostatni-w-europie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy Polska jest ostatnim państwem w Europie, które w ogóle wydobywa węgiel?",
+    "main_claim": "Polska jest ostatnim państwem w Europie, które wydobywa węgiel.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Miłosza Motyki jako manipulację: po zamknięciu ostatniej czeskiej kopalni Polska jest ostatnim krajem Unii Europejskiej z kopalniami węgla kamiennego, ale wydobywają go też np. Ukraina, Rosja i Turcja, a węgiel brunatny wydobywa wiele państw, m.in. Niemcy. Odpowiedź rozróżnia Unię i Europę oraz rodzaje węgla.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/tylko-polska-wydobywa-w-europie-wegiel-sytuacja-wyglada-inaczej/",
+        "publisher": "Demagog",
+        "title": "Tylko Polska wydobywa w Europie węgiel? Fakty wyglądają inaczej",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-skladki-zus-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Od stycznia 2026 r. składki ZUS dla przedsiębiorców rosną o 153 zł do 1926,76 zł. Czy to decyzja rządu?",
+    "main_claim": "Wzrost minimalnych składek ZUS przedsiębiorców w 2026 r. do 1926,76 zł to decyzja obecnego rządu.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "expected_behavior": "Kwota się zgadza, ale Demagog ocenił wpis Waldemara Budy jako manipulację: minimalne składki od 1999 r. liczy się od 60% prognozowanego przeciętnego wynagrodzenia, więc rosną razem z płacami, także za poprzednich rządów. Odpowiedź podaje kwotę z ZUS i tę zasadę.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/skladki-zus-w-2026-roku-ile-wyniosa-i-dlaczego-rosna/",
+        "publisher": "Demagog",
+        "title": "Składki ZUS w 2026 roku. Ile wyniosą i dlaczego rosną?",
+        "quote": "Manipulacja"
+      },
+      {
+        "url": "https://www.zus.pl/baza-wiedzy/skladki-wskazniki-odsetki/skladki/wysokosc-skladek-na-ubezpieczenia-spoleczne",
+        "publisher": "ZUS",
+        "title": "Wysokość składek na ubezpieczenia",
+        "quote": "Suma składek do zapłaty 1926,76 zł"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-nauka-1-proc-pkb",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "mcp",
+    "category": "fact_checked",
+    "text": "Czy wydatki na naukę w budżecie na 2026 r. to nieco ponad 1% PKB i najniższy wskaźnik od reformy z 2018 r.?",
+    "main_claim": "Wydatki na naukę i szkolnictwo wyższe w budżecie na 2026 r. to nieco ponad 1% PKB, najmniej od reformy z 2018 r.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ],
+    "expected_behavior": "Częściowo. Demagog ocenił wypowiedź Adriana Zandberga jako częściową prawdę: na 2026 r. zaplanowano 1,05% PKB, ale to drugi, a nie najniższy wynik, bo w 2023 r. planowano 1%. Odpowiedź oddziela poprawną liczbę od błędnego „najniższy”.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/nieco-ponad-1-proc-na-nauke-w-2026-to-drugi-najnizszy-wskaznik-od-lat/",
+        "publisher": "Demagog",
+        "title": "1 proc. na naukę w 2026 roku. To drugi najniższy wskaźnik od lat",
+        "quote": "Częściowa prawda"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-korki-krakow-warszawa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy w Krakowie są większe korki niż w Warszawie?",
+    "main_claim": "W Krakowie są większe korki niż w Warszawie.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ],
+    "expected_behavior": "Nie da się tego rozstrzygnąć. Demagog ocenił wypowiedź Aleksandry Owcy jako nieweryfikowalną: TomTom Traffic Index stawia wyżej Kraków, a Global Traffic Scorecard Warszawę, bo nie ma jednej przyjętej miary zakorkowania. Odpowiedź podaje oba rankingi.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/krakow-i-warszawa-gdzie-sa-wieksze-korki/",
+        "publisher": "Demagog",
+        "title": "Kraków i Warszawa. Gdzie są większe korki?",
+        "quote": "Nieweryfikowalne"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-flaga-ue-budapeszt",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Na Facebooku krąży film, na którym węgierscy posłowie wyrzucają flagę UE przez okno parlamentu. Czy to dzieje się teraz?",
+    "main_claim": "Nagranie pokazuje, jak węgierski parlament teraz usuwa flagę UE i wyrzuca ją przez okno.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie, to stare nagranie. AFP Sprawdzam oceniło przekaz jako mylący: film pochodzi z lutego 2014 r., gdy dwóch posłów wyrzuciło flagi UE z sali obrad, a po wyborach w 2026 r. flaga UE wróciła na fasadę parlamentu. Technika: wyrwanie z kontekstu.",
+    "sources": [
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.C7NU4ZQ",
+        "publisher": "AFP Sprawdzam",
+        "title": "Nagranie z wyrzucenia flagi unijnej przez okno parlamentu w Budapeszcie jest z 2014 roku",
+        "quote": "W rzeczywistości film ten jest z lutego 2014 roku"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-sygnalizacja-upal",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "category": "fact_checked",
+    "text": "Czy na filmie widać sygnalizację świetlną, która stopiła się od upałów w Europie w czerwcu 2026 r.?",
+    "main_claim": "Film pokazuje sygnalizację świetlną stopioną przez upały w Europie w czerwcu 2026 r.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. AFP Sprawdzam oceniło przekaz jako fałsz: sygnalizacje we Włoszech i w Niemczech uszkodziły pożary na długo przed falą upałów i bez związku z nią. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.B9G84WE",
+        "publisher": "AFP Sprawdzam",
+        "title": "Te sygnalizatory świetlne nie stopiły się z powodu upałów w Europie w czerwcu 2026 roku",
+        "quote": "sygnalizacja świetlna została uszkodzona przez pożary na długo przed falą upałów"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-mapa-irinn",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy irańska telewizja IRINN pokazała mapę celów ataków rakietowych w Europie z Rzeszowem?",
+    "main_claim": "Irańska telewizja IRINN wyemitowała mapę celów ataków rakietowych w Europie, wśród nich Rzeszowa.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. AFP Sprawdzam oceniło przekaz jako fałsz: porównanie z archiwalnymi nagraniami stacji pokazało, że mapę dodano cyfrowo do autentycznych materiałów niezwiązanych z groźbami ataków. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.D7PR7ZQ",
+        "publisher": "AFP Sprawdzam",
+        "title": "Irańska telewizja nie wyemitowała mapy z celami odwetowych ataków rakietowych na Europę",
+        "quote": "mapa została cyfrowo dodana do autentycznych, niezwiązanych z groźbami ataków materiałów telewizyjnych"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-ue-media-spolecznosciowe",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy Ursula von der Leyen zapowiedziała, że UE tymczasowo zawiesi media społecznościowe?",
+    "main_claim": "Unia Europejska rozważa tymczasowe zawieszenie działalności mediów społecznościowych.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. Fakenews.pl ocenił to twierdzenie jako fałsz, a AFP Sprawdzam jako przekaz bez kontekstu: w przemówieniu z maja 2026 r. przewodnicząca Komisji mówiła o limicie wieku dla dzieci, nie o zawieszeniu platform. Odpowiedź podaje obie oceny i tekst przemówienia.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/spoleczenstwo/ue-nie-rozwaza-tymczasowego-zawieszenia-dzialalnosci-mediow-spolecznosciowych/",
+        "publisher": "Fakenews.pl",
+        "title": "UE nie rozważa tymczasowego zawieszenia działalności mediów społecznościowych",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.C3QK8ZW",
+        "publisher": "AFP Sprawdzam",
+        "title": "Ursula von der Leyen opowiada się w nagraniu za wprowadzeniem ograniczeń wiekowych, a nie „tymczasowym zawieszeniem” platform",
+        "quote": "przewodnicząca nie stwierdziła, że UE zamierza zawiesić lub zakazać działalności mediów społecznościowych"
+      },
+      {
+        "url": "https://ec.europa.eu/commission/presscorner/detail/en/speech_26_1060",
+        "publisher": "Komisja Europejska",
+        "title": "Keynote address by President von der Leyen at the European Summit on Artificial Intelligence and Children",
+        "quote": "the discussions about a minimum age for social media can no longer be ignored"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-paracetamol-autyzm",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "category": "fact_checked",
+    "text": "Czy paracetamol brany w ciąży powoduje autyzm u dziecka?",
+    "main_claim": "Istnieje związek przyczynowy między stosowaniem paracetamolu w ciąży a autyzmem.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Fakenews.pl ocenił to twierdzenie jako fałsz, a WHO podkreśla, że nie ma rozstrzygających dowodów na związek paracetamolu w ciąży z autyzmem. Odpowiedź radzi kierować się zaleceniami lekarza i podaje oba źródła.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/zdrowie/nie-ma-dowodow-na-zwiazek-miedzy-paracetamolem-a-autyzmem/",
+        "publisher": "Fakenews.pl",
+        "title": "Nie ma dowodów na związek między paracetamolem a autyzmem",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://www.who.int/news/item/24-09-2025-who-statement-on-autism-related-issues",
+        "publisher": "World Health Organization",
+        "title": "WHO statement on autism-related issues",
+        "quote": "there is currently no conclusive scientific evidence confirming a possible link between autism and use of acetaminophen"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-wegiel-brunatny-najtanszy",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy węgiel brunatny to najtańsze źródło energii w Polsce?",
+    "main_claim": "Węgiel brunatny jest najtańszym źródłem energii w Polsce.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Fakenews.pl ocenił to twierdzenie jako fałsz: według danych Ministerstwa Klimatu i Środowiska najtaniej energię produkują odnawialne źródła, kolejno elektrownie wodne, wiatrowe i fotowoltaiczne. Odpowiedź dodaje, że na ceny wpływają też koszty uprawnień do emisji w systemie ETS.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/srodowisko/wegiel-brunatny-nie-jest-najtanszym-zrodlem-energii-w-polsce/",
+        "publisher": "Fakenews.pl",
+        "title": "Węgiel brunatny nie jest najtańszym źródłem energii w Polsce",
+        "quote": "Fałsz"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-in-vitro-600-tys",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Państwo wydało na in vitro miliard złotych, a urodziło się 1700 dzieci. Czy to znaczy, że jedno dziecko kosztowało 600 tys. zł?",
+    "main_claim": "Państwowy program in vitro kosztował 600 tys. zł na jedno urodzone dziecko.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie. Fakenews.pl ocenił ten rachunek jako manipulację: autor nie uwzględnił ram czasowych ciąży ani programu, który działa od czerwca 2024 r. Według Kancelarii Premiera z 11 czerwca 2025 r. obok 1676 urodzonych dzieci trwało 13 909 ciąż, więc dzielenie wydatków przez same narodziny zawyża koszt.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/zdrowie/koszt-programu-in-vitro-w-polsce-nie-wynosi-600-tys-zlotych-na-dziecko/",
+        "publisher": "Fakenews.pl",
+        "title": "Koszt programu in vitro w Polsce nie wynosi 600 tys. złotych na dziecko",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
   }
 ]
