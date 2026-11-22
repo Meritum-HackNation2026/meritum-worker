@@ -89,6 +89,16 @@ Funkcja: Smoke test workera
     Gdy workflow sprawdza link
     Wtedy wynik ma stan technical_failure z kodem "url_unavailable"
 
+  Scenariusz: link do pliku PDF z tekstem
+    Zakładając link do pliku PDF z rozporządzeniem o płacy minimalnej
+    Gdy workflow sprawdza link
+    Wtedy sprawdzany jest tekst dokumentu PDF
+
+  Scenariusz: link do PDF bez warstwy tekstowej
+    Zakładając link do pliku PDF, który jest skanem bez tekstu
+    Gdy workflow sprawdza link
+    Wtedy wynik ma stan technical_failure z kodem "url_unavailable"
+
   Scenariusz: sam tekst bez linku
     Zakładając wklejony tekst bez adresu
     Gdy workflow publikuje postęp

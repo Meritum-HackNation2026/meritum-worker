@@ -11,8 +11,9 @@ from meritum_worker.checks.factory import build_link_fetcher
 
 
 def recorded_pages(pages: Mapping[str, bytes]) -> PageFetcherPort:
-    """The fetcher ``build_check_deps`` builds, answering from recorded HTML pages.
+    """The fetcher ``build_check_deps`` builds, answering from recorded pages.
 
+    A body that starts as a PDF answers ``application/pdf``, any other as HTML.
     Any other URL answers 404; every host resolves to one public address.
     """
 
@@ -20,7 +21,9 @@ def recorded_pages(pages: Mapping[str, bytes]) -> PageFetcherPort:
         url = f"https://{request.headers['host']}{request.url.raw_path.decode()}"
         if url not in pages:
             return httpx.Response(404)
-        headers = {"content-type": "text/html; charset=utf-8"}
+        is_pdf = pages[url].startswith(b"%PDF")
+        media = "application/pdf" if is_pdf else "text/html; charset=utf-8"
+        headers = {"content-type": media}
         return httpx.Response(200, headers=headers, content=pages[url])
 
     return build_link_fetcher(_public, lambda: httpx.MockTransport(handle))

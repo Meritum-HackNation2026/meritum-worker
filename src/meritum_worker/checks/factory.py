@@ -54,7 +54,7 @@ from meritum_worker.corpus import (
     build_reranker,
     ingestion_enabled,
 )
-from meritum_worker.corpus.adapters import GoogleFactCheck
+from meritum_worker.corpus.adapters import GoogleFactCheck, PdfAsTextTransport
 from meritum_worker.evidence import sanctions_from_env
 from meritum_worker.moderation import build_moderation_deps
 from meritum_worker.moderation.adapters import DbosCheckResults
@@ -179,6 +179,7 @@ def build_link_fetcher(
 
     A link to a video or a post (YouTube, X, Facebook, Instagram, TikTok) is
     read from the title and description the service publishes for previews;
+    a PDF from its text layer (up to ``PDF_MAX_BYTES``; a scan has none);
     every other page by its main text, as core reads it.
 
     Args:
@@ -191,7 +192,7 @@ def build_link_fetcher(
     Features:
         US-SPR-07, F-06, ADR-12
     """
-    transport = LinkPreviewTransport(make_transport)
+    transport = LinkPreviewTransport(lambda: PdfAsTextTransport(make_transport))
     if resolver is None:
         return build_page_fetcher(transport=transport)
     return build_page_fetcher(resolver=resolver, transport=transport)

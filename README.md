@@ -248,6 +248,12 @@ Strony YouTube, X (Twittera), Facebooka, Instagrama i TikToka to aplikacje, a ni
 
 Nie oglądamy nagrania, nie robimy transkrypcji i nie czytamy napisów ani komentarzy. Napisów YouTube nie pobieramy, bo `robots.txt` zabrania `/api/`, a `timedtext` odpowiada 429. Wynik ma wtedy ograniczenie `PREVIEW_ONLY_NOTE`. Strona logowania zamiast wpisu albo brak tytułu daje pusty tekst, czyli ścieżkę nieodczytanego linku opisaną wyżej.
 
+### Linki do plików PDF
+
+Odpowiedź `application/pdf` czyta `PdfAsTextTransport` (PDFium, ten sam, którym ingest czyta akty z API Sejmu): tekst dokumentu trafia do `page_text` jak tekst strony, z maskowaniem i limitem długości wklejonego tekstu. Limit pliku to `PDF_MAX_BYTES` (20 MiB). Skan bez warstwy tekstowej, plik uszkodzony albo za duży kończy się jak nieodczytany link. Skanów nie czytamy przez OCR.
+
+Pliku PDF nie da się jeszcze wysłać: backend przyjmuje tylko obrazy i dźwięk, a `CheckRequest` nie ma pola na dokument. Wymagałoby to zmiany kontraktu.
+
 ## Nagrania głosowe
 
 Krok `transcribe_audio` czyta nagranie z `BlobStore` (`MERITUM_BLOB_*`; bez `MERITUM_BLOB_PROVIDER` magazyn w pamięci), transkrybuje je portem z meritum-core (`MERITUM_TRANSCRIPTION_*`, domyślnie stub; `speech_v2` to Chirp 3 w multi-regionie `eu`), maskuje dane osobowe i sprawdza transkrypcję jak wklejony tekst. Nieobsługiwany format albo nagranie ponad 10 min kończy się stanem `out_of_scope` z komunikatem, co wysłać zamiast; awaria dostawcy albo brak pliku: `technical_failure` z kodem `transcription_failed`. Po nagraniu dłuższym niż 55 s (tryb batch) worker zapisuje w skrzynce powiadomienie `check_done`. Plik usuwa retencja razem z zapisem sprawdzenia (osierocone nagrania po 30 dniach), a transkrypcja żyje tylko w wyniku i zapisie.
