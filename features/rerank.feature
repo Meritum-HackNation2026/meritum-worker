@@ -22,3 +22,14 @@ Funkcja: Reranker fragmentów przed oceną stanowiska
     I dostawca rerankera nie odpowiada
     Gdy krok badań woła reranker
     Wtedy dostaje fragmenty w kolejności z wyszukiwania, a błąd trafia do retrieval_errors
+
+  Scenariusz: reranker dostaje 30 kandydatów z korpusu na zapytanie
+    Zakładając migawkę korpusu z 40 fragmentami pasującymi do twierdzenia
+    Gdy krok search_corpus szuka dowodów dla twierdzenia
+    Wtedy każde zapytanie do korpusu prosi o 30 fragmentów
+    I reranker zostawia 5 fragmentów
+
+  Scenariusz: reranker OpenRouter używa klucza modelu
+    Zakładając MERITUM_RERANKER=openrouter bez własnego tokenu i z kluczem OPENROUTER_API_KEY
+    Gdy krok badań woła reranker
+    Wtedy reranker wysyła klucz modelu w nagłówku Authorization

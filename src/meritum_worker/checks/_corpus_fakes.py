@@ -23,6 +23,7 @@ class FakeCorpusSearch:
 
     Attributes:
         queries: every query with its claim date, in order.
+        limits: the ``limit`` of every query, in order.
         most_at_once: the most searches that were running at the same time.
 
     Features:
@@ -31,6 +32,7 @@ class FakeCorpusSearch:
 
     def __init__(self, passages: Sequence[Passage] = ()) -> None:
         self.queries: list[tuple[str, date]] = []
+        self.limits: list[int] = []
         self.most_at_once = 0
         self._passages = list(passages)
         self._running = 0
@@ -51,6 +53,7 @@ class FakeCorpusSearch:
         """
         del corpus_version
         self.queries.append((query, claim_date))
+        self.limits.append(limit)
         self._running += 1
         self.most_at_once = max(self.most_at_once, self._running)
         await asyncio.sleep(0)

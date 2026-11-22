@@ -61,6 +61,9 @@ class RerankerSettings(BaseSettings):
         account_id: Cloudflare account running Workers AI.
         api_token: Cloudflare API token with Workers AI read access, or the
             OpenRouter API key.
+        openrouter_api_key: The model's ``OPENROUTER_API_KEY``; the OpenRouter
+            reranker uses it when ``api_token`` is unset, since the worker deploy
+            passes only that key (worker#248).
         model: Model id; the provider's default when unset. OpenRouter ids may
             hold a ``.`` (``cohere/rerank-v3.5``), the others may not.
         retries: HTTP attempts per reranking, the first included.
@@ -80,6 +83,9 @@ class RerankerSettings(BaseSettings):
     location: str = Field(default=VERTEX_RANKING_LOCATION, pattern=URL_SEGMENT)
     account_id: str | None = Field(default=None, pattern=URL_SEGMENT)
     api_token: SecretStr | None = Field(default=None, min_length=1)
+    openrouter_api_key: SecretStr | None = Field(
+        default=None, min_length=1, validation_alias="OPENROUTER_API_KEY"
+    )
     model: str | None = None
     retries: int = Field(default=RERANK_RETRIES, ge=1)
 
@@ -93,12 +99,28 @@ class RerankerSettings(BaseSettings):
         if self.model is not None and not re.fullmatch(pattern, self.model):
             msg = f"model must match {pattern}"
             raise ValueError(msg)
-        missing = [f for f in _required(self.provider) if getattr(self, f) is None]
+        missing = [f for f in _required(self.provider) if self._unset(f)]
         if missing:
             names = ", ".join(f"{RERANKER_ENV_PREFIX}{f.upper()}" for f in missing)
             msg = f"{names} required for {self.provider}"
             raise ValueError(msg)
         return self
+
+    @property
+    def token(self) -> SecretStr | None:
+        """The provider's API token; OpenRouter falls back to the model's key.
+
+        Returns:
+            ``api_token``, else for OpenRouter ``openrouter_api_key``, else None.
+
+        Features:
+            US-KOR-02, F-12, ADR-35
+        """
+        is_openrouter = self.provider is RerankerProvider.OPENROUTER
+        return self.api_token or (self.openrouter_api_key if is_openrouter else None)
+
+    def _unset(self, name: str) -> bool:
+        return (self.token if name == "api_token" else getattr(self, name)) is None
 
 
 class FactCheckProvider(StrEnum):

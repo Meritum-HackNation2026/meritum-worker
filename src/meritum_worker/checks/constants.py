@@ -171,6 +171,10 @@ USER_ID_PATTERN: Final = re.compile(r"^[^:\s]+:\S+$")
 SEARCH_CORPUS_STEP: Final = "search_corpus"
 """AnalysisStep code of the corpus research agent; skipped with no fact or snapshot."""
 
+CORPUS_CANDIDATES: Final = 30
+"""Passages asked from the snapshot per query, all passed to the reranker: with 10,
+the settling article of a long act often missed its top 5 (worker#248, ADR-35)."""
+
 CORPUS_VERSION_ENV: Final = "MERITUM_CORPUS_VERSION"
 """Environment variable pinning the corpus snapshot checks search; unset: none."""
 

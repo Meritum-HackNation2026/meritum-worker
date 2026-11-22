@@ -53,7 +53,7 @@ class OpenRouterReranker:
         self, settings: RerankerSettings, *, http_client: AsyncClient | None = None
     ) -> None:
         self._model = settings.model or OPENROUTER_RERANK_MODEL
-        token = settings.api_token
+        token = settings.token
         secret = "" if token is None else token.get_secret_value()
         self._headers = {"Authorization": f"Bearer {secret}"}
         self._retries = settings.retries
