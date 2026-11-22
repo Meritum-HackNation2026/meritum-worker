@@ -13,7 +13,7 @@ from meritum_core.corpus.fetching import FetchPurpose, PageFetchError
 from meritum_core.shared.embeddings import EmbeddingsUnavailableError
 
 from meritum_worker.corpus.catalog_api import ingest_api_entry
-from meritum_worker.corpus.catalog_api.constants import API_METHOD
+from meritum_worker.corpus.catalog_api.constants import API_DOMAINS, API_METHOD
 from meritum_worker.corpus.constants import (
     DEFAULT_REFRESH_MINUTES,
     EMBEDDINGS_UNAVAILABLE,
@@ -166,7 +166,7 @@ async def ingest_pages(
         US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13, ADR-32
     """
     await deps.store.record_attempt(entry.domain, now)
-    if entry.ingest == API_METHOD:
+    if entry.ingest == API_METHOD or entry.domain in API_DOMAINS:
         return await ingest_api_entry(entry, deps, now=now)
     try:
         listed = await deps.discovery.pages(entry)

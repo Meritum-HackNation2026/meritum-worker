@@ -11,7 +11,7 @@ from functools import partial
 
 from meritum_core.checks.contracts import CatalogEntry
 
-from meritum_worker.corpus.catalog_api import acts, parsers
+from meritum_worker.corpus.catalog_api import acts, parsers, rso
 from meritum_worker.corpus.catalog_api.constants import (
     BDL_SUBJECTS_URL,
     DANE_DATASETS_URL,
@@ -21,6 +21,8 @@ from meritum_worker.corpus.catalog_api.constants import (
     NBP_ATTEMPTS,
     NBP_GOLD_URL,
     NBP_TABLES_URL,
+    RSO_CATEGORIES,
+    RSO_LIST_URL,
     SEJM_ELI_ACT_URL,
     SEJM_ELI_ACTS_URL,
     SEJM_ELI_CONSOLIDATED_SEARCH_URL,
@@ -102,6 +104,15 @@ def api_listings(
         "dane.gov.pl": [ApiListing(DANE_DATASETS_URL, parsers.dane_datasets)],
         "bdl.stat.gov.pl": [ApiListing(BDL_SUBJECTS_URL, parsers.bdl_subjects)],
         "ec.europa.eu/eurostat": eurostat,
+        **{
+            domain: [
+                ApiListing(
+                    RSO_LIST_URL.format(slug=slug), partial(rso.rso_communiques, name)
+                )
+                for slug, name in categories.items()
+            ]
+            for domain, categories in RSO_CATEGORIES.items()
+        },
     }
     return listings.get(entry.domain, [])
 

@@ -1,0 +1,74 @@
+{
+ "pagination": {
+  "totalitems": 2,
+  "itemsperpage": 20
+ },
+ "newses": [
+  {
+   "id": 23521833,
+   "title": "Alert RCB",
+   "shortcut": "KOMUNIKAT:woda niezdatna do spożycia w miejscowościach na terenie gm. Pieńsk oraz w Żarskiej Wsi i Osiedle Nowa Żarska Wieś (pow. zgorzelecki). Śledź komunikaty",
+   "content": "Na wniosek wojewody dolnośląskiego do użytkowników sieci telefonii komórkowych na terenie powiatu zgorzeleckiego (woj. dolnośląskie) wysłano Alert RCB o treści:  „KOMUNIKAT: woda niezdatna do spożycia w miejscowościach na terenie gm. Pieńsk oraz w Żarskiej Wsi i Osiedle Nowa Żarska Wieś (pow. zgorzelecki). Śledź komunikaty”.",
+   "rso_alarm": "0",
+   "rso_icon": null,
+   "valid_from": "2026-11-19 17:06:00",
+   "0": "Y-m-d H:i:s",
+   "valid_to": "2026-11-22 23:59:00",
+   "1": "Y-m-d H:i:s",
+   "repetition": null,
+   "longitude": null,
+   "latitude": null,
+   "water_level_value": null,
+   "water_level_warning_status_value": null,
+   "water_level_alarm_status_value": null,
+   "water_level_trend": null,
+   "river_name": "",
+   "location_name": "",
+   "created_at": "2026-11-19 17:07:27",
+   "2": "Y-m-d H:i:s",
+   "updated_at": "2026-11-19 17:07:27",
+   "3": "Y-m-d H:i:s",
+   "provinces": {
+    "1": {
+     "id": "1",
+     "name": "dolnośląskie",
+     "city": "",
+     "slug_name": "dolnoslaskie"
+    }
+   }
+  },
+  {
+   "id": 23530714,
+   "title": "Strefa buforowa przed PG Hrebenne",
+   "shortcut": "Na PG w Hrebennem trwa buforowanie kolejki do miejscowości Polanówka (pow. tomaszowski, 40 km).",
+   "content": "Na PG w Hrebennem trwa buforowanie kolejki na wyjazd z RP do miejscowości Polanówka (pow. tomaszowski).\r\nKolejka wynosi ok. 40 km, czas oczekiwania ok. 22 godz. W kolejce oczekuje 330 samochodów ciężarowych.",
+   "rso_alarm": "0",
+   "rso_icon": null,
+   "valid_from": "2026-11-22 08:27:00",
+   "0": "Y-m-d H:i:s",
+   "valid_to": "2026-11-22 19:00:00",
+   "1": "Y-m-d H:i:s",
+   "repetition": null,
+   "longitude": null,
+   "latitude": null,
+   "water_level_value": null,
+   "water_level_warning_status_value": null,
+   "water_level_alarm_status_value": null,
+   "water_level_trend": null,
+   "river_name": "",
+   "location_name": "",
+   "created_at": "2026-11-22 08:27:56",
+   "2": "Y-m-d H:i:s",
+   "updated_at": "2026-11-22 08:27:56",
+   "3": "Y-m-d H:i:s",
+   "provinces": {
+    "3": {
+     "id": "3",
+     "name": "Lubelskie",
+     "city": "",
+     "slug_name": "lubelskie"
+    }
+   }
+  }
+ ]
+}

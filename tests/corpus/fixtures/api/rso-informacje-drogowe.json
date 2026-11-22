@@ -1,0 +1,41 @@
+{
+ "pagination": {
+  "totalitems": 1,
+  "itemsperpage": 20
+ },
+ "newses": [
+  {
+   "id": 23530330,
+   "title": "Utrudnienie na S14 (26km) k. Wrocław",
+   "shortcut": "Utrudnienie na S14 (26km) k. Wrocław - zderzenie z barierami. Zablokowany lewy pas.",
+   "content": "Utrudnienie na S14 (26km) k. Wrocław - zderzenie z barierami. Zablokowany lewy pas. Ruch odbywa się prawym pasem.",
+   "rso_alarm": "0",
+   "rso_icon": null,
+   "valid_from": "2026-11-22 05:52:00",
+   "0": "Y-m-d H:i:s",
+   "valid_to": "2026-11-22 08:00:00",
+   "1": "Y-m-d H:i:s",
+   "repetition": null,
+   "longitude": null,
+   "latitude": null,
+   "water_level_value": null,
+   "water_level_warning_status_value": null,
+   "water_level_alarm_status_value": null,
+   "water_level_trend": null,
+   "river_name": "",
+   "location_name": "",
+   "created_at": "2026-11-22 05:55:03",
+   "2": "Y-m-d H:i:s",
+   "updated_at": "2026-11-22 05:55:03",
+   "3": "Y-m-d H:i:s",
+   "provinces": {
+    "5": {
+     "id": "5",
+     "name": "łódzkie",
+     "city": "",
+     "slug_name": "lodzkie"
+    }
+   }
+  }
+ ]
+}
