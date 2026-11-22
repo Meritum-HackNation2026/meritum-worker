@@ -70,6 +70,7 @@ class CheckState(BaseModel):
             context that never reaches the verdict.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
+        draft: the masked answer preview, ready to publish after write_answer.
 
     Features:
         US-SPR-01, US-OBS-01, F-22
@@ -104,6 +105,7 @@ class CheckState(BaseModel):
     incidents: dict[str, IncidentMatch] = {}
     limitations: list[str] = []
     result: CheckResult | None = None
+    draft: str | None = None
 
     @property
     def has_text(self) -> bool:

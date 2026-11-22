@@ -18,12 +18,14 @@ from meritum_core.checks.contracts import (
     ai_marker_for,
 )
 from meritum_core.evidence import compute_verdict_changes, rate_review
+from meritum_core.security.pii import mask_personal_data
 from meritum_core.shared.llm import Prompt
 from pydantic import ValidationError
 
 from meritum_worker import evidence
 from meritum_worker.checks.answers import AnswerDraft, plain_text
 from meritum_worker.checks.constants import (
+    DRAFT_MAX_CHARS,
     EXPLANATION_MAX_CHARS,
     LIMITATION_MAX_CHARS,
     STANCE_LABELS,
@@ -47,7 +49,7 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
 
     Args:
         state: the check so far; a state that already has a result passes on.
-        deps: the ports; only the model is called.
+        deps: the model and the personal-data masking gate.
 
     Returns:
         The state with the result: done with the AI marker of the answering call,
@@ -73,7 +75,17 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
         result = _result_from_draft(state, facts, judged, answer.output, usage)
     except ValidationError:
         result = state.technical_failure()
-    return state.model_copy(update={"result": result, "models": models})
+    preview = None
+    if result.status == "done":
+        explanations = (
+            [claim.explanation for claim in answer.output.claims] if facts else []
+        )
+        text = "\n\n".join([*explanations, *answer.output.limitations]).strip()
+        masked = await mask_personal_data(text, deps.pii)
+        preview = masked.text[:DRAFT_MAX_CHARS].strip() or None
+    return state.model_copy(
+        update={"result": result, "models": models, "draft": preview}
+    )
 
 
 def _result_from_draft(

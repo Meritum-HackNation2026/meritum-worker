@@ -97,12 +97,9 @@ def pipeline() -> tuple[tuple[Lane, ...], ...]:
 async def run_check(
     payload: dict[str, object], check_id: str, deps: CheckDeps, runtime: CheckRuntime
 ) -> CheckOutput:
-    """Run every stage, publishing an AnalysisStatus before and after each one.
+    """Publish progress through the stages and close the stream after the result.
 
-    The code whose steps produced a technical failure ends as "failed". The
-    last status carries the result; the stream closes right after it. A step
-    that raises marks its code "failed", publishes a technical_failure result,
-    closes the stream and re-raises.
+    A stage that raises publishes a technical failure before propagating.
 
     Args:
         payload: the `CheckInput` JSON object.
@@ -132,9 +129,10 @@ async def run_check(
     progress = {code: _step(code, "pending") for stage in stages for code, _ in stage}
     for stage in stages:
         progress.update({code: _step(code, "active") for code, _ in stage})
-        await runtime.publish(
-            AnalysisStatus(check_id=check_id, steps=list(progress.values()))
+        status = AnalysisStatus(
+            check_id=check_id, steps=list(progress.values()), draft=state.draft
         )
+        await runtime.publish(status)
         outputs = await asyncio.gather(
             *(_run_lane(lane, state, deps, runtime) for lane in stage),
             return_exceptions=True,
@@ -147,6 +145,8 @@ async def run_check(
             await _finish(runtime, check_id, list(progress.values()), failed)
             raise failures[0]
         state = _merged(state, [o for o in outputs if isinstance(o, CheckState)])
+        if status.draft is None and state.draft is not None:
+            await runtime.publish(status.model_copy(update={"draft": state.draft}))
     result = state.final_result()
     await _finish(runtime, check_id, list(progress.values()), result)
     return CheckOutput(result=result)

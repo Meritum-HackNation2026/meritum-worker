@@ -56,6 +56,9 @@ PARTIAL_SUPPORT_NOTE: Final = (
 EXPLANATION_MAX_CHARS: Final = 800
 """Longest ClaimResult.explanation; a longer model text is cut to fit."""
 
+DRAFT_MAX_CHARS: Final = 4000
+"""Longest AnalysisStatus.draft."""
+
 UNRESOLVED_MAX_CHARS: Final = 500
 """Longest ClaimResult.unresolved; a longer model text is cut to fit."""
 

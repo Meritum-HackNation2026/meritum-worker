@@ -133,6 +133,12 @@ Funkcja: Smoke test workera
     Gdy cytaty nie przeszły jeszcze weryfikacji
     Wtedy wersja wstępna nie zawiera werdyktu
 
+  Scenariusz: zamaskowany szkic podczas pisania odpowiedzi
+    Zakładając stub zwraca długie wyjaśnienie z adresem e-mail
+    Gdy workflow buduje CheckResult
+    Wtedy krok write_answer pokazuje zamaskowany szkic do 4000 znaków
+    Oraz końcowy wynik zastępuje szkic
+
   Scenariusz: tekst dla obywatela nie zawiera kodów
     Zakładając model zwraca wyjaśnienie z nazwą kodu werdyktu albo ograniczenia
     Gdy workflow buduje CheckResult
