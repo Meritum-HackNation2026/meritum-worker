@@ -37,9 +37,9 @@ def test_local_stub_worker_needs_nothing() -> None:
     assert required_env({"MERITUM_LLM_PROVIDER": "stub"}) == []
 
 
-def test_demo_path_needs_database_and_euvs_token() -> None:
+def test_demo_path_needs_only_the_database() -> None:
     report = _check({"MERITUM_ENV": "dev", "MERITUM_LLM_PROVIDER": "stub"})
-    assert report.missing_env == ["MERITUM_DATABASE_URL", "EUVSDISINFO_MCP_API_KEY"]
+    assert report.missing_env == ["MERITUM_DATABASE_URL"]
 
 
 def test_openrouter_needs_its_key_even_locally() -> None:
@@ -68,16 +68,20 @@ def test_euvsdisinfo_probe_asks_the_server(token: str, unavailable: list[str]) -
     assert report.unavailable_providers == unavailable
 
 
-def test_no_probe_without_token() -> None:
-    server = FakeEuvsDisinfoServer(TOKEN)
-    assert build_readiness_probes({}, server.client()) == {}
+def test_missing_token_makes_euvsdisinfo_unavailable(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    probes = build_readiness_probes({}, FakeEuvsDisinfoServer(TOKEN).client())
+    report = _check({"MERITUM_LLM_PROVIDER": "stub"}, probes)
+    assert (report.missing_env, report.unavailable_providers) == ([], ["euvsdisinfo"])
+    assert "MissingTokenError" in caplog.text
 
 
 def test_log_names_variables_without_values(caplog: pytest.LogCaptureFixture) -> None:
-    env = {"MERITUM_ENV": "prd", "MERITUM_DATABASE_URL": "postgresql://secret"}
-    report = _check(env)
+    env = {"MERITUM_ENV": "prd", "MERITUM_LLM_PROVIDER": "openrouter"}
+    report = _check(env | {"MERITUM_DATABASE_URL": "postgresql://secret"})
     log_readiness(report, logging.getLogger("t"))
-    assert "EUVSDISINFO_MCP_API_KEY" in caplog.text
+    assert "OPENROUTER_API_KEY" in caplog.text
     assert "postgresql://secret" not in caplog.text
 
 

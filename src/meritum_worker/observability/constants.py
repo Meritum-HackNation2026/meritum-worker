@@ -6,8 +6,6 @@ Features:
 
 from typing import Final
 
-from meritum_worker.corpus import TOKEN_ENV
-
 MAX_QUOTE_CHARS: Final = 300
 """Longest cited fragment of a source; full texts stay out of the repo (ADR-27)."""
 
@@ -80,9 +78,12 @@ DEMO_PATH: Final = "demo"
 
 REQUIRED_ENV: Final = {
     LOCAL_ENV: (),
-    DEMO_PATH: ("MERITUM_DATABASE_URL", TOKEN_ENV),
+    DEMO_PATH: ("MERITUM_DATABASE_URL",),
 }
-"""Variables each path needs, before the model's; README lists the same."""
+"""Variables each path needs, before the model's; README lists the same.
+
+The EUvsDisinfo token is optional: without it the provider is only unavailable (#102).
+"""
 
 LLM_PROVIDER_VAR: Final = "MERITUM_LLM_PROVIDER"
 """Variable choosing the model adapter; unset means meritum-core's default."""

@@ -68,7 +68,7 @@ Wymagane zmienne (lista w `src/meritum_worker/observability/constants.py`):
 | Ścieżka | `MERITUM_ENV` | Zmienne |
 | --- | --- | --- |
 | lokalnie | `local` (domyślnie) | tylko zmienne modelu |
-| publiczne demo | `dev`, `prd` | `MERITUM_DATABASE_URL`, `EUVSDISINFO_MCP_API_KEY` i zmienne modelu |
+| publiczne demo | `dev`, `prd` | `MERITUM_DATABASE_URL` i zmienne modelu; `EUVSDISINFO_MCP_API_KEY` jest opcjonalny (bez niego `euvsdisinfo` jest w `unavailable_providers`, a sprawdzenia działają na lokalnej kopii) |
 
 | `MERITUM_LLM_PROVIDER` | Zmienne modelu |
 | --- | --- |
@@ -242,6 +242,6 @@ MERITUM_TEST_DATABASE_URL=postgresql://postgres:test@localhost:55432/meritum uv 
 MERITUM_ENV=local MERITUM_DATABASE_URL='postgresql://...?options=-csearch_path%3Dapp_local,public' uv run meritum-worker-migrate --corpus
 ```
 
-Sekrety repozytorium (dziś `EUVSDISINFO_MCP_API_KEY`) trafiają do kontenera inną drogą niż plik środowiska. Ich lista jest w jednym miejscu, w tablicy `worker_secrets` w `deploy/deploy.sh`. Krok `Deploy` w jobie `deploy` (`.github/workflows/ci.yml`) podaje każdy z nich jako zmienną środowiska kroku z `${{ secrets.NAZWA }}`, a `deploy.sh` przekazuje go do `docker run` jako `-e NAZWA`, bez wartości. Wartość nie trafia więc do logu, linii poleceń ani pliku na serwerze. Nieustawiony sekret jest pomijany i kontener startuje bez niego. Nazwę brakującej zmiennej pokaże raport gotowości workera z [worker#28](https://github.com/Meritum-HackNation2026/meritum-worker/issues/28). Nowy sekret dopisz w obu miejscach; test `tests/test_deploy_secrets.py` pilnuje, żeby się zgadzały.
+Sekrety repozytorium (dziś `EUVSDISINFO_MCP_API_KEY`) trafiają do kontenera inną drogą niż plik środowiska. Ich lista jest w jednym miejscu, w tablicy `worker_secrets` w `deploy/deploy.sh`. Krok `Deploy` w jobie `deploy` (`.github/workflows/ci.yml`) podaje każdy z nich jako zmienną środowiska kroku z `${{ secrets.NAZWA }}`, a `deploy.sh` przekazuje go do `docker run` jako `-e NAZWA`, bez wartości. Wartość nie trafia więc do logu, linii poleceń ani pliku na serwerze. Nieustawiony sekret jest pomijany i kontener startuje bez niego. Brak `EUVSDISINFO_MCP_API_KEY` raport gotowości workera ([worker#28](https://github.com/Meritum-HackNation2026/meritum-worker/issues/28)) pokaże jako niedostępnego dostawcę `euvsdisinfo`, a log sondy jako `MissingTokenError`. Nowy sekret dopisz w obu miejscach; test `tests/test_deploy_secrets.py` pilnuje, żeby się zgadzały.
 
 Plik `~/meritum/envs/worker-<env>.env` i rolę w bazie tworzy platforma z [meritum-infra](https://github.com/Meritum-HackNation2026/meritum-infra). Zasady gałęzi jak w backendzie: PR do `develop`, potem `develop` → `main`, bez bezpośrednich pushy.
