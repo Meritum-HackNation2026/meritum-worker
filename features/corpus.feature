@@ -63,6 +63,17 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Gdy workflow wczytywania działa
     Wtedy błąd jest w raporcie przebiegu z domeną, a pozostałe pozycje są wczytane
 
+  Scenariusz: akt z ELI trafia do korpusu z pełnym tekstem
+    Zakładając wpis katalogu api.sejm.gov.pl i akt, który ma tekst w ELI
+    Gdy ingestia pobiera ten akt
+    Wtedy dokument w korpusie ma pełny tekst aktu, a nie sam tytuł
+    I fragment „Stolicą Rzeczypospolitej Polskiej jest Warszawa.” da się znaleźć zapytaniem „Warszawa jest stolicą Polski”
+
+  Scenariusz: akt bez tekstu w ELI zostaje z tytułem
+    Zakładając akt, dla którego ELI nie udostępnia tekstu
+    Gdy ingestia pobiera ten akt
+    Wtedy dokument ma tytuł i metadane, a próba jest zapisana z powodem braku tekstu
+
   Scenariusz: domena wykluczona albo z zastrzeżeniem TDM
     Zakładając pozycja katalogu z excluded = true i powodem wykluczenia
     Gdy workflow wczytywania działa

@@ -1,0 +1,228 @@
+{
+ "count": 3,
+ "items": [
+  {
+   "address": "WDU20250001226",
+   "announcementDate": "2025-09-01",
+   "changeDate": "2026-11-20T14:52:57",
+   "displayAddress": "Dz.U. 2025 poz. 1226",
+   "pos": 1226,
+   "promulgation": "2025-09-05",
+   "publisher": "DU",
+   "status": "obowiązujący",
+   "textHTML": false,
+   "textPDF": true,
+   "title": "Obwieszczenie Marszałka Sejmu Rzeczypospolitej Polskiej z dnia 1 września 2025 r. w sprawie ogłoszenia jednolitego tekstu ustawy o kierujących pojazdami",
+   "type": "Obwieszczenie",
+   "volume": 0,
+   "year": 2025,
+   "authorizedBody": [],
+   "directives": [],
+   "inForce": "IN_FORCE",
+   "keywords": [
+    "kierowcy",
+    "pojazdy mechaniczne"
+   ],
+   "keywordsNames": [],
+   "legalStatusDate": "2025-08-26",
+   "obligated": [],
+   "previousTitle": [],
+   "prints": [],
+   "references": {
+    "Nowelizacje po tekście jednolitym": [
+     {
+      "id": "DU/2026/982",
+      "date": "2026-05-29"
+     }
+    ],
+    "Podstawa prawna": [
+     {
+      "id": "DU/2000/718"
+     }
+    ],
+    "Podstawa prawna z art.": [
+     {
+      "id": "DU/2000/718",
+      "art": "art. 16 ust. 1 zdanie pierwsze"
+     }
+    ],
+    "Tekst jednolity dla aktu": [
+     {
+      "id": "DU/2011/151"
+     }
+    ]
+   },
+   "releasedBy": [
+    "MARSZAŁEK SEJMU"
+   ],
+   "texts": [
+    {
+     "fileName": "D20251226.pdf",
+     "type": "O"
+    },
+    {
+     "fileName": "D20251226.pdf",
+     "type": "I"
+    },
+    {
+     "fileName": "D20251226L.pdf",
+     "type": "T"
+    },
+    {
+     "fileName": "D20251226Lj.pdf",
+     "type": "U"
+    }
+   ],
+   "ELI": "DU/2025/1226"
+  },
+  {
+   "address": "WDU20250000327",
+   "announcementDate": "2025-03-11",
+   "changeDate": "2026-11-20T09:25:48",
+   "displayAddress": "Dz.U. 2025 poz. 327",
+   "pos": 327,
+   "promulgation": "2025-03-17",
+   "publisher": "DU",
+   "status": "obowiązujący",
+   "textHTML": false,
+   "textPDF": true,
+   "title": "Obwieszczenie Ministra Finansów z dnia 11 marca 2025 r. w sprawie ogłoszenia jednolitego tekstu rozporządzenia Ministra Rozwoju i Finansów w sprawie sposobu przesyłania deklaracji i podań oraz rodzajów podpisu elektronicznego, którymi powinny być opatrzone",
+   "type": "Obwieszczenie",
+   "volume": 0,
+   "year": 2025,
+   "authorizedBody": [],
+   "directives": [],
+   "inForce": "IN_FORCE",
+   "keywords": [
+    "podatki",
+    "ordynacja podatkowa",
+    "deklaracja podatkowa",
+    "podpis elektroniczny"
+   ],
+   "keywordsNames": [],
+   "obligated": [],
+   "previousTitle": [],
+   "prints": [],
+   "references": {
+    "Nowelizacje po tekście jednolitym": [
+     {
+      "id": "DU/2026/442",
+      "date": "2026-03-31"
+     }
+    ],
+    "Podstawa prawna": [
+     {
+      "id": "DU/2000/718"
+     }
+    ],
+    "Podstawa prawna z art.": [
+     {
+      "id": "DU/2000/718",
+      "art": "art. 16 ust. 3"
+     }
+    ],
+    "Tekst jednolity dla aktu": [
+     {
+      "id": "DU/2017/1802"
+     }
+    ]
+   },
+   "releasedBy": [
+    "MIN. FINANSÓW"
+   ],
+   "texts": [
+    {
+     "fileName": "D20250327.pdf",
+     "type": "O"
+    },
+    {
+     "fileName": "D20250327.pdf",
+     "type": "I"
+    }
+   ],
+   "ELI": "DU/2025/327"
+  },
+  {
+   "address": "WDU20260001519",
+   "announcementDate": "2026-11-03",
+   "changeDate": "2026-11-19T09:57:00",
+   "displayAddress": "Dz.U. 2026 poz. 1519",
+   "pos": 1519,
+   "promulgation": "2026-11-18",
+   "publisher": "DU",
+   "status": "obowiązujący",
+   "textHTML": false,
+   "textPDF": true,
+   "title": "Obwieszczenie Marszałka Sejmu Rzeczypospolitej Polskiej z dnia 3 listopada 2026 r. w sprawie ogłoszenia jednolitego tekstu ustawy o narodowym zasobie archiwalnym i archiwach",
+   "type": "Obwieszczenie",
+   "volume": 0,
+   "year": 2026,
+   "authorizedBody": [],
+   "directives": [],
+   "inForce": "IN_FORCE",
+   "keywords": [
+    "archiwa państwowe"
+   ],
+   "keywordsNames": [],
+   "legalStatusDate": "2026-10-27",
+   "obligated": [],
+   "previousTitle": [],
+   "prints": [],
+   "references": {
+    "Podstawa prawna": [
+     {
+      "id": "DU/2000/718"
+     }
+    ],
+    "Podstawa prawna z art.": [
+     {
+      "id": "DU/2000/718",
+      "art": "art. 16 ust. 1"
+     }
+    ],
+    "Tekst jednolity dla aktu": [
+     {
+      "id": "DU/1983/173"
+     }
+    ]
+   },
+   "releasedBy": [
+    "MARSZAŁEK SEJMU"
+   ],
+   "texts": [
+    {
+     "fileName": "D20261519.pdf",
+     "type": "O"
+    },
+    {
+     "fileName": "D20261519.pdf",
+     "type": "I"
+    }
+   ],
+   "ELI": "DU/2026/1519"
+  }
+ ],
+ "offset": 0,
+ "totalCount": 2694,
+ "searchQuery": {
+  "comparator": {
+   "column": "change",
+   "dir": "desc"
+  },
+  "dateEffectType": "NONE",
+  "dateType": "NONE",
+  "exile": false,
+  "keyword": [],
+  "position": -1,
+  "pubDateType": "NONE",
+  "publisher": "DU",
+  "publisherName": "Dziennik Ustaw",
+  "statusInForce": true,
+  "title": "jednolitego tekstu",
+  "type": [
+   "obwieszczenie"
+  ],
+  "volume": -1,
+  "year": -1
+ }
+}
