@@ -15,12 +15,14 @@ class ExtractedClaim(BaseModel):
     """One claim the model found in the input, before any evidence is searched.
 
     Attributes:
-        claim: the claim as written in the input.
+        claim: the claim as written in the input; in Polish when it comes from
+            a linked page in another language.
         claim_en: the claim in English, for English-language sources; None when
             the claim is already English.
-        search_queries: up to 3 web search queries the model wrote for the claim:
-            key entities, numbers and dates, in Polish and English; empty when
-            the model gave none.
+        search_queries: up to 4 web search queries the model wrote for the claim:
+            key entities, numbers and dates, in Polish and English, and one
+            naming the document that settles it (worker#170); empty when the
+            model gave none.
         fact_check_phrases: up to 4 short Polish key phrases of a fact for the
             fact-checkers' index, which matches phrases literally: the names of
             people, institutions and places and the numbers (worker#84); empty
@@ -40,7 +42,7 @@ class ExtractedClaim(BaseModel):
     claim_en: Annotated[str, Field(min_length=5, max_length=500)] | None = None
     search_queries: Annotated[
         list[Annotated[str, Field(min_length=3, max_length=200)]],
-        Field(max_length=3),
+        Field(max_length=4),
     ] = []  # pydantic copies the default per instance
     # No length cap on the list: a fifth phrase must not fail the extraction;
     # the search takes FACT_CHECK_PHRASES_PER_FACT.

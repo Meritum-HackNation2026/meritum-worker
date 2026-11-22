@@ -9,38 +9,44 @@ from meritum_core.security.pii import mask_personal_data
 
 from meritum_worker.checks.constants import (
     FETCH_URL_STEP,
+    LIMITATION_MAX_CHARS,
+    LINK_UNREAD_NOTE,
     PAGE_DATE_ZONE,
-    URL_UNAVAILABLE_CODE,
-    URL_UNAVAILABLE_MESSAGE,
 )
+from meritum_worker.checks.links.constants import PREVIEW_ONLY_NOTE
+from meritum_worker.checks.links.previews import is_preview_host
 from meritum_worker.checks.models import CheckDeps, CheckState
 from meritum_worker.corpus import MAX_PAGE_TEXT_CHARS
 
 
 async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
-    """Read the link through the SSRF-safe fetcher; pasted text or no link skips it.
+    """Read the link through the SSRF-safe fetcher; a check with no link skips it.
 
-    The page text is masked like the input and cut to the length of a pasted
-    text; it stays data for every later prompt (ADR-12). Any fetch failure (an
-    internal address, the network, a login wall or a paywall) or an empty page
-    ends the check as technical_failure with code url_unavailable and a request
-    to paste the text. A publication date later than the check's receipt is
-    dropped as wrong metadata.
+    The page is read also when the citizen wrote text next to the link, such
+    as a question about the article. The page text is masked like the input
+    and cut to the length of a pasted text; it stays data for every later
+    prompt (ADR-12). Any fetch failure (an internal address, the network,
+    robots.txt, a login wall or a paywall) or an empty page marks the step
+    failed and adds a limitation saying the page was not read; the check goes
+    on with the citizen's text and the address, and extract_claims ends it as
+    url_unavailable when those hold no claim. A publication date later than
+    the check's receipt is dropped as wrong metadata. A link to a video or a
+    post is read from the service's public preview (title and description); a
+    limitation says the recording itself was not watched.
 
     Args:
         state: the check so far.
         deps: the ports; the page fetcher and the masking gate are called.
 
     Returns:
-        The state with the masked page text, with a technical failure, or
-        with the step marked skipped.
+        The state with the masked page text, with the step marked failed and
+        the limitation, or with the step marked skipped.
 
     Features:
         US-SPR-07, US-ZRD-05, F-06, ADR-12
     """
     url = state.job.request.url
-    # Pasted text is what the citizen wants checked; a link next to it is context.
-    if url is None or state.has_text:
+    if url is None:
         return state.model_copy(
             update={"skipped_steps": [*state.skipped_steps, FETCH_URL_STEP]}
         )
@@ -50,8 +56,13 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
         page = None
     # An empty plain-text page has nothing to check, like a page we could not open.
     if page is None or not page.untrusted_text.strip():
-        failure = state.technical_failure(URL_UNAVAILABLE_CODE, URL_UNAVAILABLE_MESSAGE)
-        return state.model_copy(update={"result": failure})
+        note = LINK_UNREAD_NOTE.format(host=url.host)[:LIMITATION_MAX_CHARS]
+        return state.model_copy(
+            update={
+                "failed_steps": [*state.failed_steps, FETCH_URL_STEP],
+                "limitations": [*state.limitations, note],
+            }
+        )
     masked = await mask_personal_data(
         page.untrusted_text[:MAX_PAGE_TEXT_CHARS], deps.pii
     )
@@ -63,4 +74,8 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     published = page.published_at
     if published is not None and published > received_on:
         published = None
-    return state.model_copy(update={"page_text": text, "published_at": published})
+    update: dict[str, object] = {"page_text": text, "published_at": published}
+    if is_preview_host(url.host):
+        note = PREVIEW_ONLY_NOTE.format(host=url.host)[:LIMITATION_MAX_CHARS]
+        update["limitations"] = [*state.limitations, note]
+    return state.model_copy(update=update)

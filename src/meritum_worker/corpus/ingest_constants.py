@@ -50,6 +50,8 @@ INGEST_SKIPPED: Final = {
     ),
 }
 """Catalogue entries the ingestion skips, with the reason, decided in worker#220.
+The RCB and RSO entries skipped in worker#239 are read through their API
+(``catalog_api.rso``, worker#279).
 
 Unlike core's ``excluded``, which also bars an entry from live search, these stay
 citable from live search; only the scheduled ingestion leaves them out. They move

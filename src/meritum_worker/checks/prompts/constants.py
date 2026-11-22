@@ -16,10 +16,16 @@ ANSWER_INSTRUCTIONS: Final = (
     " the same order. The explanation is two to four short sentences about the"
     " claim itself: what the sources say, each named by its publisher, and how"
     " that leads to the verdict (when two numbers measure different things, such"
-    " as an estimate from a statement and a budget item for a given year, say so)."
+    " as an estimate from a statement and a budget item for a given year, say so;"
+    " when the user text asks why a source gives a different figure, answer that:"
+    " say what each figure measures, and never present them as two conflicting"
+    " measurements)."
     " Write about the world, not about the check: never mention fragments, data"
-    " items, rules, the database or the model. When a claim has no quote, say in"
-    " one sentence that no source was found that confirms or refutes it. For the"
+    " items, rules, the database or the model. A fact-checker's rating (ocena) is"
+    " a source: name the fact-checker, quote its rating word for word, say it"
+    " is the basis of the verdict and give its link. When a claim has neither"
+    " a quote nor a rating, say in one sentence that no source was found that"
+    " confirms or refutes it. For the"
     " verdict „Brak wystarczających dowodów” add an unresolved text naming what"
     " could not be established and the kind of source that would settle it (for"
     " example the local transport operator's announcement or ticket rules)."
@@ -59,7 +65,13 @@ EXTRACTION_INSTRUCTIONS: Final = (
     " not the sentence. Keep the key names, numbers, years and places, drop"
     " filler words, and make at least one query Polish and one English"
     " (for example kwota wolna od podatku 2026 and Poland tax-free allowance"
-    " 2026). Give each fact also two to four fact_check_phrases in Polish for a"
+    " 2026). Add one more Polish query that names the primary document which"
+    " settles the fact, the way an official source titles it: the act with its"
+    " article (Konstytucja RP art. 96 liczba posłów), the regulation or"
+    " announcement (rozporządzenie płaca minimalna 2026, obwieszczenie PKW"
+    " wyniki wyborów prezydenta 2025) or the official statistics release (GUS"
+    " komunikat inflacja 2025)."
+    " Give each fact also two to four fact_check_phrases in Polish for a"
     " fact-checkers' index that matches words literally: short phrases of two"
     " to five words built around the names of people, institutions and places"
     " and the numbers in the claim, for example Gdańsk opłata za śmieci 2025"
@@ -76,7 +88,11 @@ EXTRACTION_INSTRUCTIONS: Final = (
     " list that claim as a statement, for example Czy Sejm ma 460 posłów? gives"
     " the fact Sejm ma 460 posłów. Only a question about information that states"
     " nothing to check, such as Co o tym sądzisz?, is not out of scope and has"
-    " no claims."
+    " no claims. A why-question about a figure a source or fact-checker gives"
+    " (Dlaczego w analizie Demagoga jest 650 mln zł?) asks to explain the"
+    " difference, not to check that figure: do not list it as a claim; list"
+    " only the user's own statement (Wrocław wydaje na komunikację około 700 mln"
+    " zł)."
 )
 """Instructions of the extract_claims model call; user text goes as data (ADR-12)."""
 
@@ -85,3 +101,37 @@ PUBLISHED_ON_INSTRUCTIONS: Final = (
     " yesterday or last week from that day (claim_date_source text)."
 )
 """Appended to EXTRACTION_INSTRUCTIONS when the linked page's metadata dates it."""
+
+LINKED_PAGE_INSTRUCTIONS: Final = (
+    " The text to check is a page the user linked. List only its two to four"
+    " main checkable claims, the ones a reader would most want verified, each as"
+    " a full statement with its names, places, numbers and dates; skip the"
+    " background and side details. Write every claim in Polish, also when the"
+    " page is in another language: translate it and keep the names, numbers and"
+    " dates as they are. Then put the English wording in claim_en and give"
+    " search_queries in Polish and in the language of the page, so sources in"
+    " both can be found."
+)
+"""Appended to EXTRACTION_INSTRUCTIONS when the linked page was read (worker#256);
+a foreign page's claims are shown to the citizen in Polish (worker#264)."""
+
+QUESTION_AND_PAGE_INSTRUCTIONS: Final = (
+    " There are two data items: the user's own text, then the text of the page"
+    " the user linked. A user text that only asks about the page (is this"
+    " article true, what is false in it) or only names it states no claim of"
+    " its own and is not a request for clarification: list the page's claims. A"
+    " user text with its own claims: list those, and add the page's claims only"
+    " when the user asks to check the page too."
+)
+"""Appended after LINKED_PAGE_INSTRUCTIONS when the citizen wrote text next to
+the link (worker#256)."""
+
+UNREAD_LINK_INSTRUCTIONS: Final = (
+    " The page the user linked could not be read; only its address is in the"
+    " data. When the user text states no claim of its own, read the headline"
+    " from the words of the address path and list it as one fact, in Polish,"
+    " only when those words make a checkable statement; add nothing the address"
+    " does not say."
+)
+"""Appended to EXTRACTION_INSTRUCTIONS when the link's page was not read, so
+live search and the fact-checkers' index still get a claim (worker#256)."""

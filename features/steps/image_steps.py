@@ -35,11 +35,14 @@ FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 RECEIVED_AT = datetime(2026, 11, 20, 12, 0, tzinfo=UTC)
 
 
-def _given_image(context: Context, data: bytes, text: str | None) -> None:
+def _given_image(
+    context: Context,
+    data: bytes,
+    text: str | None,
+    answers: str = "llm_stub_answer.json",
+) -> None:
     ports = image_ports(text)
-    llm = LlmSettings(
-        provider=LlmProvider.STUB, stub_fixtures=FIXTURES / "llm_stub_answer.json"
-    )
+    llm = LlmSettings(provider=LlmProvider.STUB, stub_fixtures=FIXTURES / answers)
     deps = CheckDeps(
         llm=build_llm(llm),
         records=InMemoryCheckRecordRepository(),
@@ -64,6 +67,12 @@ def _given_image(context: Context, data: bytes, text: str | None) -> None:
 @given('zdjęcie z tekstem "{text}"')
 def image_with_text(context: Context, text: str) -> None:
     _given_image(context, png(), text)
+    context.expected_image_text = text
+
+
+@given('zdjęcie z tekstem "{text}" i model oznacza tę datę jako datę publikacji')
+def image_with_published_date(context: Context, text: str) -> None:
+    _given_image(context, png(), text, "llm_stub_image_published.json")
     context.expected_image_text = text
 
 

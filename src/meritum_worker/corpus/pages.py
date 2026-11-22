@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from datetime import date, datetime
 from itertools import batched
 
-from meritum_core.checks.contracts import CatalogEntry
+from meritum_core.checks.contracts import CatalogEntry, SourceVia
 from meritum_core.corpus.fetching import FetchedPage
 from meritum_core.shared.embeddings import EmbeddingsPort, Vector
 from meritum_core.shared.llm import ProviderUnavailableError
@@ -56,7 +56,9 @@ async def store_page(
         deps: The ports; ``injection``, ``embeddings`` and ``store`` are used.
         now: The page's ``fetched_at``.
         found: The discovered page it was fetched for: its URL and feed date
-            win over ``page.url`` and the page's metadata; None for live search.
+            win over ``page.url`` and the page's metadata, and its ``via`` is
+            the document's (live search passes ``web_search``); None stores
+            ``corpus``.
 
     Returns:
         One added, updated or unchanged document, or one failure; a page of an
@@ -73,7 +75,8 @@ async def store_page(
     if rejected is not None:
         return failed_page(entry, url, rejected)
     published_on = (found.published_on if found else None) or page.published_at
-    document = _document(entry, url, text, now, published_on)
+    via = found.via if found else "corpus"
+    document = _document(entry, url, text, now, published_on, via)
     previous = await deps.store.document(document.source_id)
     if previous is not None and previous.checksum == document.checksum:
         await deps.store.save_document(document, [])
@@ -138,8 +141,13 @@ def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
-def _document(
-    entry: CatalogEntry, url: str, text: str, now: datetime, published_on: date | None
+def _document(  # ruff: ignore[too-many-arguments, too-many-positional-arguments]  # one document row, field by field
+    entry: CatalogEntry,
+    url: str,
+    text: str,
+    now: datetime,
+    published_on: date | None,
+    via: SourceVia,
 ) -> Document:
     return Document(
         source_id=source_id_for(url),
@@ -151,6 +159,7 @@ def _document(
         fetched_at=now,
         checksum=_sha256(text),
         full_text=text,
+        via=via,
     )
 
 

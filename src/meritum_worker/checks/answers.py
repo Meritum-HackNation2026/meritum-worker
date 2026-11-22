@@ -71,7 +71,8 @@ def _described(fact: ExtractedClaim, judged: Judgement) -> str:
         for c in judged.citations
     ]
     ratings = (
-        f"- {STANCE_LABELS[r.stance]}, {r.publisher}: ocena {r.rating}, {r.title}"
+        f"- {STANCE_LABELS[r.stance]}, {r.publisher}: ocena {r.rating}, {r.title},"
+        f" {r.url}"
         for r in judged.claim_review_premises
     )
     return "\n".join((fact.claim, *quotes, *ratings))

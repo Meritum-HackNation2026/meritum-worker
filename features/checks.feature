@@ -60,6 +60,35 @@ Funkcja: Smoke test workera
     Gdy workflow sprawdza link
     Wtedy wynik ma stan technical_failure z kodem "url_unavailable" i prośbą o wklejenie tekstu, bez werdyktu
 
+  Scenariusz: pytanie o artykuł z adresem w tekście
+    Zakładając publiczna strona pod adresem "https://example.com/artykul"
+    Gdy workflow "check" dostaje CheckRequest z tekstem "Czy ten artykuł mówi prawdę https://example.com/artykul"
+    Wtedy krok fetch_url kończy się stanem done, a strona spod adresu z tekstu została pobrana
+    Oraz zapis sprawdzenia zachowuje pytanie razem z adresem
+
+  Scenariusz: sam adres wpisany jako tekst
+    Zakładając publiczna strona pod adresem "https://example.com/artykul"
+    Gdy workflow "check" dostaje CheckRequest z tekstem "https://example.com/artykul"
+    Wtedy krok fetch_url kończy się stanem done, a strona spod adresu z tekstu została pobrana
+    Oraz sprawdzany jest tekst strony
+
+  Scenariusz: strony z pytania nie da się pobrać
+    Zakładając strona pod adresem "https://example.com/rosyjskie-rakiety-spadly-w-polsce" jest za paywallem
+    Gdy workflow "check" dostaje CheckRequest z tekstem "Czy ten artykuł mówi prawdę https://example.com/rosyjskie-rakiety-spadly-w-polsce"
+    Wtedy sprawdzenie kończy się stanem done z krokiem fetch_url w stanie failed
+    Oraz ograniczenia mówią, że strony "example.com" nie udało się otworzyć
+
+  Scenariusz: link do filmu na YouTube
+    Zakładając link do filmu na YouTube i nagraną stronę filmu
+    Gdy workflow sprawdza link
+    Wtedy sprawdzany jest tytuł i opis filmu
+    Oraz ograniczenia mówią, że nie oglądaliśmy nagrania
+
+  Scenariusz: link do filmu w serwisie, który nie udostępnia opisu
+    Zakładając link do filmu na TikToku i nagraną stronę bez opisu
+    Gdy workflow sprawdza link
+    Wtedy wynik ma stan technical_failure z kodem "url_unavailable"
+
   Scenariusz: sam tekst bez linku
     Zakładając wklejony tekst bez adresu
     Gdy workflow publikuje postęp
@@ -111,6 +140,13 @@ Funkcja: Smoke test workera
     Wtedy twierdzenie z OCR dostaje werdykt
     Oraz wynik zawiera tekst odczytany z obrazu
     Oraz odpowiedź mówi, że nie szukano wcześniejszych wystąpień obrazu
+    Oraz odpowiedź mówi, że data na obrazie nie potwierdza daty publikacji
+
+  Scenariusz: zrzut wpisu z datą, którą model uznał za datę publikacji
+    Zakładając zdjęcie z tekstem "PAP usunęła depeszę o wyborach. 21:37 · 14.11.2026" i model oznacza tę datę jako datę publikacji
+    Gdy workflow sprawdza obraz
+    Wtedy twierdzenie z OCR dostaje werdykt
+    Oraz wynik zawiera tekst odczytany z obrazu
     Oraz odpowiedź mówi, że data na obrazie nie potwierdza daty publikacji
 
   Scenariusz: awaria OCR

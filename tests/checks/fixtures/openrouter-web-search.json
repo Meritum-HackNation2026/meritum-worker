@@ -1,0 +1,53 @@
+{
+  "id": "gen-recorded",
+  "model": "anthropic/claude-haiku-5.5",
+  "choices": [
+    {
+      "finish_reason": "length",
+      "message": {
+        "role": "assistant",
+        "content": "La CGIL ha proclamato uno sciopero generale per il 20 novembre 2026 [tg24.sky.it](https://tg24.sky.it/cronaca/2026/11/18/sciopero-20-novembre-2026).",
+        "annotations": [
+          {
+            "type": "url_citation",
+            "url_citation": {
+              "url": "https://tg24.sky.it/cronaca/2026/11/18/sciopero-20-novembre-2026",
+              "title": "Sciopero generale 20 novembre 2026",
+              "content": "Sciopero generale proclamato per il 20 novembre 2026.",
+              "start_index": 67,
+              "end_index": 146
+            }
+          },
+          {
+            "type": "url_citation",
+            "url_citation": {
+              "url": "https://example-blog.it/sciopero",
+              "title": "Blog",
+              "start_index": 0,
+              "end_index": 0
+            }
+          },
+          {
+            "type": "url_citation",
+            "url_citation": {
+              "url": "https://www.ansa.it/sito/notizie/economia/2026/11/17/sciopero.html",
+              "title": "Sciopero generale, la Cgil conferma",
+              "start_index": 0,
+              "end_index": 0
+            }
+          },
+          {
+            "type": "url_citation",
+            "url_citation": {
+              "url": "https://tg24.sky.it/cronaca/2026/11/18/sciopero-20-novembre-2026",
+              "title": "Sciopero generale 20 novembre 2026",
+              "start_index": 0,
+              "end_index": 0
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {"prompt_tokens": 2100, "completion_tokens": 64, "cost": 0.0092}
+}

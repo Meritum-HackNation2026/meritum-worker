@@ -80,6 +80,19 @@ URL_UNAVAILABLE_MESSAGE: Final = (
 )
 """Diagnostic for a link that could not be fetched."""
 
+LINK_IN_TEXT: Final = re.compile(r"https?://[^\s<>\"]+")
+"""An http(s) address written inside a citizen's text (worker#256)."""
+
+LINK_TRAILING: Final = ".,;:!?)]}'”»"
+"""Punctuation that ends a sentence or a bracket around a link, not the link."""
+
+LINK_UNREAD_NOTE: Final = (
+    "Nie udało się otworzyć strony {host}, więc nie znamy jej treści."
+    " Sprawdziliśmy tylko to, co wynika z pytania i z adresu strony."
+)
+"""Limitation for a link whose page could not be fetched; the check goes on
+with the citizen's text and the address (worker#256)."""
+
 STEP_TIMEOUTS: Final[dict[str, timedelta]] = {
     "receive": timedelta(seconds=100),
     "fetch_url": timedelta(seconds=30),
@@ -158,6 +171,10 @@ USER_ID_PATTERN: Final = re.compile(r"^[^:\s]+:\S+$")
 SEARCH_CORPUS_STEP: Final = "search_corpus"
 """AnalysisStep code of the corpus research agent; skipped with no fact or snapshot."""
 
+CORPUS_CANDIDATES: Final = 30
+"""Passages asked from the snapshot per query, all passed to the reranker: with 10,
+the settling article of a long act often missed its top 5 (worker#248, ADR-35)."""
+
 CORPUS_VERSION_ENV: Final = "MERITUM_CORPUS_VERSION"
 """Environment variable pinning the corpus snapshot checks search; unset: none."""
 
@@ -208,6 +225,19 @@ WEB_SEARCH_PRICES: Final = MappingProxyType(
 """Usage of one web search per provider; cost_usd is one call (US-OBS-02, F-23).
 
 Vertex AI Search Standard: USD 1.50 per 1,000 queries (2026-11-22); stub is free.
+"""
+
+NEWS_SEARCH_PRICE: Final = ModelUsage(
+    provider="openrouter",
+    model="web-search-exa",
+    region="global",
+    input_tokens=0,
+    output_tokens=0,
+    cost_usd=0.007,
+)
+"""Usage of one media search on OpenRouter's ``web`` plugin (US-OBS-02, F-23).
+
+Exa through OpenRouter: USD 0.007 per request with up to 10 results (2026-11-22).
 """
 
 SOURCE_DROPPED_NOTE: Final = (

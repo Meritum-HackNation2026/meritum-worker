@@ -85,7 +85,7 @@ def _document(meta: DocumentMeta, entry: CatalogEntry, text: str) -> SourceDocum
         else datetime.combine(published, time(), UTC),
         fetched_at=meta.fetched_at,
         language=detect_language(text),
-        via="corpus",
+        via=meta.via,
         max_age_hours=entry.max_age_hours,
     )
     return SourceDocument(source=source, text=text)

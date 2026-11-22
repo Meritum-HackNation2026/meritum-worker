@@ -108,11 +108,12 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Wtedy werdykt to "false" z przesłanką: Demagog, "Fałsz", tytuł, data i link, bez fragmentu strony
     I żaden artykuł Demagogu nie jest pobierany
 
-  Scenariusz: ocena innego twierdzenia zostaje kontekstem
+  # Zastępuje scenariusz z #43: ocena innego twierdzenia nie jest już kontekstem (worker#257).
+  Scenariusz: ocena innego twierdzenia nie jest pokazana
     Zakładając pytanie o depeszę PAP i API Fact Check z oceną Demagogu "Fałsz"
     I model uznaje, że oceniane twierdzenie jest inne niż nasze
     Gdy system bada twierdzenie z oceną fact-checkera
-    Wtedy ocena Demagogu jest tylko kontekstem z linkiem, a werdykt to "insufficient_evidence"
+    Wtedy ocena Demagogu nie jest pokazana i nie wpływa na werdykt
 
   Scenariusz: pusty wynik API to brak oceny, a nie awaria
     Zakładając pytanie o depeszę PAP i API Fact Check bez żadnej oceny
@@ -141,7 +142,13 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Zakładając twierdzenie "Tylko we Wrocławiu seniorzy po 65. roku życia jeżdżą komunikacją za darmo" z frazami kluczowymi
     I API zwraca ClaimReview o darmowej komunikacji dla seniorów w innym mieście
     Gdy system bada twierdzenie z oceną fact-checkera
-    Wtedy podobieństwo jest poniżej progu, a ocena zostaje kontekstem z linkiem
+    Wtedy model porównuje ocenę z twierdzeniem i uznaje ją za inną, a ocena nie jest pokazana
+
+  Scenariusz: ocena dłuższej wypowiedzi, której częścią jest nasze twierdzenie, jest przesłanką
+    Zakładając twierdzenie "Wrocław wydaje na komunikację około 700 mln zł" i ocena Demagogu "Częściowa prawda" wypowiedzi o kosztach MPK we Wrocławiu z podobieństwem 0,7
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy model porównuje ocenę z twierdzeniem i uznaje ją za ocenę naszego twierdzenia
+    I werdykt to "misleading" z przesłanką: Demagog, "Częściowa prawda", tytuł, data i link
 
   Scenariusz: kilka zapytań mieści się w budżecie czasu
     Zakładając twierdzenie "Tylko we Wrocławiu seniorzy po 65. roku życia jeżdżą komunikacją za darmo" z trzema frazami kluczowymi
@@ -153,6 +160,11 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Gdy cykliczny workflow DBOS uruchamia się po 20 minutach
     Wtedy 3 nowe dokumenty trafiają do korpusu z datą publikacji z kanału
     I wpisy już wczytane i powtórzone z innym znacznikiem nie są pobierane ponownie
+
+  Scenariusz: dokument z kanału RSS zapisuje drogę pozyskania
+    Zakładając wczytywanie RSS pobrało dokument z kanału z katalogu
+    Gdy magazyn korpusu zapisuje dokument
+    Wtedy dokument z kanału ma via "rss", a dokument z wczytywania katalogu ma via "corpus"
 
   Scenariusz: nowe adresy z mapy strony
     Zakładając pozycja katalogu z indeksem map strony

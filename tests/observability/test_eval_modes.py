@@ -109,7 +109,7 @@ def test_recorded_link_cases_fill_the_manifest_and_replay_alike(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     recording = FakePageFetcher(PAGE)
-    monkeypatch.setattr(checks_factory, "build_page_fetcher", lambda: recording)
+    monkeypatch.setattr(checks_factory, "build_link_fetcher", lambda: recording)
     cassette = Cassette()
     recorded = _verdicts(build_eval_deps(STUB, SNAPSHOT, recorder=cassette), LINKS)
     assert recording.calls
@@ -126,6 +126,6 @@ def test_recorded_link_cases_fill_the_manifest_and_replay_alike(
     assert manifest.documents
     assert {document.sha256 for document in manifest.documents} == {digest}
     offline = FakePageFetcher()
-    monkeypatch.setattr(checks_factory, "build_page_fetcher", lambda: offline)
+    monkeypatch.setattr(checks_factory, "build_link_fetcher", lambda: offline)
     assert _verdicts(build_replay_deps(Cassette.load(path)), LINKS) == recorded
     assert offline.calls == []

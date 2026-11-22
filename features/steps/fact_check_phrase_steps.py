@@ -32,6 +32,11 @@ PHRASES = [
     "65-latkowie komunikacja za darmo",
     "Wrocław seniorzy 65 lat",
 ]
+MPK = (
+    "To rezygnacja z przychodów z tytułu biletów, a to jest w 7 mld budżecie"
+    " naprawdę skromna kwota - 200 mln zł około. Natomiast MPK [we Wrocławiu -"
+    " przyp. Demagog] i tak nas kosztuje bodajże ok. 700 mln zł."
+)
 KRAKOW = "W Krakowie seniorzy po 70. roku życia jeżdżą komunikacją miejską za darmo"
 REVIEWED = (
     "Wrocław był jedynym miastem w Polsce, w którym 65-latkowie jeździli"
@@ -75,6 +80,7 @@ def _setup(
             claim: (1.0, 0.0, 0.0),
             REVIEWED: (0.9, 0.43589, 0.0),  # a paraphrase: cosine 0.9
             KRAKOW: (0.7, 0.0, 0.71414),  # another city: cosine 0.7
+            MPK: (0.7, 0.0, 0.71414),  # a longer quote holding our claim: 0.7
         }
     )
 
@@ -93,6 +99,15 @@ def demagog_rated_other_words(context: Context, reviewed: str, rating: str) -> N
 @given("API zwraca ClaimReview o darmowej komunikacji dla seniorów w innym mieście")
 def another_city(context: Context) -> None:
     context.api = _recorded({PHRASES[1]: "fact_check_demagog_krakow.json"})
+    context.same_claim = False  # the model tells the other city apart
+
+
+@given(
+    'twierdzenie "{claim}" i ocena Demagogu "Częściowa prawda" wypowiedzi o'
+    " kosztach MPK we Wrocławiu z podobieństwem 0,7"
+)
+def mpk_quote(context: Context, claim: str) -> None:
+    _setup(context, claim, [], _recorded({claim: "fact_check_demagog_mpk.json"}))
 
 
 class _SlowApi:
@@ -122,13 +137,41 @@ def demagog_found(context: Context, rating: str) -> None:
     assert context.claim.verdict == "false"
 
 
-@then("podobieństwo jest poniżej progu, a ocena zostaje kontekstem z linkiem")
-def other_city_is_context(context: Context) -> None:
+def _compared(context: Context) -> bool:
+    return REVIEW_MATCH_INSTRUCTIONS in [
+        p.instructions for p in context.deps.llm.prompts
+    ]
+
+
+@then(
+    "model porównuje ocenę z twierdzeniem i uznaje ją za inną,"
+    " a ocena nie jest pokazana"
+)
+def other_city_not_shown(context: Context) -> None:
+    assert _compared(context)
     assert context.claim.claim_review_premises == []
-    [review] = context.claim.claim_reviews
-    assert "krakow" in str(review.url)
-    asked = [p.instructions for p in context.deps.llm.prompts]
-    assert REVIEW_MATCH_INSTRUCTIONS not in asked  # the model never compared it
+    assert context.claim.claim_reviews == []
+
+
+@then("model porównuje ocenę z twierdzeniem i uznaje ją za ocenę naszego twierdzenia")
+def mpk_is_ours(context: Context) -> None:
+    assert _compared(context)
+
+
+@then(
+    'werdykt to "misleading" z przesłanką: Demagog, "Częściowa prawda", tytuł, data'
+    " i link"
+)
+def mpk_misleading(context: Context) -> None:
+    claim = context.claim
+    assert (claim.verdict, claim.technique) == ("misleading", "out_of_context")
+    [premise] = claim.claim_review_premises
+    assert (premise.rating, premise.stance) == ("Częściowa prawda", "context")
+    assert premise.publisher_id == "demagog"
+    assert premise.title
+    assert premise.reviewed_at
+    assert str(premise.url)
+    assert claim.strength is not None
 
 
 @then(

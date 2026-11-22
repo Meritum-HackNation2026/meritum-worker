@@ -175,6 +175,23 @@ def test_parallel_steps_that_change_the_same_field_fail_loudly(
         _run(payload, make_deps())
 
 
+def test_a_step_alone_in_its_stage_may_rewrite_a_list(
+    monkeypatch: pytest.MonkeyPatch,
+    payload: Payload,
+    make_deps: Callable[..., CheckDeps],
+) -> None:
+    async def rewrite(state: CheckState, _deps: CheckDeps) -> CheckState:
+        await asyncio.sleep(0)
+        other = {"explanation": "Inne uzasadnienie."}
+        claims = [c.model_copy(update=other) for c in state.claims]
+        return state.model_copy(update={"claims": claims})
+
+    rewrite.__name__ = "assess_evidence"
+    monkeypatch.setattr(steps, "assess_evidence", rewrite)
+    output, _ = _run(payload, make_deps())
+    assert output.result.status == "done"
+
+
 def test_pinned_corpus_version_reaches_the_result(
     payload: Payload, make_deps: Callable[..., CheckDeps]
 ) -> None:

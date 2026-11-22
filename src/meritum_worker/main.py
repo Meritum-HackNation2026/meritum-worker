@@ -53,6 +53,7 @@ from meritum_worker import (
     security,
 )
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
+from meritum_worker.corpus import ready as corpus_ready
 from meritum_worker.corpus.adapters import apply_corpus_migrations, build_archive_deps
 
 
@@ -613,6 +614,39 @@ async def corpus_ingest_workflow(scheduled: datetime, _context: object) -> None:
         )
 
 
+async def _build_ready(build_id: str) -> dict[str, Any]:
+    deps = corpus_ready.build_ready_deps(
+        CorpusSettings(), build_embeddings(EmbeddingsSettings())
+    )
+    report = await corpus_ready.build_ready_layer(deps, build_id=build_id)
+    return report.model_dump(mode="json")
+
+
+@DBOS.workflow(name=corpus_ready.BUILD_WORKFLOW)
+async def corpus_ready_build_workflow(scheduled: datetime, _context: object) -> None:
+    """Build the corpus_ready silver and gold layers; its own workflow and schedule.
+
+    Scheduled only when ``corpus_ready.build_enabled()``; a failure here leaves
+    ingestion, snapshots and search as they are. Started by hand it rebuilds
+    what changed since the last run.
+
+    Args:
+        scheduled: When the schedule fired (unused beyond the workflow id).
+        _context: The schedule's context (unused).
+
+    Features:
+        US-KOR-02, US-ZRD-05, F-12
+    """
+    del scheduled
+    options: StepOptions = {"name": corpus_ready.BUILD_STEP, "retries_allowed": True}
+    report = await DBOS.run_step_async(options, _build_ready, DBOS.workflow_id or "")
+    await DBOS.set_event_async(
+        corpus_ready.BUILD_STEP,
+        report,
+        serialization_type=WorkflowSerializationFormat.PORTABLE,
+    )
+
+
 async def _snapshot(scheduled: datetime) -> str:
     snapshot = await corpus.take_snapshot(_ingest_deps().store, scheduled=scheduled)
     return f"{snapshot.version} ({len(snapshot.manifest)} documents)"
@@ -819,6 +853,16 @@ def main() -> None:
                     "workflow_fn": corpus_snapshot_workflow,
                     "schedule": corpus.SNAPSHOT_SCHEDULE,
                 },
+            ]
+        )
+    if corpus_ready.build_enabled():
+        DBOS.apply_schedules(
+            [
+                {
+                    "schedule_name": corpus_ready.BUILD_WORKFLOW,
+                    "workflow_fn": corpus_ready_build_workflow,
+                    "schedule": corpus_ready.BUILD_SCHEDULE,
+                }
             ]
         )
     stop = threading.Event()

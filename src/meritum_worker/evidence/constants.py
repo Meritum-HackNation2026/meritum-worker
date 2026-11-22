@@ -8,6 +8,7 @@ import re
 from datetime import UTC, datetime, timedelta
 from typing import Final
 
+from meritum_core.checks.contracts import TechniqueCode
 from meritum_core.shared.llm import LlmUsage
 
 STANCE_INSTRUCTIONS: Final = (
@@ -62,9 +63,17 @@ REVIEW_MATCH_INSTRUCTIONS: Final = (
     " generally (Szczepionki powodują autyzm for a claim about COVID-19"
     " vaccines) or with an added detail such as a ranking, a reason or who said"
     " it (Szwecja jest pierwszym krajem, który zlikwidował gotówkę for Szwecja"
-    " zlikwidowała gotówkę)."
+    " zlikwidowała gotówkę). It is also the same when a longer statement holds"
+    " our claim as one of its parts (MPK i tak nas kosztuje ok. 700 mln zł inside"
+    " a longer quote, for Wrocław wydaje na komunikację około 700 mln zł) or when"
+    " the rated item is a film, post or photo that asserts our claim (Film"
+    " przedstawia argumenty, że Ziemia jest płaska, for Ziemia jest płaska)."
 )
 """Instructions of the call that decides whether a rating is about our claim."""
+
+MISLEADING_RATING_TECHNIQUE: Final[TechniqueCode] = "out_of_context"
+"""Technique of a claim a fact-checker rated partly true, manipulated or lacking
+context; the contract needs one next to ``misleading`` (worker#280)."""
 
 UNKNOWN_DATE: Final = "unknown"
 """What the stance prompt says for a source with no publication date."""

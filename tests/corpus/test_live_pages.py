@@ -71,6 +71,13 @@ def test_page_is_stored_for_the_next_snapshot_not_the_current_one() -> None:
     assert entry.fetched_at == NOW
 
 
+def test_page_from_live_search_is_stored_as_found_by_web_search() -> None:
+    store = MemoryCorpusWriter()
+    asyncio.run(_queue(store).enqueue([_page()]))
+    (document,) = asyncio.run(store.documents())
+    assert document.via == "web_search"
+
+
 def test_page_outside_the_catalogue_is_not_stored() -> None:
     store = MemoryCorpusWriter()
     report = asyncio.run(_queue(store).enqueue([_page("https://example.com/x")]))

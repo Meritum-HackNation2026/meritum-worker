@@ -15,6 +15,8 @@ type Outcome = Literal["wrong_decisive", "non_verdict", "wrong_abstention", "cor
 """Case outcome, from the worst (US-OBS-04)."""
 type Ratio = Annotated[float, Field(ge=0, le=1)] | None
 """Share of the cases a metric applies to; None when it applies to none."""
+type CheckStatus = Literal["met", "not_met", "not_applicable"]
+"""What the rubric judge says about one check of a case's answer."""
 
 
 class CaseRun(BaseModel):
@@ -47,6 +49,46 @@ class CaseRun(BaseModel):
     check_id: str | None = None
 
 
+class RubricCheck(BaseModel):
+    """One check of the rubric as one vote of the judge saw it.
+
+    Attributes:
+        check: The check's text from the rubric.
+        status: Met, not met, or not applicable to this case.
+        reason: The judge's short reason.
+
+    Features:
+        US-OBS-04, US-OBS-05, F-27
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    check: str
+    status: CheckStatus
+    reason: str = ""
+
+
+class CaseRubric(BaseModel):
+    """The rubric's result for one case's answer text, over every vote.
+
+    Attributes:
+        score: Mean over votes of the met share of applicable checks.
+        passed: Share of votes with every applicable check met.
+        failed: Checks some vote found not met, each with its reason.
+        votes: Every vote's checks, for a manual spot check.
+
+    Features:
+        US-OBS-04, US-OBS-05, F-27
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    score: Ratio
+    passed: Ratio
+    failed: tuple[str, ...] = ()
+    votes: tuple[tuple[RubricCheck, ...], ...] = ()
+
+
 class CaseScore(BaseModel):
     """One case in the report.
 
@@ -58,6 +100,7 @@ class CaseScore(BaseModel):
         outcome: Where the prediction falls in the fixed order.
         seconds: Time from the CheckRecord.
         check_id: The check's id, to trace a failure in the workflow's state.
+        rubric: The answer rubric; only runs with ``--judge`` have it.
 
     Features:
         US-OBS-04, US-OBS-05, F-27
@@ -72,6 +115,7 @@ class CaseScore(BaseModel):
     outcome: Outcome
     seconds: float
     check_id: str | None = None
+    rubric: CaseRubric | None = None
 
 
 class ScenarioScore(BaseModel):
@@ -82,6 +126,9 @@ class ScenarioScore(BaseModel):
         cases: How many cases it has.
         correct: How many ended with the correct outcome.
         accuracy: correct / cases.
+        rubric_pass_rate: Mean rubric pass of its judged cases.
+        rubric_score: Mean rubric score of its judged cases.
+        citation_precision: Its citations the judge confirms.
 
     Features:
         US-OBS-04, US-OBS-05, F-27
@@ -93,6 +140,9 @@ class ScenarioScore(BaseModel):
     cases: int
     correct: int
     accuracy: float
+    rubric_pass_rate: Ratio = None
+    rubric_score: Ratio = None
+    citation_precision: Ratio = None
 
 
 class EvalReport(BaseModel):
@@ -116,6 +166,9 @@ class EvalReport(BaseModel):
         fact_check_hit_rate: ``fact_checked`` cases whose answer shows a rating.
         citation_precision: Citations whose stance a judge model confirms;
             only runs with ``--judge`` have it.
+        rubric_pass_rate: Judged cases whose answer text meets the scenario's
+            rubric, a split vote counting as half; only runs with ``--judge``.
+        rubric_score: Mean met share of the applicable rubric checks.
         citation_coverage: Decisive claims with at least one citation.
         citation_correctness: Citations whose host is among the case's sources.
         abstention: Abstaining cases answered with the expected abstention.
@@ -152,6 +205,8 @@ class EvalReport(BaseModel):
     citation_recall: Ratio = None
     fact_check_hit_rate: Ratio = None
     citation_precision: Ratio = None
+    rubric_pass_rate: Ratio = None
+    rubric_score: Ratio = None
     citation_coverage: Ratio
     citation_correctness: Ratio
     abstention: Ratio

@@ -15,7 +15,10 @@ PACKAGE = "meritum_worker"
 # DBOS and runs them; workflow bodies (jobs) stay plain functions.
 # Fakes stand in for external services, so they may use the HTTP client's mock
 # transport like the adapters they replace.
-WIRING = re.compile(r"^meritum_worker\.(main|[a-z_]+\.(adapters|factory|fakes))(\.|$)")
+# A subdomain (corpus.ready) has its own adapters, factory and fakes.
+WIRING = re.compile(
+    r"^meritum_worker\.(main|[a-z_]+(\.[a-z_]+)?\.(adapters|factory|fakes))(\.|$)"
+)
 FRAMEWORKS = re.compile(
     r"^(dbos|fastapi|starlette|slowapi|psycopg|uvicorn|httpx2?|cryptography)(\.|$)"
 )

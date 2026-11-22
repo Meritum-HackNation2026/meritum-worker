@@ -5,7 +5,7 @@ import pytest
 from meritum_core.checks.contracts import ModelUsage
 
 from meritum_worker.checks import CheckState
-from meritum_worker.checks.constants import WEB_SEARCH_PRICES
+from meritum_worker.checks.constants import NEWS_SEARCH_PRICE, WEB_SEARCH_PRICES
 from meritum_worker.checks.steps import cost
 
 from .conftest import MakeDeps
@@ -54,3 +54,18 @@ def test_cost_of_the_stub_search_is_zero(
         cost(state.model_copy(update={"web_search_calls": 3}), make_deps())
     )
     assert [m.cost_usd for m in out.models] == [0.0]
+
+
+def test_a_media_search_is_priced_as_an_openrouter_exa_request(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    deps = replace(
+        make_deps(),
+        web_search_provider="vertex_search",
+        news_search_price=NEWS_SEARCH_PRICE,
+    )
+    spent = state.model_copy(update={"web_search_calls": 3, "news_search_calls": 1})
+    catalogue, media = asyncio.run(cost(spent, deps)).models
+    assert catalogue.cost_usd == pytest.approx(2 * 0.0015)
+    assert (media.provider, media.model) == ("openrouter", "web-search-exa")
+    assert media.cost_usd == pytest.approx(0.007)

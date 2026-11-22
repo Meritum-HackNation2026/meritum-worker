@@ -111,18 +111,17 @@ def test_fetch_url_cuts_a_long_page_to_the_length_of_a_pasted_text(
     ],
     ids=str,
 )
-def test_fetch_url_turns_every_fetch_failure_into_url_unavailable(
+def test_fetch_url_marks_every_fetch_failure_failed_and_lets_the_check_go_on(
     make_job: Callable[..., CheckInput],
     make_deps: Callable[..., CheckDeps],
     error: PageFetchError,
 ) -> None:
     pages = FakePageFetcher(error)
     out = asyncio.run(fetch_url(_url_state(make_job), make_deps(pages=pages)))
-    assert out.result is not None
-    assert out.result.status == "technical_failure"
-    assert out.result.failure_code == "url_unavailable"
-    assert not (out.result.message or "").startswith("status_hint.")
-    assert out.result.claims == []
+    assert out.result is None
+    assert out.failed_steps == ["fetch_url"]
+    assert out.page_text is None
+    assert len(out.limitations) == 1
 
 
 def test_fetch_url_skips_a_text_without_a_link(
@@ -152,21 +151,21 @@ def test_check_of_a_text_shows_fetch_url_as_skipped(
     assert set(statuses.values()) == {"done"}
 
 
-def test_check_of_an_unreachable_link_fails_at_fetch_url_without_a_verdict(
+def test_check_of_an_unreachable_link_with_no_claim_in_it_ends_url_unavailable(
     make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
 ) -> None:
     pages = FakePageFetcher(LoginWallError(FetchFailureReason.LOGIN_WALL))
-    deps = make_deps(pages=pages)
+    deps = make_deps("claims_none.json", pages=pages)
     job = _url_state(make_job).job
     runtime = InlineCheckRuntime()
     output = asyncio.run(run_check(job.model_dump(mode="json"), "c-1", deps, runtime))
     failed = [s.code for s in runtime.published[-1].steps if s.status == "failed"]
-    assert failed == ["fetch_url"]
+    assert failed == ["fetch_url", "extract_claims"]
     assert output.result.failure_code == "url_unavailable"
     assert output.result.claims == []
 
 
-def test_fetch_url_keeps_pasted_text_and_skips_the_link_next_to_it(
+def test_fetch_url_keeps_pasted_text_when_the_link_next_to_it_cannot_be_read(
     make_job: Callable[..., CheckInput], make_deps: Callable[..., CheckDeps]
 ) -> None:
     pages = FakePageFetcher(LoginWallError(FetchFailureReason.LOGIN_WALL))
@@ -177,9 +176,9 @@ def test_fetch_url_keeps_pasted_text_and_skips_the_link_next_to_it(
     out = asyncio.run(
         fetch_url(CheckState(check_id="c-1", job=job), make_deps(pages=pages))
     )
-    assert pages.calls == []
+    assert pages.calls == [(LINK, FetchPurpose.USER_LINK)]
     assert out.result is None
-    assert out.skipped_steps == ["fetch_url"]
+    assert out.failed_steps == ["fetch_url"]
     assert out.question == "Płaca minimalna wynosi 4806 zł"
 
 
@@ -215,5 +214,5 @@ def test_fetch_url_treats_an_empty_page_as_unavailable(
 ) -> None:
     pages = FakePageFetcher(_page("  \n "))
     out = asyncio.run(fetch_url(_url_state(make_job), make_deps(pages=pages)))
-    assert out.result is not None
-    assert out.result.failure_code == "url_unavailable"
+    assert out.result is None
+    assert out.failed_steps == ["fetch_url"]

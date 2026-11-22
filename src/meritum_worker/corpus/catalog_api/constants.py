@@ -50,6 +50,12 @@ NBP_GOLD_URL: Final = "https://api.nbp.pl/api/cenyzlota/last/30/?format=json"
 NBP_GOLD_DAY_URL: Final = "https://api.nbp.pl/api/cenyzlota/{day}/"
 """NBP's gold price of one day."""
 
+NBP_ATTEMPTS: Final = 3
+"""Requests per NBP listing while it answers ``not_found``. The paths are the ones
+in NBP's documentation (api.nbp.pl); one of NBP's servers answers every request
+with IIS's 404 page, and its load balancer sends about one request in three there
+(checked 2026-11-22, worker#220)."""
+
 DANE_DATASETS_URL: Final = (
     "https://api.dane.gov.pl/1.4/datasets?page=1&per_page=100&sort=-modified"
 )
@@ -184,3 +190,36 @@ journal's page and position; dropped from the top of each page."""
 ACT_UNIT_START: Final = r"^(Art\.\s*\d+[a-z]*\.|§\s*\d+[a-z]*\.|Rozdział\s|DZIAŁ\s)"
 """A line that opens an article, a paragraph, a chapter or a part of an act;
 it starts a new passage paragraph."""
+
+RSO_LIST_URL: Final = (
+    "https://www.gov.pl/api/data/proxy/rso/komunikatyxml/wszystkie/{slug}/0"
+    "?_format=json"
+)
+"""Every province's communiqués of one RSO category, the list gov.pl's warnings
+page reads; page 0 holds the whole list (about a hundred communiqués)."""
+
+RSO_DETAIL_URL: Final = "https://www.gov.pl/web/gov/ostrzezenia#/_/szczgoly/{id}"
+"""A communiqué's page in gov.pl's warnings application."""
+
+RSO_TIME: Final = "%Y-%m-%d %H:%M"
+"""How a communiqué's validity is written in its text."""
+
+RSO_CATEGORIES: Final = {
+    "www.gov.pl/web/gov/ostrzezenia": {
+        "meteorologiczne": "Meteorologiczne",
+        "hydrologiczne": "Hydrologiczne",
+        "informacje-drogowe": "Informacje drogowe",
+        "ogolne": "Ogólne",
+    },
+    "www.gov.pl/web/mswia/regionalny-system-ostrzegania": {
+        "atak-z-powietrza": "Atak z powietrza",
+    },
+}
+"""RSO categories (slug: name) each entry reads. The RCB entry takes those
+gov.pl's warnings page shows, Alerts RCB among the general ones; the RSO entry
+takes the one that page leaves out, so no communiqué is stored twice. Water
+levels (``stany-wod``) are gauge readings with no text and stay out."""
+
+API_DOMAINS: Final = frozenset(RSO_CATEGORIES)
+"""Entries read through their API although core's catalogue says ``static``;
+they move to ``ingest: api`` with the next core pin (worker#279)."""

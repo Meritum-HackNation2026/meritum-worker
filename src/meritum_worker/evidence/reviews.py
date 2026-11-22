@@ -48,7 +48,10 @@ async def review_matches(
 def split_reviews(
     ratings: Sequence[tuple[bool, ClaimReviewPremise | ClaimReviewContext]],
 ) -> tuple[list[ClaimReviewPremise], list[ClaimReviewContext]]:
-    """Keep one rating per URL and publisher, preferring a matching premise.
+    """Keep one rating per URL and publisher of our claim, preferring a premise.
+
+    A rating of another claim is dropped: shown next to ours, a reader takes it
+    for a rating of ours, and a similar topic is not the same claim (worker#257).
 
     Args:
         ratings: each rating after the rating rule, with whether the model found
@@ -64,22 +67,12 @@ def split_reviews(
     context: dict[tuple[str, str], ClaimReviewContext] = {}
     for same, rating in ratings:
         key = (str(rating.url), rating.publisher)
-        if same and isinstance(rating, ClaimReviewPremise):
+        if not same:
+            continue
+        if isinstance(rating, ClaimReviewPremise):
             premises.setdefault(key, rating)
         else:
-            context.setdefault(
-                key,
-                rating if isinstance(rating, ClaimReviewContext) else _context(rating),
-            )
+            context.setdefault(key, rating)
     return list(premises.values()), [
         rating for key, rating in context.items() if key not in premises
     ]
-
-
-def _context(premise: ClaimReviewPremise) -> ClaimReviewContext:
-    return ClaimReviewContext(
-        publisher=premise.publisher,
-        rating=premise.rating,
-        url=premise.url,
-        reviewed_at=premise.reviewed_at,
-    )

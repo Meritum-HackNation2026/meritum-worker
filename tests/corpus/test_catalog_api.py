@@ -16,6 +16,7 @@ from meritum_worker.corpus.catalog_api import (
     api_listings,
     parse_listing,
 )
+from meritum_worker.corpus.catalog_api.constants import NBP_ATTEMPTS
 from meritum_worker.corpus.documents import DocumentMeta
 from meritum_worker.corpus.fakes import FakeCatalogSite, FakePublicApi
 from meritum_worker.security import CleanInjectionDetector
@@ -23,6 +24,8 @@ from meritum_worker.security import CleanInjectionDetector
 NOW = datetime(2026, 11, 20, 9, 30, tzinfo=UTC)
 FIXTURES = Path(__file__).parent / "fixtures" / "api"
 SEJM = "https://api.sejm.gov.pl/eli/acts/DU/2026"
+NBP_TABLES = "https://api.nbp.pl/api/exchangerates/tables/A/last/10/?format=json"
+NBP_GOLD = "https://api.nbp.pl/api/cenyzlota/last/30/?format=json"
 
 
 def entry(domain: str, **fields: object) -> CatalogEntry:
@@ -201,3 +204,29 @@ def test_ingest_deps_carry_the_api_fetcher() -> None:
         CleanInjectionDetector(),
     )
     assert deps.api_fetcher is not None
+
+
+def test_nbp_node_answering_404_is_asked_again() -> None:
+    # One of NBP's servers answers every request with IIS's 404 page (recorded
+    # 2026-11-22); its load balancer sends about one request in three there.
+    api = FakePublicApi()
+    for url, name in ((NBP_TABLES, "nbp-tables-a.json"), (NBP_GOLD, "nbp-gold.json")):
+        api.answer(
+            url, recorded("nbp-404-iis.html"), status=404, content_type="text/html"
+        )
+        api.then_answer(url, recorded(name))
+    report, documents = run(api, entry("api.nbp.pl"))
+    assert report.failures == ()
+    assert report.added == len(documents) > 0
+    assert api.requested.count(NBP_GOLD) == 2
+
+
+def test_nbp_404_on_every_attempt_is_one_not_found() -> None:
+    api = FakePublicApi()
+    api.answer(NBP_TABLES, recorded("nbp-tables-a.json"))
+    api.answer(
+        NBP_GOLD, recorded("nbp-404-iis.html"), status=404, content_type="text/html"
+    )
+    report, _ = run(api, entry("api.nbp.pl"))
+    assert [(f.url, f.reason) for f in report.failures] == [(NBP_GOLD, "not_found")]
+    assert api.requested.count(NBP_GOLD) == NBP_ATTEMPTS

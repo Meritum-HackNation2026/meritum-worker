@@ -10,6 +10,7 @@ from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cassette import Cassette, EvalMode, LlmTake, PageTake
 from meritum_worker.observability.citation_judge import (
     CitationJudgement,
+    citation_hits,
     judge_citations,
 )
 from meritum_worker.observability.cli import meritum_eval
@@ -62,6 +63,11 @@ from meritum_worker.observability.retrieval import (
     load_embeddings_config,
     score_retrieval,
 )
+from meritum_worker.observability.rubric_judge import (
+    Rubric,
+    judge_rubric,
+    load_rubric,
+)
 from meritum_worker.observability.run_comparison import (
     ChangedCase,
     MetricChange,
@@ -69,7 +75,7 @@ from meritum_worker.observability.run_comparison import (
     compare_runs,
 )
 from meritum_worker.observability.runner import run_eval
-from meritum_worker.observability.scoring import score_runs
+from meritum_worker.observability.scoring import score_runs, with_judgements
 from meritum_worker.observability.snapshot import (
     SnapshotCorpus,
     SnapshotCorpusPort,
@@ -105,6 +111,7 @@ __all__ = [
     "ModelConfig",
     "PageTake",
     "RetrievalScore",
+    "Rubric",
     "RunComparison",
     "ScenarioScore",
     "SnapshotCorpus",
@@ -115,16 +122,19 @@ __all__ = [
     "build_readiness_probes",
     "case_outcome",
     "check_readiness",
+    "citation_hits",
     "compare_embeddings",
     "compare_models",
     "compare_runs",
     "evaluate_eval_run",
     "finish_eval_run",
     "judge_citations",
+    "judge_rubric",
     "load_embeddings_config",
     "load_eval_cases",
     "load_golden_set",
     "load_model_config",
+    "load_rubric",
     "load_snapshot_file",
     "log_readiness",
     "macro_f1",
@@ -137,4 +147,5 @@ __all__ = [
     "score_runs",
     "start_eval_run",
     "summarize_costs",
+    "with_judgements",
 ]

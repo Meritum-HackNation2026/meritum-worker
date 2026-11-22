@@ -97,6 +97,26 @@ def known_and_repeated_items_are_skipped(context: Context) -> None:
     assert "https://rss.gov.pl/komunikat-1" not in fetched
 
 
+@given("wczytywanie RSS pobrało dokument z kanału z katalogu")
+def rss_and_static_entries(context: Context) -> None:
+    start_feeds(context, [entry("rss.gov.pl", "rss"), entry("urzad.gov.pl")])
+    context.feeds.serve("https://rss.gov.pl/feed/", feed("rss.xml"), RSS)
+
+
+@when("magazyn korpusu zapisuje dokument")
+def store_saves_documents(context: Context) -> None:
+    run(context, NOW)
+
+
+@then(
+    'dokument z kanału ma via "rss", a dokument z wczytywania katalogu ma via "corpus"'
+)
+def documents_keep_their_via(context: Context) -> None:
+    documents = asyncio.run(context.store.documents())
+    by_domain = {(d.domain, d.via) for d in documents}
+    assert by_domain == {("rss.gov.pl", "rss"), ("urzad.gov.pl", "corpus")}, by_domain
+
+
 @given("pozycja katalogu z indeksem map strony")
 def sitemap_index(context: Context) -> None:
     start_feeds(context, [entry("mapa.gov.pl", "sitemap")])

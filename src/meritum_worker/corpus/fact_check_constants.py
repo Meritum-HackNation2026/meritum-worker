@@ -46,14 +46,10 @@ FACT_CHECK_PARALLEL_QUERIES: Final = 8
 """Fact Check Tools searches in flight at once; the API's default quota is per
 minute, far above one check's 16 calls."""
 
-FACT_CHECK_SIMILARITY_THRESHOLD: Final = 0.8
+FACT_CHECK_SIMILARITY_THRESHOLD: Final = 0.6
 """Cosine similarity of the fact and a review's ``claimReviewed`` from which the
-review goes on to the model's comparison of topic, numbers and date (ADR-34).
-gemini-embedding-001 gives paraphrases of one Polish claim about 0.85 to 0.95
-and claims on the same topic about another place or number about 0.7 to 0.8;
-to be tuned on the golden set (worker#13)."""
-
-FACT_CHECK_CONTEXT_MIN_SIMILARITY: Final = 0.6
-"""Below this similarity a review is about something else and is dropped;
-between it and FACT_CHECK_SIMILARITY_THRESHOLD it stays context with a link.
-Phrase queries such as a city name return many unrelated reviews."""
+review goes on to the model's comparison of topic, numbers and date (ADR-34);
+below it the review is about something else and is dropped. A longer quote
+holding our claim scores 0.6 to 0.8, like a claim about another place, so the
+model tells them apart (worker#261). Phrase queries such as a city name return
+many unrelated reviews."""

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "tests/corpus/fixtures/govpl/mswia-aktualnosci.html"
+        ],
+        "createdAt": "2026-11-22T08:47:44.409Z",
+        "reason": "coordinator: recorded third-party gov.pl page used as a test fixture, not Meritum UI"
+      }
+    ]
+  }
+}

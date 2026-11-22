@@ -6,6 +6,7 @@ Features:
 
 from datetime import date
 
+from meritum_core.checks.contracts import SourceVia
 from meritum_core.shared.embeddings import Vector
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
@@ -25,9 +26,11 @@ class DocumentMeta(BaseModel):
         published_on: Publication date, None when unknown.
         fetched_at: Last fetch; a refetch restarts the retention period.
         checksum: sha256 of the full text.
+        via: How the page came in: ``rss`` from an RSS or Atom feed,
+            ``web_search`` from live search, ``corpus`` for every other way.
 
     Features:
-        US-KOR-02, US-KOR-05, F-10, F-12
+        US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13
     """
 
     model_config = ConfigDict(frozen=True)
@@ -40,6 +43,7 @@ class DocumentMeta(BaseModel):
     published_on: date | None = None
     fetched_at: AwareDatetime
     checksum: str
+    via: SourceVia = "corpus"
 
 
 class Document(DocumentMeta):
@@ -140,6 +144,7 @@ class DiscoveredPage(BaseModel):
     Attributes:
         url: Absolute http(s) URL of the page.
         published_on: Publication date from the feed or sitemap, None if unknown.
+        via: ``rss`` when an RSS or Atom feed listed it, else ``corpus``.
 
     Features:
         US-KOR-03, F-13
@@ -149,6 +154,7 @@ class DiscoveredPage(BaseModel):
 
     url: str
     published_on: date | None = None
+    via: SourceVia = "corpus"
 
 
 class IngestReport(BaseModel):
