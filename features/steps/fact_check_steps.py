@@ -118,7 +118,7 @@ def other_claim(context: Context) -> None:
 def check_runs(context: Context) -> None:
     llm = RecordedLlm(
         context.stances,
-        ClaimExtraction(out_of_scope=False, claims=[FACT]),
+        ClaimExtraction(out_of_scope=False, claims=[getattr(context, "fact", FACT)]),
         ReviewMatch(same_claim=context.same_claim),
         AnswerDraft(claims=[EXPLAINED], limitations=["Sprawdzono indeks ocen."]),
     )
@@ -132,10 +132,13 @@ def check_runs(context: Context) -> None:
         **web_ports(),
     )
     context.deps = dataclasses.replace(
-        context.deps, catalog=load_catalog(), fact_check=context.api
+        context.deps,
+        catalog=load_catalog(),
+        fact_check=context.api,
+        embeddings=getattr(context, "embeddings", None),
     )
     job = CheckInput(
-        request=CheckRequest(channel="web", text=CLAIM),
+        request=CheckRequest(channel="web", text=getattr(context, "fact", FACT).claim),
         session_id="session-behave-fc",
         received_at=datetime(2026, 1, 5, 12, 0, tzinfo=UTC),
     )

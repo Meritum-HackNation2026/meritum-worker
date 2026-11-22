@@ -1,0 +1,19 @@
+{
+  "claims": [
+    {
+      "text": "Wrocław był jedynym miastem w Polsce, w którym 65-latkowie jeździli komunikacją miejską za darmo",
+      "claimant": "Polityk",
+      "claimDate": "2024-03-01T00:00:00Z",
+      "claimReview": [
+        {
+          "publisher": {"name": "Demagog", "site": "demagog.org.pl"},
+          "url": "https://demagog.org.pl/wypowiedzi/wroclaw-darmowa-komunikacja-seniorzy",
+          "title": "Wrocław nie był jedynym miastem z darmową komunikacją dla 65-latków",
+          "reviewDate": "2024-03-05T10:00:00Z",
+          "textualRating": "Fałsz",
+          "languageCode": "pl"
+        }
+      ]
+    }
+  ]
+}

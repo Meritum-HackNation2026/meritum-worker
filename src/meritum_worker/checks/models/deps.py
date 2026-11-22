@@ -54,11 +54,12 @@ class CheckDeps:
         live_pages: takes pages past quarantine into the corpus for the next
             snapshot; None where the worker may not write ``corpus``.
         sanctions: the local copy of the EU sanctions list; empty finds nothing.
-
         ocr: reads text from an uploaded image; None fails an image check.
         image_search: earlier-occurrence search; None means it did not run.
         incidents: the organiser's and EUvsDisinfo incidents; None skips matching.
-        embeddings: the multilingual embeddings incidents are compared with.
+        embeddings: the multilingual embeddings incidents and fact-checkers'
+            rated claims are compared with; None sends every rating on to the
+            model's comparison.
 
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-08, US-SPR-11, US-OBS-01,

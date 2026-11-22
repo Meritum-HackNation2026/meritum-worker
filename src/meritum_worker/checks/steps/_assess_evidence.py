@@ -83,7 +83,8 @@ async def _compared(
     # Only a rating that could be a premise needs the comparison; the rest is context.
     rated = rate_review(finding.found, cache_control=finding.cache_control)
     fact = facts[finding.fact] if finding.fact < len(facts) else None
-    if not isinstance(rated.evidence, ClaimReviewPremise) or fact is None:
+    close = finding.similar  # a rated claim far from ours stays context (worker#84)
+    if not isinstance(rated.evidence, ClaimReviewPremise) or fact is None or not close:
         return False, None
     return await evidence.review_matches(
         deps.llm, fact.claim, fact.claim_date or date.min, finding.claim_reviewed

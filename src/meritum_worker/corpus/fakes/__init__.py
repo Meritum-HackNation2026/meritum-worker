@@ -9,6 +9,7 @@ from meritum_worker.corpus.adapters import MemoryArchiveRegistry, MemoryCorpusWr
 
 from ._api import FakePublicApi
 from ._catalog import FakeCatalogSite
+from ._embeddings import FakeEmbeddings
 from ._euvs import FakeEuvsDisinfoServer
 from ._fact_check import FakeFactCheck
 from ._feeds import FakeFeedServer
@@ -16,6 +17,7 @@ from ._web_search import FakeWebSearch
 
 __all__ = [
     "FakeCatalogSite",
+    "FakeEmbeddings",
     "FakeEuvsDisinfoServer",
     "FakeFactCheck",
     "FakeFeedServer",

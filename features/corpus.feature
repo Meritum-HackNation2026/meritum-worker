@@ -114,6 +114,23 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Gdy system bada twierdzenie z oceną fact-checkera
     Wtedy fragment z artykułu jest cytatem po weryfikacji dosłownej
 
+  Scenariusz: inne sformułowanie twierdzenia nadal znajduje ocenę Demagogu (scenariusz G)
+    Zakładając twierdzenie "Tylko we Wrocławiu seniorzy po 65. roku życia jeżdżą komunikacją za darmo" z frazami kluczowymi
+    I Demagog ocenił twierdzenie "Wrocław był jedynym miastem w Polsce, w którym 65-latkowie jeździli komunikacją miejską za darmo" jako "Fałsz"
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy wyniki zawierają ClaimReview Demagogu z textualRating "Fałsz"
+
+  Scenariusz: zbliżona, ale inna ocena nie jest przesłanką
+    Zakładając twierdzenie "Tylko we Wrocławiu seniorzy po 65. roku życia jeżdżą komunikacją za darmo" z frazami kluczowymi
+    I API zwraca ClaimReview o darmowej komunikacji dla seniorów w innym mieście
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy podobieństwo jest poniżej progu, a ocena zostaje kontekstem z linkiem
+
+  Scenariusz: kilka zapytań mieści się w budżecie czasu
+    Zakładając twierdzenie "Tylko we Wrocławiu seniorzy po 65. roku życia jeżdżą komunikacją za darmo" z trzema frazami kluczowymi
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy zapytania idą równolegle, a krok "search_fact_checks" mieści się w limicie czasu kroku z constants.py
+
   Scenariusz: nowy komunikat w kanale RSS
     Zakładając pozycja katalogu z kanałem RSS i 3 nowymi wpisami od ostatniego przebiegu
     Gdy cykliczny workflow DBOS uruchamia się po 20 minutach
