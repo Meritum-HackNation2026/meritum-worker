@@ -22,6 +22,7 @@ from meritum_core.shared.llm import LlmSettings, build_llm
 
 from meritum_worker.checks.adapters import DbosCheckRuntime
 from meritum_worker.checks.models import CheckDeps
+from meritum_worker.checks.news import news_catalog
 from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.settings import ResearchSettings
 from meritum_worker.corpus import (
@@ -76,6 +77,7 @@ def build_check_deps(
     llm = build_llm(settings)
     embeddings = build_embeddings(EmbeddingsSettings())
     catalog = load_catalog()
+    news = news_catalog()
     search = WebSearchSettings()
     injection = build_detector(llm, InjectionGateSettings())
     return CheckDeps(
@@ -88,7 +90,9 @@ def build_check_deps(
         notifications=app.notifications,
         web_search=build_web_search(search, catalog),
         injection=injection,
-        catalog=catalog,
+        # Media entries name the publisher of a news page; web_search never sees them.
+        catalog=(*catalog, *news),
+        news_search=build_web_search(search, news),
         corpus=build_corpus_search(CorpusSettings(), embeddings),
         reranker=build_reranker(),
         corpus_version=ResearchSettings().corpus_version,
