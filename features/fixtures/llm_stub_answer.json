@@ -28,5 +28,8 @@
   },
   "StanceJudgement": {
     "relevant": false
+  },
+  "InjectionClassification": {
+    "injected": false
   }
 }

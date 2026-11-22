@@ -17,6 +17,7 @@ from meritum_worker import corpus
 from meritum_worker.corpus.adapters import MemoryCorpusWriter
 from meritum_worker.corpus.constants import CHUNK_MAX_CHARS
 from meritum_worker.corpus.fakes import FakeCatalogSite
+from meritum_worker.security import CleanInjectionDetector
 
 NOW = datetime(2026, 11, 20, 9, 30, tzinfo=UTC)
 
@@ -40,7 +41,11 @@ def entry(domain: str = "urzad.gov.pl", **fields: object) -> CatalogEntry:
 def deps(site: FakeCatalogSite, store: MemoryCorpusWriter) -> corpus.IngestDeps:
     embeddings = build_embeddings(EmbeddingsSettings())
     return corpus.IngestDeps(
-        discovery=site, fetcher=site, embeddings=embeddings, store=store
+        discovery=site,
+        fetcher=site,
+        embeddings=embeddings,
+        store=store,
+        injection=CleanInjectionDetector(),
     )
 
 
@@ -84,7 +89,11 @@ def test_page_that_cannot_be_embedded_is_a_failure(
 
     monkeypatch.setattr(embeddings, "embed_documents", down)
     ports = corpus.IngestDeps(
-        discovery=site, fetcher=site, embeddings=embeddings, store=store
+        discovery=site,
+        fetcher=site,
+        embeddings=embeddings,
+        store=store,
+        injection=CleanInjectionDetector(),
     )
     report = asyncio.run(corpus.ingest_catalog([entry()], ports, now=NOW))
     assert [f.reason for f in report.failures] == ["embeddings_unavailable"] * 2

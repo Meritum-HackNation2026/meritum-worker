@@ -12,6 +12,7 @@ from httpx2 import AsyncClient
 from meritum_core.corpus import CorpusProvider, CorpusSettings
 from meritum_core.corpus.fetching import build_page_fetcher
 from meritum_core.corpus.rerank import NullReranker, RerankerPort
+from meritum_core.security.injection import InjectionDetectorPort
 from meritum_core.shared.embeddings import EmbeddingsPort
 
 from meritum_worker.corpus.adapters import (
@@ -122,16 +123,20 @@ def build_document_discovery() -> DocumentDiscoveryPort:
 
 
 def build_ingest_deps(
-    settings: CorpusSettings, embeddings: EmbeddingsPort
+    settings: CorpusSettings,
+    embeddings: EmbeddingsPort,
+    injection: InjectionDetectorPort,
 ) -> IngestDeps:
     """Build the ports of the catalogue ingestion from the worker's settings.
 
     Args:
         settings: ``CorpusSettings()``: where documents and snapshots go.
         embeddings: The model the corpus is searched with.
+        injection: The detector pages are scanned with before they are stored.
 
     Returns:
-        Entry-page discovery, core's SSRF-safe fetcher, the embeddings, the writer.
+        Entry-page discovery, core's SSRF-safe fetcher, the embeddings, the
+        writer and the detector.
 
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
@@ -141,6 +146,7 @@ def build_ingest_deps(
         fetcher=build_page_fetcher(),
         embeddings=embeddings,
         store=build_corpus_writer(settings),
+        injection=injection,
     )
 
 

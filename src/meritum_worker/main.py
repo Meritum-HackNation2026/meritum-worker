@@ -29,7 +29,7 @@ from meritum_core.shared.blobs import BlobSettings
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.database.adapters import apply_migrations
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
-from meritum_core.shared.llm import LlmSettings
+from meritum_core.shared.llm import LlmSettings, build_llm
 
 from meritum_worker import checks, corpus, jobs, observability, security
 from meritum_worker.checks.factory import build_check_deps, build_check_runtime
@@ -239,8 +239,11 @@ async def retention_workflow(scheduled_at: datetime, _context: object) -> None:
 
 @cache
 def _ingest_deps() -> corpus.IngestDeps:
+    injection = security.build_detector(
+        build_llm(LlmSettings()), security.InjectionGateSettings()
+    )
     return corpus.build_ingest_deps(
-        CorpusSettings(), build_embeddings(EmbeddingsSettings())
+        CorpusSettings(), build_embeddings(EmbeddingsSettings()), injection
     )
 
 

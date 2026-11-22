@@ -233,13 +233,12 @@ PASSAGE_CHECKSUM_CHARS: Final = 12
 
 TDM_RESERVED: Final = "tdm_reserved"
 """Failure reason of a page whose meta tags reserve text and data mining."""
-
 EMPTY_TEXT: Final = "empty_text"
 """Failure reason of a page with no main text."""
-
+INJECTION_FOUND: Final = "injection_found"
+"""Failure reason of a page carrying an instruction for the model (US-BEZ-01)."""
 ENTRY_NOT_INGESTIBLE: Final = "entry_not_ingestible"
 """Failure reason of a page of an excluded or TDM-reserved catalogue entry."""
-
 EMBEDDINGS_UNAVAILABLE: Final = "embeddings_unavailable"
 """Failure reason of a page whose passages could not be embedded."""
 

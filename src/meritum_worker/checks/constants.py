@@ -178,3 +178,6 @@ SEARCH_CORPUS_STEP: Final = "search_corpus"
 
 CORPUS_VERSION_ENV: Final = "MERITUM_CORPUS_VERSION"
 """Environment variable pinning the corpus snapshot checks search; unset: none."""
+
+INJECTION_EXCERPT_MAX_CHARS: Final = 300
+"""Longest InjectionEvent.excerpt the contract accepts (US-BEZ-01)."""
