@@ -48,19 +48,10 @@ INGEST_SKIPPED: Final = {
         "Strona wymaga JavaScriptu (javascript_required), a ta sama treść jest"
         " na www.gov.pl/web/dyplomacja, którą pobieramy."
     ),
-    "www.gov.pl/web/gov/ostrzezenia": (
-        "Wyszukiwarka ostrzeżeń RCB wymaga JavaScriptu: w HTML jest tylko"
-        " komunikat „włącz JavaScript” (worker#239). Cytujemy tylko z"
-        " wyszukiwania na żywo."
-    ),
-    "www.gov.pl/web/mswia/regionalny-system-ostrzegania": (
-        "Strona opisuje usługę RSO i nie ma bieżących komunikatów, a lista"
-        " obowiązujących komunikatów przekierowuje na komunikaty.tvp.pl, poza"
-        " katalogiem (worker#239). Cytujemy tylko z wyszukiwania na żywo."
-    ),
 }
-"""Catalogue entries the ingestion skips, with the reason, decided in worker#220
-and worker#239.
+"""Catalogue entries the ingestion skips, with the reason, decided in worker#220.
+The RCB and RSO entries skipped in worker#239 are read through their API
+(``catalog_api.rso``, worker#279).
 
 Unlike core's ``excluded``, which also bars an entry from live search, these stay
 citable from live search; only the scheduled ingestion leaves them out. They move
