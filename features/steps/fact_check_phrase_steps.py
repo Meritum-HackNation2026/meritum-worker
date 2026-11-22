@@ -156,8 +156,22 @@ def other_city_not_shown(context: Context) -> None:
 @then("model porównuje ocenę z twierdzeniem i uznaje ją za ocenę naszego twierdzenia")
 def mpk_is_ours(context: Context) -> None:
     assert _compared(context)
-    [review] = context.claim.claim_reviews  # a partial rating is never a premise
-    assert review.rating == "Częściowa prawda"
+
+
+@then(
+    'werdykt to "misleading" z przesłanką: Demagog, "Częściowa prawda", tytuł, data'
+    " i link"
+)
+def mpk_misleading(context: Context) -> None:
+    claim = context.claim
+    assert (claim.verdict, claim.technique) == ("misleading", "out_of_context")
+    [premise] = claim.claim_review_premises
+    assert (premise.rating, premise.stance) == ("Częściowa prawda", "context")
+    assert premise.publisher_id == "demagog"
+    assert premise.title
+    assert premise.reviewed_at
+    assert str(premise.url)
+    assert claim.strength is not None
 
 
 @then(
