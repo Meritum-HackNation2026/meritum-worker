@@ -235,6 +235,19 @@ Krok `fetch_url` pobiera stronę fetcherem z meritum-core (SSRF, robots.txt, bez
 
 Gdy strony nie da się pobrać albo jest pusta, krok `fetch_url` kończy się stanem `failed`, a sprawdzenie idzie dalej. Model dostaje adres i odczytuje twierdzenie ze słów w jego ścieżce, jeśli tworzą sprawdzalne zdanie. Takie twierdzenie trafia do wyszukiwania na żywo i do indeksu fact-checków, gdzie pierwszym zapytaniem z fraz jest sam adres. Ograniczenia mówią wprost, że strony nie udało się otworzyć. Jeśli ani tekst, ani adres nie dają twierdzenia, wynik to `technical_failure` z kodem `url_unavailable` (prośba o wklejenie tekstu). Strona odrzucona przez detektor wstrzyknięć jest traktowana tak samo jak niepobrana.
 
+### Linki do filmów i wpisów
+
+Strony YouTube, X (Twittera), Facebooka, Instagrama i TikToka to aplikacje, a nie artykuły: zwykłe wyciąganie tekstu dawało stopkę serwisu albo cudze odpowiedzi pod wpisem. Dla tych domen (`PREVIEW_DOMAINS`) `LinkPreviewTransport` pod fetcherem z core zamienia stronę na tytuł i opis, które serwis sam publikuje do podglądu linków (Open Graph: `og:title`, `og:description`). Dla YouTube bierzemy cały opis filmu z danych strony, bo ten w Open Graph jest ucięty. Ochrona przed SSRF, limity i maskowanie zostają jak przy każdej stronie, a tekst jest daną, nie instrukcją (ADR-12).
+
+| Serwis | Co czytamy |
+| --- | --- |
+| YouTube (`watch`, `youtu.be`, `shorts`) | tytuł i cały opis filmu |
+| X / Twitter | autor i treść wpisu, bez odpowiedzi |
+| Facebook, Instagram | autor albo tytuł i początek publicznego wpisu |
+| TikTok | nic: serwis nie podaje opisu bez JavaScriptu, link kończy się jak nieodczytany |
+
+Nie oglądamy nagrania, nie robimy transkrypcji i nie czytamy napisów ani komentarzy. Napisów YouTube nie pobieramy, bo `robots.txt` zabrania `/api/`, a `timedtext` odpowiada 429. Wynik ma wtedy ograniczenie `PREVIEW_ONLY_NOTE`. Strona logowania zamiast wpisu albo brak tytułu daje pusty tekst, czyli ścieżkę nieodczytanego linku opisaną wyżej.
+
 ## Nagrania głosowe
 
 Krok `transcribe_audio` czyta nagranie z `BlobStore` (`MERITUM_BLOB_*`; bez `MERITUM_BLOB_PROVIDER` magazyn w pamięci), transkrybuje je portem z meritum-core (`MERITUM_TRANSCRIPTION_*`, domyślnie stub; `speech_v2` to Chirp 3 w multi-regionie `eu`), maskuje dane osobowe i sprawdza transkrypcję jak wklejony tekst. Nieobsługiwany format albo nagranie ponad 10 min kończy się stanem `out_of_scope` z komunikatem, co wysłać zamiast; awaria dostawcy albo brak pliku: `technical_failure` z kodem `transcription_failed`. Po nagraniu dłuższym niż 55 s (tryb batch) worker zapisuje w skrzynce powiadomienie `check_done`. Plik usuwa retencja razem z zapisem sprawdzenia (osierocone nagrania po 30 dniach), a transkrypcja żyje tylko w wyniku i zapisie.

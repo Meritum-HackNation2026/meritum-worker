@@ -13,6 +13,8 @@ from meritum_worker.checks.constants import (
     LINK_UNREAD_NOTE,
     PAGE_DATE_ZONE,
 )
+from meritum_worker.checks.links.constants import PREVIEW_ONLY_NOTE
+from meritum_worker.checks.links.previews import is_preview_host
 from meritum_worker.checks.models import CheckDeps, CheckState
 from meritum_worker.corpus import MAX_PAGE_TEXT_CHARS
 
@@ -28,7 +30,9 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     failed and adds a limitation saying the page was not read; the check goes
     on with the citizen's text and the address, and extract_claims ends it as
     url_unavailable when those hold no claim. A publication date later than
-    the check's receipt is dropped as wrong metadata.
+    the check's receipt is dropped as wrong metadata. A link to a video or a
+    post is read from the service's public preview (title and description); a
+    limitation says the recording itself was not watched.
 
     Args:
         state: the check so far.
@@ -70,4 +74,8 @@ async def fetch_url(state: CheckState, deps: CheckDeps) -> CheckState:
     published = page.published_at
     if published is not None and published > received_on:
         published = None
-    return state.model_copy(update={"page_text": text, "published_at": published})
+    update: dict[str, object] = {"page_text": text, "published_at": published}
+    if is_preview_host(url.host):
+        note = PREVIEW_ONLY_NOTE.format(host=url.host)[:LIMITATION_MAX_CHARS]
+        update["limitations"] = [*state.limitations, note]
+    return state.model_copy(update=update)

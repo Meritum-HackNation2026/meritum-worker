@@ -78,6 +78,17 @@ Funkcja: Smoke test workera
     Wtedy sprawdzenie kończy się stanem done z krokiem fetch_url w stanie failed
     Oraz ograniczenia mówią, że strony "example.com" nie udało się otworzyć
 
+  Scenariusz: link do filmu na YouTube
+    Zakładając link do filmu na YouTube i nagraną stronę filmu
+    Gdy workflow sprawdza link
+    Wtedy sprawdzany jest tytuł i opis filmu
+    Oraz ograniczenia mówią, że nie oglądaliśmy nagrania
+
+  Scenariusz: link do filmu w serwisie, który nie udostępnia opisu
+    Zakładając link do filmu na TikToku i nagraną stronę bez opisu
+    Gdy workflow sprawdza link
+    Wtedy wynik ma stan technical_failure z kodem "url_unavailable"
+
   Scenariusz: sam tekst bez linku
     Zakładając wklejony tekst bez adresu
     Gdy workflow publikuje postęp

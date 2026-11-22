@@ -5,15 +5,20 @@ Features:
 """
 
 import os
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
+import httpx
 from httpx2 import AsyncClient
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.checks.ocr import OcrSettings, build_image_search, build_ocr
 from meritum_core.checks.transcription import TranscriptionSettings, build_transcriber
 from meritum_core.corpus import CorpusSettings, build_corpus_search
 from meritum_core.corpus.catalog import load_catalog
-from meritum_core.corpus.fetching import build_page_fetcher
+from meritum_core.corpus.fetching import (
+    PageFetcherPort,
+    Resolver,
+    build_page_fetcher,
+)
 from meritum_core.corpus.web_search import (
     WebSearchPort,
     WebSearchSettings,
@@ -27,7 +32,11 @@ from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 from meritum_core.shared.llm.constants import OPENROUTER_BASE_URLS
 
-from meritum_worker.checks.adapters import DbosCheckRuntime, OpenRouterNewsSearch
+from meritum_worker.checks.adapters import (
+    DbosCheckRuntime,
+    LinkPreviewTransport,
+    OpenRouterNewsSearch,
+)
 from meritum_worker.checks.constants import NEWS_SEARCH_PRICE
 from meritum_worker.checks.models import CheckDeps
 from meritum_worker.checks.news import news_catalog
@@ -93,7 +102,7 @@ def build_check_deps(
     return CheckDeps(
         llm=llm,
         records=app.records,
-        pages=build_page_fetcher(),
+        pages=build_link_fetcher(),
         pii=build_pii_gate(PiiGateSettings()),
         blobs=store,
         transcriber=build_transcriber(TranscriptionSettings(), store),
@@ -160,6 +169,32 @@ def build_news_search(
         base_url=OPENROUTER_BASE_URLS[settings.region],
         http_client=http_client,
     )
+
+
+def build_link_fetcher(
+    resolver: Resolver | None = None,
+    make_transport: Callable[[], httpx.AsyncBaseTransport] = httpx.AsyncHTTPTransport,
+) -> PageFetcherPort:
+    """Build core's SSRF-safe fetcher for the links citizens send.
+
+    A link to a video or a post (YouTube, X, Facebook, Instagram, TikTok) is
+    read from the title and description the service publishes for previews;
+    every other page by its main text, as core reads it.
+
+    Args:
+        resolver: DNS lookup; core's system resolver unless a test passes one.
+        make_transport: Builds the httpx transport; only tests pass a mock.
+
+    Returns:
+        The fetcher; pinning, SNI and the limits stay core's.
+
+    Features:
+        US-SPR-07, F-06, ADR-12
+    """
+    transport = LinkPreviewTransport(make_transport)
+    if resolver is None:
+        return build_page_fetcher(transport=transport)
+    return build_page_fetcher(resolver=resolver, transport=transport)
 
 
 def build_check_runtime() -> CheckRuntime:
