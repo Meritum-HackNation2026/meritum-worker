@@ -21,7 +21,7 @@ from meritum_worker.checks import (
     corpus_ports,
     web_ports,
 )
-from meritum_worker.checks.constants import EXTRACTION_INSTRUCTIONS
+from meritum_worker.checks.prompts import EXTRACTION_INSTRUCTIONS
 from meritum_worker.checks.steps import extract_claims, write_answer
 from meritum_worker.evidence import ClaimExplanation
 

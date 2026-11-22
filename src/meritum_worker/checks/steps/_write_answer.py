@@ -23,7 +23,6 @@ from pydantic import ValidationError
 from meritum_worker import evidence
 from meritum_worker.checks.answers import AnswerDraft, plain_text
 from meritum_worker.checks.constants import (
-    ANSWER_INSTRUCTIONS,
     EXPLANATION_MAX_CHARS,
     LIMITATION_MAX_CHARS,
     STANCE_LABELS,
@@ -31,6 +30,7 @@ from meritum_worker.checks.constants import (
     VERDICT_LABELS,
 )
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
+from meritum_worker.checks.prompts import ANSWER_INSTRUCTIONS
 from meritum_worker.checks.usage import model_usage
 
 
