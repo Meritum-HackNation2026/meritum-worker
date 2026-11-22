@@ -6,10 +6,11 @@ Features:
 
 import re
 from datetime import timedelta
+from types import MappingProxyType
 from typing import Final
 from zoneinfo import ZoneInfo
 
-from meritum_core.checks.contracts import FailureCode
+from meritum_core.checks.contracts import FailureCode, ModelUsage
 from meritum_core.checks.transcription import MAX_AUDIO_BYTES, MAX_AUDIO_SECONDS
 
 from meritum_worker.corpus import WEB_SEARCH_MARGIN, WEB_SEARCH_TIMEOUT
@@ -214,3 +215,30 @@ CODE_PATTERN: Final = re.compile(
     r"\b(" + "|".join([*VERDICT_LABELS, "supports", "refutes"]) + r")\b"
 )
 """A verdict or stance code standing alone in a model text (write_answer post-check)."""
+
+WEB_SEARCH_PRICES: Final = MappingProxyType(
+    {
+        "stub": ModelUsage(
+            provider="stub",
+            model="stub",
+            region="local",
+            input_tokens=0,
+            output_tokens=0,
+            cost_usd=0.0,
+        ),
+        "vertex_search": ModelUsage(
+            provider="vertex_search",
+            model="basic_website_search",
+            region="global",
+            input_tokens=0,
+            output_tokens=0,
+            cost_usd=1.5 / 1000,
+        ),
+    }
+)
+"""Usage entry of one web search per provider; cost_usd is the price of one call.
+
+Vertex AI Search, Search Standard edition: USD 1.50 per 1,000 queries,
+https://cloud.google.com/generative-ai-app-builder/pricing (read 2026-11-22).
+The stub costs nothing. A provider missing here costs 0 (US-OBS-02, F-23).
+"""

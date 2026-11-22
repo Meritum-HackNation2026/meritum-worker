@@ -20,6 +20,12 @@ from meritum_worker.observability.constants import (
     DEFAULT_EVAL_FILES_DIR,
     EVAL_FILES_DIR_VAR,
 )
+from meritum_worker.observability.costs import (
+    CostLine,
+    CostSummary,
+    meritum_cost,
+    summarize_costs,
+)
 from meritum_worker.observability.errors import CassetteMissError, TooFewCasesError
 from meritum_worker.observability.eval_run import (
     EvalRunDeps,
@@ -79,6 +85,8 @@ __all__ = [
     "CassetteMissError",
     "ChangedCase",
     "ComparedModel",
+    "CostLine",
+    "CostSummary",
     "EmbeddingsComparison",
     "EmbeddingsConfig",
     "EvalCaseSets",
@@ -114,6 +122,7 @@ __all__ = [
     "load_model_config",
     "log_readiness",
     "macro_f1",
+    "meritum_cost",
     "meritum_eval",
     "meritum_eval_bundle",
     "run_eval",
@@ -121,4 +130,5 @@ __all__ = [
     "score_retrieval",
     "score_runs",
     "start_eval_run",
+    "summarize_costs",
 ]
