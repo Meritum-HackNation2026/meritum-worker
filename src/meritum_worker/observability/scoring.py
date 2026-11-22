@@ -55,6 +55,7 @@ def score_runs(runs: Sequence[CaseRun]) -> EvalReport:
     unanswered = [run for s, run in pairs if s.predicted == UNANSWERED_VERDICT]
     return EvalReport(
         models=tuple(sorted({model for run in runs for model in run.models})),
+        corpus_versions=tuple(sorted({run.result.corpus_version for run in runs})),
         cases=len(runs),
         macro_f1=_round(macro_f1([(s.expected, s.predicted) for s in scores])),
         citation_coverage=_citation_coverage(runs),

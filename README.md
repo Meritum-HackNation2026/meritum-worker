@@ -103,6 +103,7 @@ Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 | `output_tokens_per_second` | tokeny odpowiedzi (z rozumowaniem, jeśli dostawca je liczy) podzielone przez cały czas sprawdzeń, które dostały jakąkolwiek odpowiedź modelu; to przepustowość całego sprawdzenia, nie sama szybkość generowania |
 | `channel_consistency` | powtórzenia `other_channel`, których JSON z CheckResult ma ten sam stan, werdykty i cytowane źródła co pierwszy przypadek; sformułowania mogą się różnić |
 | `information_loop` | odpowiedzi `insufficient_evidence` przekazane moderatorowi (`escalation`) |
+| `corpus_versions` | migawki korpusu, do których przypięto sprawdzenia; `none` dla przypadków zakończonych przed korpusem |
 | `scenarios`, `outcomes` | trafność per scenariusz A–J i wynik każdego przypadku |
 
 Wynik przypadku liczy się według głównego twierdzenia. Gdy pasuje kilka twierdzeń, zostaje najgorszy wynik w kolejności: błędny werdykt rozstrzygający, stan niebędący werdyktem, błędne wstrzymanie się, wynik poprawny. Wyjątek w sprawdzeniu kończy przypadek stanem `technical_failure`, a przypadek zostaje w medianie czasu.
@@ -110,7 +111,7 @@ Wynik przypadku liczy się według głównego twierdzenia. Gdy pasuje kilka twie
 Czego przebieg jeszcze nie obsługuje:
 
 - obrazy i zrzuty ekranu: bez OCR system odpowiada na nie `out_of_scope`. Przypadek z samym `image_text` dostaje więc `out_of_scope` bez wołania modelu, a przypadek z tekstem idzie bez `image_text`;
-- atak z `injection.place = "source_page"`: strona z poleceniem czeka na kasety (ADR-27), więc przypadek biegnie na samym tekście;
+- atak z `injection.place = "source_page"`: przypadek biegnie na samym tekście, bo golden set nie ma jeszcze nagranej strony z poleceniem;
 - wymuszone awarie `fact_check_api` i `web_search`: kroki wyszukiwania są jeszcze zaślepkami; działa tylko `fault: llm` (model bez odpowiedzi);
 - `--max-concurrency` większe niż domyślne 1 nie gwarantuje, że powtórzenie (`same_session`, `other_channel`) przyjdzie po przypadku, który powtarza, a współbieżne wywołania modelu zawyżają czas.
 
@@ -136,6 +137,29 @@ Jak dodać kandydata: skopiuj plik z katalogu, zmień `name` (nazwa pliku bez `.
 ## Wyszukiwanie na żywo
 
 Krok `search_web` biegnie równolegle z `search_corpus` (jeden etap workflow, dwa kroki DBOS). Dla każdego faktu, najwyżej 5, wysyła jedno zapytanie przez `WebSearchPort` z meritum-core, który przepuszcza tylko adresy z domen katalogu. Każdy adres pobiera fetcher z meritum-core z kontrolą `robots.txt` i Content-Signal; strona, której końcowy adres po przekierowaniu wyszedł poza katalog, odpada. Pobrana strona czeka w kwarantannie na skan detektorem wstrzyknięć: czysta jest dowodem w tym sprawdzeniu (`Source.via = web_search`, trafia do `CheckRecord.source_ids`), a strona z poleceniem wypada z `InjectionEvent(action=source_dropped)` i jej adresem w `limitations`. Sprawdzenie nie zmienia wspólnego korpusu; stronę do następnej migawki przekaże [worker#90](https://github.com/Meritum-HackNation2026/meritum-worker/issues/90). Cały krok ma jeden limit 10 s (`WEB_SEARCH_TIMEOUT` w `corpus/constants.py`) na wyszukiwanie, pobranie i skan. Wyszukiwanie, które nie skończy się w tym czasie, albo jego awaria dają `technical_failure` z kodem `web_search_unavailable`. Strona, której nie zdążyliśmy zeskanować albo której detektor nie zeskanował, nie jest dowodem, trafia tylko do logu, a sprawdzenie biegnie dalej.
+
+### Kasety, przypięta migawka i paczka do odtworzenia
+
+Przebieg w trybie `record` woła dostawców jak zwykle i zapisuje w kasecie każdą odpowiedź modelu i każdą pobraną stronę, razem z przypiętą migawką korpusu (`--corpus-version`). Tryb `replay` odpowiada wyłącznie z kasety: nie woła modelu, stron ani bramki maskującej, więc nie potrzebuje ich kluczy ani sieci, i przypina migawkę z kasety. Fabryka czyta jednak `MERITUM_PII_*`, `MERITUM_TRANSCRIPTION_*`, `MERITUM_WEB_SEARCH_*` i `MERITUM_INJECTION_GATE_*`, więc przy odtwarzaniu bez sekretów zostaw je puste albo ustaw na `stub`/`none`. Wywołanie, któremu w nagraniu skończył się czas, w `replay` też kończy się przekroczeniem czasu. Zapytanie, którego kaseta nie zna (inny plik przypadków, prompt albo kod), kończy przypadek stanem `technical_failure` zamiast wołać dostawcę. Kaseta nagrywa też odpowiedzi bramki maskującej (`MERITUM_PII_*`), tylko zamaskowany tekst pod skrótem oryginału, więc `replay` maskuje tak jak nagranie bez kluczy bramki. Nagranie wymaga `--corpus-version`, bo paczka podaje migawkę.
+
+Kaseta nagrywa model, pobieranie stron, wyszukiwanie w sieci, bramkę maskującą i detektor wstrzyknięć (sam wynik skanu, bez skanowanego tekstu). Wyszukiwanie w korpusie i w bazach fact-checkerów to jeszcze zaślepki (worker#43), więc nie ma czego nagrywać; ich adaptery owiną się tak samo, gdy powstaną. Do tego czasu przypięta migawka trafia do `corpus_version` każdego wyniku i do `corpus_versions` raportu, a przeszuka ją krok `search_corpus`, gdy zastąpi zaślepkę.
+
+```bash
+uv run meritum-eval --mode record --cassette evals/cassettes/run.json \
+  --corpus-version 2026-11-20T10:00Z --output raport.json
+uv run meritum-eval --mode replay --cassette evals/cassettes/run.json --output raport-replay.json
+uv run meritum-eval-bundle --cassette evals/cassettes/run.json --output paczka/   # te same --cases co przy nagraniu
+```
+
+Raport z `replay` ma te same wyniki i mierniki co raport nagrania; różnią się tylko czasy. Żaden przebieg z prawdziwymi dostawcami, także `replay` nagrania, nie jest krokiem CI. W CI biegną testy jednostkowe adapterów kaset i paczki oraz scenariusze behave na stubie modelu, tak jak scenariusz pliku jury. Pełny przebieg uruchamia się ręcznie albo ze strony ewaluacji.
+
+Kaseta ma pełne teksty stron, więc nie trafia do repozytorium (`evals/cassettes/` jest w `.gitignore`) ani do paczki. `meritum-eval-bundle` zapisuje w folderze trzy pliki do publikacji:
+
+- `cases.json`: przypadki;
+- `sources.json`: adresy źródeł przypadków z cytowanymi fragmentami;
+- `manifest.json`: przypięta migawka i każda strona, którą przebieg przeczytał: `document_id`, adres końcowy, `sha256` tekstu głównego (UTF-8) i `fetched_at`.
+
+Odtworzenie migawki bez kasety: pobierz ponownie każdą stronę z `manifest.json` fetcherem z meritum-core (`build_page_fetcher`, ten sam ekstraktor tekstu głównego), policz SHA-256 jej `untrusted_text` w UTF-8 i porównaj z `sha256` z manifestu. Strona o tej samej sumie jest tą samą stroną, którą widział przebieg. Strona zmieniona od `fetched_at` ma inną sumę i wypada z porównania: wynik przypadku, który na niej polegał, nie jest już odtwarzalny z sieci.
 
 ## Bramka klasyfikatora wstrzyknięć
 

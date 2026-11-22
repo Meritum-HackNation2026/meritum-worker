@@ -1,7 +1,7 @@
 """The meritum-eval command: one run or a model comparison, the report as JSON.
 
 Features:
-    US-OBS-04, US-OBS-05, US-WDR-02, F-27, ADR-28
+    US-OBS-04, US-OBS-05, US-OBS-07, US-WDR-02, F-27, ADR-28
 """
 
 import argparse
@@ -18,6 +18,7 @@ from meritum_core.shared.llm import LlmSettings
 from pydantic import ValidationError
 
 from meritum_worker.observability.cases import load_eval_cases
+from meritum_worker.observability.cassette import Cassette, EvalMode
 from meritum_worker.observability.comparison import (
     ModelComparison,
     ModelConfig,
@@ -29,10 +30,9 @@ from meritum_worker.observability.constants import (
     DEFAULT_MAX_CONCURRENCY,
     EVAL_NAME,
 )
-from meritum_worker.observability.factory import build_eval_deps
+from meritum_worker.observability.factory import build_eval_deps, build_replay_deps
 from meritum_worker.observability.gates import GATES_COMMAND, gates_eval
 from meritum_worker.observability.models import GoldenSet
-from meritum_worker.observability.report import EvalReport
 from meritum_worker.observability.retrieval import (
     EmbeddingsComparison,
     EmbeddingsConfig,
@@ -40,7 +40,7 @@ from meritum_worker.observability.retrieval import (
     load_embeddings_config,
     score_retrieval,
 )
-from meritum_worker.observability.runner import run_eval
+from meritum_worker.observability.runner import DepsFor, run_eval
 from meritum_worker.observability.scoring import score_runs
 
 
@@ -48,12 +48,15 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
     """Evaluate the model from ``MERITUM_LLM_*``, or compare config files.
 
     ``meritum-eval gates`` compares the gates before the LLM instead (ADR-35).
+    ``--mode record`` also writes every provider answer to ``--cassette``;
+    ``--mode replay`` answers from it alone, without keys or network, pinned
+    to the snapshot it recorded. No CI step runs a real provider.
 
     Args:
         argv: Command-line arguments; ``sys.argv`` when None.
 
     Features:
-        US-OBS-04, US-OBS-05, US-WDR-02, F-27, ADR-28
+        US-OBS-04, US-OBS-05, US-OBS-07, US-WDR-02, F-27, ADR-28
     """
     argv = sys.argv[1:] if argv is None else argv
     if argv and argv[0] == GATES_COMMAND:
@@ -72,6 +75,9 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
     compare.add_argument(
         "--compare-embeddings", nargs="+", type=Path, metavar="CONFIG", default=[]
     )
+    parser.add_argument("--mode", type=EvalMode, default=EvalMode.LIVE)
+    parser.add_argument("--cassette", type=Path, help="needed by record and replay")
+    parser.add_argument("--corpus-version", help="snapshot every check is pinned to")
     args = parser.parse_args(argv)
     try:
         cases = load_eval_cases(args.cases)
@@ -84,23 +90,34 @@ def meritum_eval(argv: Sequence[str] | None = None) -> None:
         embeddings = [load_embeddings_config(p) for p in args.compare_embeddings]
     except (OSError, tomllib.TOMLDecodeError, ValidationError) as error:
         parser.error(f"config: {error}")
-    report = asyncio.run(
-        _report(cases, args.cases, models, embeddings, args.max_concurrency)
-    )
+    recorded: Cassette | None = None
+    if models or embeddings:
+        if args.mode is not EvalMode.LIVE:
+            parser.error("a comparison runs live; record or replay one model")
+        report = asyncio.run(
+            _compare(cases, args.cases, models, embeddings, args.max_concurrency)
+        )
+    else:
+        deps_for, recorded = _deps(parser, args)
+        report = score_runs(
+            asyncio.run(run_eval(cases, deps_for, args.max_concurrency))
+        )
     text = report.model_dump_json(indent=2) + "\n"
     if args.output is None:
         sys.stdout.write(text)
     else:
         args.output.write_text(text, encoding="utf-8")
+    if recorded is not None:
+        recorded.save(args.cassette)
 
 
-async def _report(
+async def _compare(
     cases: GoldenSet,
     cases_file: Path,
     models: Sequence[ModelConfig],
     embeddings: Sequence[EmbeddingsConfig],
     concurrency: int,
-) -> EvalReport | ModelComparison | EmbeddingsComparison:
+) -> ModelComparison | EmbeddingsComparison:
     now = datetime.now(UTC)
     if models:
         entries = [
@@ -108,14 +125,36 @@ async def _report(
             for c in models
         ]
         return compare_models(entries, str(cases_file), now)
-    if embeddings:
-        scores = [
-            await score_retrieval(cases, c, build_embeddings(c.embeddings))
-            for c in embeddings
-        ]
-        return compare_embeddings(scores, str(cases_file), now)
-    deps_for = build_eval_deps(LlmSettings())
-    return score_runs(await run_eval(cases, deps_for, concurrency))
+    scores = [
+        await score_retrieval(cases, c, build_embeddings(c.embeddings))
+        for c in embeddings
+    ]
+    return compare_embeddings(scores, str(cases_file), now)
+
+
+def _deps(
+    parser: argparse.ArgumentParser, args: argparse.Namespace
+) -> tuple[DepsFor, Cassette | None]:
+    # The cassette is returned only when the run records into it.
+    mode = EvalMode(args.mode)
+    if mode is not EvalMode.LIVE and args.cassette is None:
+        parser.error(f"--mode {mode} needs --cassette")
+    if mode is EvalMode.REPLAY:
+        return _replay_deps(parser, args), None
+    if mode is EvalMode.RECORD and args.corpus_version is None:
+        parser.error("--mode record needs --corpus-version: the bundle names it")
+    recorder = Cassette() if mode is EvalMode.RECORD else None
+    return build_eval_deps(LlmSettings(), args.corpus_version, recorder), recorder
+
+
+def _replay_deps(parser: argparse.ArgumentParser, args: argparse.Namespace) -> DepsFor:
+    if args.corpus_version is not None:
+        parser.error("replay pins the snapshot recorded in the cassette")
+    try:
+        cassette = Cassette.load(args.cassette)
+    except (OSError, ValueError) as error:
+        parser.error(f"{args.cassette}: {error}")
+    return build_replay_deps(cassette)
 
 
 def _positive(value: str) -> int:

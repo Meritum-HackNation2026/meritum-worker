@@ -98,6 +98,8 @@ class EvalReport(BaseModel):
 
     Attributes:
         models: ``provider/model`` of every model the run called.
+        corpus_versions: Snapshots the checks were pinned to; ``none`` for
+            checks that ended before any corpus.
         cases: How many cases ran.
         macro_f1: Verdict macro-F1, every non-verdict state one error class.
         citation_coverage: Decisive claims with at least one citation.
@@ -127,6 +129,7 @@ class EvalReport(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     models: tuple[str, ...]
+    corpus_versions: tuple[str, ...] = ()
     cases: int
     macro_f1: float
     citation_coverage: Ratio

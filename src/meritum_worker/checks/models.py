@@ -104,8 +104,8 @@ class CheckDeps:
         corpus_version: the snapshot checks search; NO_CORPUS_VERSION skips it.
 
     Features:
-        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-POW-01,
-        US-KOR-04, F-06, F-08, F-09, F-12, F-13, F-22
+        US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
+        US-POW-01, US-KOR-04, F-06, F-08, F-09, F-12, F-13, F-22
     """
 
     llm: LlmPort
