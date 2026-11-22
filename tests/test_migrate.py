@@ -52,3 +52,33 @@ def test_failed_migration_exits_with_its_name(
         "migration app_dev failed: 0002_x.sql: syntax error LINE 3: CREAT TABLE ^"
     )
     assert ran == []
+
+
+@pytest.mark.parametrize(
+    ("environment", "provider", "expected"),
+    [
+        ("local", "postgres", [("app", URL)]),
+        ("local", "memory", []),
+        ("dev", "postgres", []),
+        ("prd", "postgres", []),
+    ],
+)
+def test_worker_migrates_local_postgres_before_starting_dbos(
+    ran: list[tuple[str, str]],
+    monkeypatch: pytest.MonkeyPatch,
+    environment: str,
+    provider: str,
+    expected: list[tuple[str, str]],
+) -> None:
+    class DBOSStartError(Exception):
+        """Stop at the first DBOS operation."""
+
+    def start(**_kwargs: object) -> None:
+        raise DBOSStartError
+
+    monkeypatch.setenv("MERITUM_ENV", environment)
+    monkeypatch.setenv("MERITUM_DATABASE_PROVIDER", provider)
+    monkeypatch.setattr(main, "DBOS", start)
+    with pytest.raises(DBOSStartError):
+        main.main()
+    assert ran == expected

@@ -745,6 +745,9 @@ def main() -> None:
     Features:
         ADR-03
     """
+    # Compose starts with an empty app database. Deploys run migrations separately.
+    if env() == "local" and DatabaseSettings().provider is DatabaseProvider.POSTGRES:
+        migrate([])
     DBOS(config=config())
     DBOS.launch()
     DBOS.register_queue(DEFAULT_QUEUE)

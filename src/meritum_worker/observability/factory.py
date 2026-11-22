@@ -40,9 +40,11 @@ from meritum_worker.observability.adapters import (
 )
 from meritum_worker.observability.cassette import Cassette
 from meritum_worker.observability.constants import (
+    ENV_NAME_VAR,
     EUVSDISINFO_PROBE,
     FACT_CHECK_PROBE,
     FACT_CHECK_PROBE_QUERY,
+    LOCAL_ENV,
 )
 from meritum_worker.observability.eval_run import EvalRunDeps
 from meritum_worker.observability.fakes import InMemoryEvalRuns
@@ -197,8 +199,8 @@ def build_readiness_probes(
         http_client: HTTP client of the probes; the caller closes it.
 
     Returns:
-        Provider name to probe; without a token the EUvsDisinfo probe fails,
-        so the optional provider is reported unavailable.
+        Provider name to probe. Without a token, EUvsDisinfo is skipped locally
+        and reported unavailable in deployed environments.
 
     Features:
         US-WDR-08, US-BEZ-03, F-30
@@ -210,7 +212,10 @@ def build_readiness_probes(
         await client.cases(limit=1, offset=0)
         return True
 
-    probes: dict[str, Probe] = {EUVSDISINFO_PROBE: euvsdisinfo}
+    probes: dict[str, Probe] = {}
+    is_local = (env.get(ENV_NAME_VAR) or LOCAL_ENV) == LOCAL_ENV
+    if not is_local or env.get(corpus.TOKEN_ENV, ""):
+        probes[EUVSDISINFO_PROBE] = euvsdisinfo
     prefix = FACT_CHECK_ENV_PREFIX
     if env.get(f"{prefix}PROVIDER", "").lower() == corpus.FactCheckProvider.GOOGLE:
 

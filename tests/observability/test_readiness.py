@@ -96,7 +96,6 @@ def test_fact_check_probe_degrades_on_bad_key_or_quota(
     status: int, key: str | None, unavailable: list[str]
 ) -> None:
     probes = _fact_check_probes(status, key)
-    del probes["euvsdisinfo"]  # its own tests cover it
     report = _check({"MERITUM_LLM_PROVIDER": "stub", **_fact_check_env(key)}, probes)
     assert (report.missing_env, report.unavailable_providers) == ([], unavailable)
 
@@ -106,11 +105,22 @@ def test_stub_fact_check_has_no_probe() -> None:
     assert "fact_check" not in probes
 
 
-def test_missing_token_makes_euvsdisinfo_unavailable(
+def test_local_worker_is_ready_without_euvsdisinfo_token() -> None:
+    env = {"MERITUM_ENV": "local", "MERITUM_LLM_PROVIDER": "stub"}
+    probes = build_readiness_probes(env, FakeEuvsDisinfoServer(TOKEN).client())
+    assert _check(env, probes).unavailable_providers == []
+
+
+def test_missing_token_makes_euvsdisinfo_unavailable_on_dev(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    probes = build_readiness_probes({}, FakeEuvsDisinfoServer(TOKEN).client())
-    report = _check({"MERITUM_LLM_PROVIDER": "stub"}, probes)
+    env = {
+        "MERITUM_ENV": "dev",
+        "MERITUM_DATABASE_URL": "postgresql://db/app",
+        "MERITUM_LLM_PROVIDER": "stub",
+    }
+    probes = build_readiness_probes(env, FakeEuvsDisinfoServer(TOKEN).client())
+    report = _check(env, probes)
     assert (report.missing_env, report.unavailable_providers) == ([], ["euvsdisinfo"])
     assert "MissingTokenError" in caplog.text
 
