@@ -153,3 +153,47 @@ def test_static_entry_keeps_its_entry_page() -> None:
     pages = asyncio.run(server.discovery().pages(entry("urzad.gov.pl", "static")))
     assert [p.url for p in pages] == ["https://urzad.gov.pl"]
     assert server.requested == []
+
+
+def urlset(*locs: str) -> str:
+    urls = "".join(f"<url><loc>{loc}</loc></url>" for loc in locs)
+    return (
+        f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    )
+
+
+def test_pages_outside_the_entry_are_dropped() -> None:
+    server = FakeFeedServer()
+    server.serve(
+        "https://ec.europa.eu/commission/presscorner/api/rss",
+        "<rss><channel>"
+        "<item><link>https://ec.europa.eu/commission/presscorner/detail/pl/ip_26_1</link></item>"
+        "<item><link>https://ec.europa.eu/eurostat/news</link></item>"
+        "<item><link>https://inny.example/commission/presscorner/x</link></item>"
+        "</channel></rss>",
+        RSS,
+    )
+    found = asyncio.run(
+        server.discovery().pages(entry("ec.europa.eu/commission/presscorner", "rss"))
+    )
+    assert [p.url for p in found] == [
+        "https://ec.europa.eu/commission/presscorner/detail/pl/ip_26_1"
+    ]
+
+
+def test_pkw_sitemap_pages_on_its_internal_host_move_to_pkw_gov_pl() -> None:
+    server = FakeFeedServer()
+    server.serve(
+        "https://pkw.gov.pl/sitemaps/sitemap_1.xml",
+        urlset(
+            "http://baza57-loc.pl/kbw/petycje/2021-r",
+            "https://pkw.gov.pl/aktualnosci",
+            "https://obcy.example/kbw",
+        ),
+        "text/xml; charset=utf-8",
+    )
+    found = asyncio.run(server.discovery().pages(entry("pkw.gov.pl", "sitemap")))
+    assert sorted(p.url for p in found) == [
+        "https://pkw.gov.pl/aktualnosci",
+        "https://pkw.gov.pl/kbw/petycje/2021-r",
+    ]

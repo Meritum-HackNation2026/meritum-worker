@@ -23,6 +23,14 @@ FEED_URLS: Final = {
 """Feed or sitemap of a catalogue domain, from the catalogue section of core's README;
 the catalogue contract has no field for it."""
 
+FEED_HOST_FIXES: Final = {"pkw.gov.pl": {"baza57-loc.pl": "https://pkw.gov.pl"}}
+"""Hosts a publisher's own sitemap names by mistake, per catalogue domain: PKW's
+sitemap (from its robots.txt) lists every page on its internal host baza57-loc.pl,
+and the same paths answer on pkw.gov.pl (checked 2026-11-22, worker#220)."""
+
+WWW_PREFIX: Final = "www."
+"""Host prefix ignored when a listed page is matched to its catalogue domain."""
+
 DEFAULT_FEED_PATHS: Final = {"rss": "/feed/", "sitemap": "/sitemap.xml"}
 """Path of the feed of a domain missing from ``FEED_URLS``, per ``ingest`` method."""
 

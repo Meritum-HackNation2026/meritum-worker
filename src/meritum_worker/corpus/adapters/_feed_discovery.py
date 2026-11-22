@@ -15,6 +15,7 @@ from meritum_worker.corpus.feeds import (
     FEED_UNREADABLE,
     FeedListing,
     feed_url,
+    on_entry_site,
     parse_feed,
 )
 
@@ -43,7 +44,8 @@ class FeedDiscovery:
             entry: The catalogue entry.
 
         Returns:
-            The listed pages, newest first; a sitemap index adds its children's.
+            The listed pages of the entry's own site, newest first; a sitemap
+            index adds its children's.
 
         Raises:
             DiscoveryError: The feed, or a child sitemap, failed.
@@ -54,7 +56,11 @@ class FeedDiscovery:
         pages = list(listing.pages)
         for child in listing.sitemaps:
             pages += (await self._read(child)).pages
-        return pages
+        return [
+            page.model_copy(update={"url": url})
+            for page in pages
+            if (url := on_entry_site(entry, page.url)) is not None
+        ]
 
     async def _read(self, url: str) -> FeedListing:
         try:
