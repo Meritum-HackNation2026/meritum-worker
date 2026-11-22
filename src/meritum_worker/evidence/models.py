@@ -1,10 +1,11 @@
 """What the evidence steps carry: stance answers, citations per fact, the judgement.
 
 Features:
-    US-ZRD-01, US-ZRD-04, US-ZRD-10, F-15, F-16
+    US-ZRD-01, US-ZRD-04, US-ZRD-08, US-ZRD-09, US-ZRD-10, F-11, F-15, F-16
 """
 
-from typing import Annotated
+from datetime import date, datetime
+from typing import Annotated, Literal
 
 from meritum_core.checks.contracts import (
     Citation,
@@ -16,6 +17,7 @@ from meritum_core.checks.contracts import (
     Verdict,
 )
 from meritum_core.evidence import CitationDraft
+from meritum_core.shared.embeddings import Vector
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -126,3 +128,51 @@ class ReviewMatch(BaseModel):
     """
 
     same_claim: bool
+
+
+class IncidentCandidate(BaseModel):
+    """A known incident the claim is compared with, from any incident database.
+
+    Attributes:
+        database: organiser, euvsdisinfo or fact_check.
+        incident_id: the incident's key in that database.
+        title: the incident title.
+        date: the incident date.
+        url: the incident description page, never the disinformation itself.
+        domains: domains the incident lists as spreading it (moderators only).
+        description_vector: multilingual embedding of the description.
+        title_vector: multilingual embedding of the title; None until embedded.
+
+    Features:
+        US-ZRD-08, US-ZRD-09, F-11
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    database: Literal["organiser", "euvsdisinfo", "fact_check"]
+    incident_id: str
+    title: str
+    date: datetime
+    url: str
+    domains: tuple[str, ...] = ()
+    description_vector: Vector
+    title_vector: Vector | None = None
+
+
+class IncidentProbe(BaseModel):
+    """What one claim brings to the incident comparison.
+
+    Attributes:
+        vector: multilingual embedding of the masked claim.
+        on: the date of the checked material: the page's, else the claim's.
+        domain: the checked link's host without ``www.``; None without a link.
+
+    Features:
+        US-ZRD-08, US-ZRD-09, F-11
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    vector: Vector
+    on: date
+    domain: str | None = None

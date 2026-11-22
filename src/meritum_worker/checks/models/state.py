@@ -11,6 +11,7 @@ from meritum_core.checks import CheckResult, InjectionEvent
 from meritum_core.checks.constants import MIN_TEXT_CHARS
 from meritum_core.checks.contracts import (
     FailureCode,
+    IncidentMatch,
     LimitationCode,
     ModelUsage,
     OutOfScopeCode,
@@ -65,6 +66,8 @@ class CheckState(BaseModel):
         fact_checks: fact-checkers' ratings found for the facts.
         same_claim_reviews: positions in fact_checks of ratings of our claim.
         failed_steps: step codes that failed without ending the check.
+        incidents: the known incident each fact matches, keyed by the claim text;
+            context that never reaches the verdict.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
 
@@ -98,6 +101,7 @@ class CheckState(BaseModel):
     fact_checks: list[ClaimReviewFinding] = []
     same_claim_reviews: list[int] = []
     failed_steps: list[str] = []
+    incidents: dict[str, IncidentMatch] = {}
     limitations: list[str] = []
     result: CheckResult | None = None
 

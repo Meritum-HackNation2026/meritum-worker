@@ -48,3 +48,28 @@ Funkcja: Wymowa cytatów i werdykt z reguły core
     Gdy system buduje wynik
     Wtedy source_warning ma code "eu_sanctioned_entity", nazwę podmiotu i basis_url do wpisu
     Oraz werdykt jest taki sam jak bez ostrzeżenia
+  Scenariusz: polskie twierdzenie pasuje do angielskiego opisu przypadku
+    Zakładając w lokalnej kopii EUvsDisinfo przypadek opisany po angielsku
+    Gdy obywatel sprawdza podobne twierdzenie po polsku
+    Wtedy wynik zawiera IncidentMatch z database "euvsdisinfo", matched_on "content", tytułem, datą i linkiem do opisu przypadku
+    Oraz tekst fact jest dowodem wtórnym wydawcy "EUvsDisinfo, EEAS East StratCom Task Force"
+
+  Scenariusz: niezmienność werdyktu
+    Zakładając to samo sprawdzenie z dopasowaniem i ostrzeżeniem o domenie oraz bez nich
+    Gdy system liczy werdykt
+    Wtedy werdykt jest identyczny w obu przypadkach
+
+  Scenariusz: ten sam materiał co w sprawdzeniu fact-checkera (scenariusz I)
+    Zakładając wpis z pap.pl z tym samym tytułem, tematem i datą depeszy co publikacja oceniona przez Demagoga
+    Gdy system dopasowuje wpis do znanych incydentów
+    Wtedy IncidentMatch ma matched_on "content" i podstawę dopasowania: tytuł, temat i data
+
+  Scenariusz: sama domena nie wystarcza (scenariusz I)
+    Zakładając wpis z pap.pl o podobnym temacie, ale o innej depeszy
+    Gdy system dopasowuje wpis do znanych incydentów
+    Wtedy wynik nie ma dopasowania treści
+
+  Scenariusz: ostrzeżenie o domenie
+    Zakładając sprawdzany link do domeny z linksToDisinformation i wpis o temacie twierdzenia
+    Gdy obywatel sprawdza podobne twierdzenie po polsku
+    Wtedy wynik ma IncidentMatch z matched_on "domain"

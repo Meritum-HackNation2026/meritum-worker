@@ -1,10 +1,10 @@
 """Constants of the worker's evidence slice.
 
 Features:
-    US-ZRD-01, US-ZRD-04, US-ZRD-10, F-15, F-16
+    US-ZRD-01, US-ZRD-04, US-ZRD-08, US-ZRD-09, US-ZRD-10, F-11, F-15, F-16
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Final
 
 from meritum_core.shared.llm import LlmUsage
@@ -49,3 +49,14 @@ FAKE_FETCHED_AT: Final = datetime(2026, 11, 1, tzinfo=UTC)
 
 SANCTIONS_WORKFLOW: Final = "refresh_sanctions_list"
 """Name of the DBOS workflow that refreshes the local copy of the EU sanctions list."""
+INCIDENT_TOPIC_THRESHOLD: Final = 0.75
+"""Claim-to-description cosine similarity at which the topics agree."""
+
+INCIDENT_TITLE_THRESHOLD: Final = 0.85
+"""Claim-to-title cosine similarity at which the titles agree."""
+
+INCIDENT_DATE_WINDOW: Final = timedelta(days=3)
+"""Largest gap between the claim's date and the incident's at which the dates agree."""
+
+INCIDENTS_UNAVAILABLE: Final = "incident matching skipped: embeddings unavailable"
+"""Retrieval error of a check whose incident matching could not embed the claims."""

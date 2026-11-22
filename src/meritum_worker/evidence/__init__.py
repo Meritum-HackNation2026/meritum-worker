@@ -3,17 +3,22 @@
 Public API: re-exports only.
 
 Features:
-    US-ZRD-01, US-ZRD-04, US-ZRD-07, US-ZRD-10, F-15, F-16, F-34
+    US-ZRD-01, US-ZRD-04, US-ZRD-07, US-ZRD-08, US-ZRD-09, US-ZRD-10, F-11, F-15,
+    F-16, F-34
 """
 
 from meritum_worker.evidence.constants import (
+    INCIDENTS_UNAVAILABLE,
     SANCTIONS_WORKFLOW,
     STANCE_INSTRUCTIONS,
 )
-from meritum_worker.evidence.fakes import RecordedLlm, document
+from meritum_worker.evidence.fakes import KeyedEmbeddings, RecordedLlm, document
+from meritum_worker.evidence.incidents import match_incident, on_topic
 from meritum_worker.evidence.models import (
     AssessedCitation,
     ClaimExplanation,
+    IncidentCandidate,
+    IncidentProbe,
     Judgement,
     ReviewMatch,
     StanceJudgement,
@@ -35,11 +40,15 @@ from meritum_worker.evidence.verdict import (
 )
 
 __all__ = [
+    "INCIDENTS_UNAVAILABLE",
     "SANCTIONS_WORKFLOW",
     "STANCE_INSTRUCTIONS",
     "AssessedCitation",
     "ClaimExplanation",
+    "IncidentCandidate",
+    "IncidentProbe",
     "Judgement",
+    "KeyedEmbeddings",
     "RecordedLlm",
     "ReviewMatch",
     "SanctionedEntity",
@@ -50,6 +59,8 @@ __all__ = [
     "document",
     "judge",
     "load_sanctions",
+    "match_incident",
+    "on_topic",
     "refresh_sanctions",
     "resolve_check_claim_date",
     "review_matches",

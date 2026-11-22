@@ -65,14 +65,14 @@ def pipeline() -> tuple[tuple[Lane, ...], ...]:
         (("fetch_url", (steps.fetch_url,)),),
         (("transcribe_audio", (steps.transcribe_audio,)),),
         (("screen_injection", (steps.screen_injection,)),),
-        (("extract_claims", (steps.extract_claims,)),),
+        (("extract_claims", (steps.extract_claims, steps.match_incidents)),),
         # The research agents run side by side, never one after another (F-09, F-13).
         (
             ("search_corpus", (steps.search_corpus,)),
             ("search_web", (steps.search_web,)),
             ("search_fact_checks", (steps.search_fact_checks,)),
         ),
-        (("assess_evidence", (steps.assess_evidence, steps.match_incidents)),),
+        (("assess_evidence", (steps.assess_evidence,)),),
         (("verify_citations", (steps.verify_citations,)),),
         (
             (

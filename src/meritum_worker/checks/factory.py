@@ -30,6 +30,7 @@ from meritum_worker.corpus import (
     FactCheckProvider,
     FactCheckSettings,
     FakeFactCheck,
+    build_euvsdisinfo_copy,
     build_ingest_deps,
     build_reranker,
     ingestion_enabled,
@@ -102,6 +103,8 @@ def build_check_deps(
         sanctions=sanctions_from_env(os.environ),
         ocr=build_ocr(OcrSettings(), store),
         image_search=build_image_search(),
+        incidents=build_euvsdisinfo_copy(CorpusSettings()),
+        embeddings=embeddings,
     )
 
 

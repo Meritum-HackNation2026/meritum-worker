@@ -32,7 +32,7 @@ REQUEST_TIMEOUT_SECONDS: Final = 60.0
 PUBLISHER_ID: Final = "eeas-euvsdisinfo"
 """Catalogue publisher id of EUvsDisinfo (EEAS East StratCom Task Force)."""
 
-PUBLISHER_NAME: Final = "EUvsDisinfo (EEAS)"
+PUBLISHER_NAME: Final = "EUvsDisinfo, EEAS East StratCom Task Force"
 """Publisher name shown with a cited fact text."""
 
 SOURCE_DOMAIN: Final = "euvsdisinfo.eu"
