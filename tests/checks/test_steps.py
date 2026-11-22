@@ -1,11 +1,13 @@
 import asyncio
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import timedelta
 
 import pytest
 from meritum_core.checks import InjectionEvent
 from meritum_core.jobs.contracts import CheckInput
-from meritum_core.shared.llm import ProviderUnavailableError
+from meritum_core.shared.llm import LlmPort, LlmResult, Prompt, ProviderUnavailableError
+from pydantic import BaseModel
 
 from meritum_worker.checks import CheckDeps, CheckState
 from meritum_worker.checks.steps import save_record, write_answer
@@ -27,6 +29,28 @@ def test_write_answer_builds_done_result_and_records_model_usage(
         out.models[-1].provider,
         out.models[-1].model,
     )
+
+
+class _Priced:
+    """The stub model, with every call priced like a paid provider."""
+
+    def __init__(self, inner: LlmPort) -> None:
+        self._inner = inner
+
+    async def complete[T: BaseModel](
+        self, prompt: Prompt, output: type[T]
+    ) -> LlmResult[T]:
+        result = await self._inner.complete(prompt, output)
+        usage = result.usage.model_copy(update={"cost_usd": 0.002})
+        return result.model_copy(update={"usage": usage})
+
+
+def test_write_answer_records_the_cost_the_model_port_reports(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    deps = make_deps()
+    out = asyncio.run(write_answer(state, replace(deps, llm=_Priced(deps.llm))))
+    assert [m.cost_usd for m in out.models] == [0.002]
 
 
 def test_write_answer_turns_contract_breaking_answer_into_technical_failure(

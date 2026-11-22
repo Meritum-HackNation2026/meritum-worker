@@ -1,0 +1,10 @@
+# Domyślny model embeddingów (ADR-04). Cennik Vertex AI jest za tokeny (0,15 USD za milion);
+# cena za znaki to przybliżenie przy ok. 3 znakach polskiego tekstu na token.
+name = "gemini-embedding-001"
+usd_per_million_chars = 0.05
+
+[embeddings]
+provider = "vertex"
+model = "gemini-embedding-001"
+region = "europe-central2"
+dimensions = 768

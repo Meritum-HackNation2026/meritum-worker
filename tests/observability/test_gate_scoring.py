@@ -146,6 +146,7 @@ def _report(**metrics: float | None) -> EvalReport:
         "citation_correctness": 0.5, "abstention": None, "robustness": None,
         "median_seconds": 10.0, "p95_seconds": 20.0, "max_seconds": 25.0,
         "input_tokens_per_check": 0, "output_tokens_per_check": 0,
+        "output_tokens_per_second": 0,
         "cost_per_check_usd": 0.01, "cost_100_checks_usd": 1.0,
         "channel_consistency": None, "information_loop": None,
         "scenarios": [], "outcomes": [],

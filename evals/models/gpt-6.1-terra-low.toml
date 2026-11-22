@@ -1,0 +1,9 @@
+# GPT-6.1 Terra z niskim wysiłkiem rozumowania przez OpenRouter, ZDR.
+name = "gpt-6.1-terra-low"
+
+[llm]
+provider = "openrouter"
+model = "openai/gpt-6.1-terra"
+region = "global"
+reasoning = "low"
+openrouter_zdr = true

@@ -6,6 +6,13 @@ Features:
 
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cli import meritum_eval
+from meritum_worker.observability.comparison import (
+    ComparedModel,
+    ModelComparison,
+    ModelConfig,
+    compare_models,
+    load_model_config,
+)
 from meritum_worker.observability.errors import TooFewCasesError
 from meritum_worker.observability.factory import build_readiness_probes
 from meritum_worker.observability.golden import load_golden_set
@@ -26,6 +33,14 @@ from meritum_worker.observability.report import (
     EvalReport,
     ScenarioScore,
 )
+from meritum_worker.observability.retrieval import (
+    EmbeddingsComparison,
+    EmbeddingsConfig,
+    RetrievalScore,
+    compare_embeddings,
+    load_embeddings_config,
+    score_retrieval,
+)
 from meritum_worker.observability.runner import run_eval
 from meritum_worker.observability.scoring import score_runs
 
@@ -33,20 +48,31 @@ __all__ = [
     "CaseRun",
     "CaseScore",
     "CaseSource",
+    "ComparedModel",
+    "EmbeddingsComparison",
+    "EmbeddingsConfig",
     "EvalReport",
     "GoldenCase",
     "GoldenSet",
     "Injection",
+    "ModelComparison",
+    "ModelConfig",
+    "RetrievalScore",
     "ScenarioScore",
     "TooFewCasesError",
     "build_readiness_probes",
     "case_outcome",
     "check_readiness",
+    "compare_embeddings",
+    "compare_models",
+    "load_embeddings_config",
     "load_eval_cases",
     "load_golden_set",
+    "load_model_config",
     "log_readiness",
     "macro_f1",
     "meritum_eval",
     "run_eval",
+    "score_retrieval",
     "score_runs",
 ]

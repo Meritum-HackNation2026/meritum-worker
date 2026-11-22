@@ -1,0 +1,8 @@
+# Gemini 3.5 Flash na Vertex AI we Frankfurcie; projekt z ADC albo MERITUM_LLM_PROJECT.
+name = "gemini-3.5-flash"
+
+[llm]
+provider = "vertex"
+model = "gemini-3.5-flash"
+region = "europe-west3"
+reasoning = "high"

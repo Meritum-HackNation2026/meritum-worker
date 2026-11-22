@@ -96,3 +96,22 @@ LLM_REQUIRED_ENV: Final = {
 
 EUVSDISINFO_PROBE: Final = "euvsdisinfo"
 """Provider name of the EUvsDisinfo MCP server in the readiness report."""
+
+RETRIEVAL_TOP_K: Final = 1
+"""Ranks that count as a hit; the stand-in corpus has about a dozen documents, so
+only the first rank separates candidates (worker#40)."""
+
+STAND_IN_CORPUS: Final = "stand-in: golden-set sources, one query per main claim"
+"""Corpus label of the embeddings report until a run searches the real corpus."""
+
+CHARS_PER_PRICE_UNIT: Final = 1_000_000
+"""Characters in the unit of an embedding price (usd_per_million_chars)."""
+
+API_KEY_FIELDS: Final = frozenset({"openrouter_api_key"})
+"""LlmSettings fields (any case) a committed config file must not set."""
+
+COST_DECIMALS: Final = 8
+"""Decimal places of an embedding cost; a golden-set run costs fractions of a cent."""
+
+COST_SAMPLE_QUERIES: Final = 100
+"""The embeddings report prices this many corpus queries."""
