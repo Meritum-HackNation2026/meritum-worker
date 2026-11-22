@@ -28,6 +28,7 @@ from meritum_worker.corpus.fact_check_constants import (
     FACT_CHECK_LANGUAGE,
 )
 from meritum_worker.observability.adapters import (
+    ApiChecks,
     BlobCaseSets,
     CassetteCorpus,
     CassetteInjection,
@@ -120,6 +121,21 @@ def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckD
         reranker=CassetteReranker(cassette, deps.reranker if record else None),
         corpus_version=cassette.corpus_version,
     )
+
+
+def build_api_checks(base_url: str) -> ApiChecks:
+    """Checks through a deployed API, e.g. dev with its real providers.
+
+    Args:
+        base_url: The API's origin.
+
+    Returns:
+        The adapter whose ``check`` runs one case; close it with ``aclose``.
+
+    Features:
+        US-OBS-04, US-OBS-05, F-27, ADR-28
+    """
+    return ApiChecks(base_url)
 
 
 def build_case_sets(golden: Path, blobs: BlobStore) -> EvalCaseSets:

@@ -38,6 +38,18 @@ type Variant = Literal[
 """Repeat of another case (G, H) or same or other material (I)."""
 type Fault = Literal["fact_check_api", "web_search", "llm"]
 """Provider failure forced in an evaluation run (scenario J)."""
+type Category = Literal[
+    "true",
+    "false",
+    "partial",
+    "misleading",
+    "numbers",
+    "public_figure",
+    "opinion",
+    "fact_checked",
+    "out_of_scope",
+]
+"""Kind of fact-checking case, for the quality benchmark (worker#170)."""
 type CaseId = Annotated[str, Field(pattern=r"^[A-J]-[a-z0-9-]{1,60}$")]
 """Case id: the scenario letter, a dash and a slug."""
 type Text = Annotated[str, Field(min_length=3)]
@@ -101,6 +113,8 @@ class GoldenCase(_Frozen):
         main_claim: The claim whose verdict is the case's verdict.
         expected_status: Expected outcome state.
         expected_verdict: Expected verdict of the main claim when the state is done.
+        acceptable_verdicts: Other defensible verdicts; they count as correct.
+        category: Kind of fact-checking case, for the quality benchmark.
         expected_behavior: What the answer must say, in Polish.
         sources: Sources the answer should rely on.
         variant: Repeat of another case (G, H) or same or other material (I).
@@ -123,6 +137,8 @@ class GoldenCase(_Frozen):
     main_claim: Text
     expected_status: CheckStatus
     expected_verdict: Verdict | None = None
+    acceptable_verdicts: tuple[Verdict, ...] = ()
+    category: Category | None = None
     expected_behavior: Text
     sources: tuple[CaseSource, ...] = ()
     variant: Variant | None = None

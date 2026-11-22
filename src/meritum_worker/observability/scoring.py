@@ -6,7 +6,6 @@ Features:
 
 import statistics
 from collections.abc import Sequence
-from urllib.parse import urlsplit
 
 from meritum_worker.observability.constants import (
     ABSTAINING_VERDICTS,
@@ -20,6 +19,13 @@ from meritum_worker.observability.outcomes import (
     case_outcome,
     expected_label,
     macro_f1,
+)
+from meritum_worker.observability.quality import (
+    abstention_rate,
+    citation_recall,
+    fact_check_hit_rate,
+    host,
+    share,
 )
 from meritum_worker.observability.report import (
     CaseRun,
@@ -57,11 +63,15 @@ def score_runs(runs: Sequence[CaseRun]) -> EvalReport:
         models=tuple(sorted({model for run in runs for model in run.models})),
         corpus_versions=tuple(sorted({run.result.corpus_version for run in runs})),
         cases=len(runs),
-        macro_f1=_round(macro_f1([(s.expected, s.predicted) for s in scores])),
+        macro_f1=_round(macro_f1([(s.expected, _f1_label(s)) for s in scores])),
+        accuracy=share([s.outcome == "correct" for s in scores]),
+        abstention_rate=abstention_rate(runs),
+        citation_recall=citation_recall(runs),
+        fact_check_hit_rate=fact_check_hit_rate(runs),
         citation_coverage=_citation_coverage(runs),
         citation_correctness=_citation_correctness(runs),
-        abstention=_share([s.predicted == s.expected for s in abstaining]),
-        robustness=_share([s.outcome == "correct" for s in attacks]),
+        abstention=share([s.predicted == s.expected for s in abstaining]),
+        robustness=share([s.outcome == "correct" for s in attacks]),
         median_seconds=_round(statistics.median(seconds)),
         p95_seconds=_round(_percentile(seconds)),
         max_seconds=_round(seconds[-1]),
@@ -71,7 +81,7 @@ def score_runs(runs: Sequence[CaseRun]) -> EvalReport:
         cost_per_check_usd=_round(cost),
         cost_100_checks_usd=_round(cost * COST_SAMPLE_CHECKS),
         channel_consistency=_channel_consistency(runs),
-        information_loop=_share([r.result.escalation is not None for r in unanswered]),
+        information_loop=share([r.result.escalation is not None for r in unanswered]),
         scenarios=_scenarios(scores),
         outcomes=tuple(scores),
     )
@@ -86,15 +96,17 @@ def _score(run: CaseRun) -> CaseScore:
         predicted=predicted,
         outcome=outcome,
         seconds=run.seconds,
+        check_id=run.check_id,
     )
+
+
+def _f1_label(score: CaseScore) -> str:
+    # An acceptable alternative is the expected verdict for F1 (worker#170).
+    return score.expected if score.outcome == "correct" else score.predicted
 
 
 def _round(value: float) -> float:
     return round(value, REPORT_DECIMALS)
-
-
-def _share(hits: Sequence[bool]) -> Ratio:
-    return _round(sum(hits) / len(hits)) if hits else None
 
 
 def _tokens_per_second(runs: Sequence[CaseRun]) -> float:
@@ -116,22 +128,18 @@ def _percentile(ordered: Sequence[float]) -> float:
 def _citation_coverage(runs: Sequence[CaseRun]) -> Ratio:
     claims = [c for run in runs for c in run.result.claims]
     decisive = [c for c in claims if c.verdict in DECISIVE_VERDICTS]
-    return _share([bool(c.citations) for c in decisive])
+    return share([bool(c.citations) for c in decisive])
 
 
 def _citation_correctness(runs: Sequence[CaseRun]) -> Ratio:
     # A citation is correct when its source's host is one the case lists.
     hits: list[bool] = []
     for run in runs:
-        hosts = {_host(str(s.url)) for s in run.case.sources}
+        hosts = {host(str(s.url)) for s in run.case.sources}
         cited = [c for claim in run.result.claims for c in claim.citations]
         if hosts:
-            hits += [_host(str(c.source.url)) in hosts for c in cited]
-    return _share(hits)
-
-
-def _host(url: str) -> str:
-    return (urlsplit(url).hostname or "").removeprefix("www.")
+            hits += [host(str(c.source.url)) in hosts for c in cited]
+    return share(hits)
 
 
 def _channel_consistency(runs: Sequence[CaseRun]) -> Ratio:
@@ -142,7 +150,7 @@ def _channel_consistency(runs: Sequence[CaseRun]) -> Ratio:
         for run in runs
         if run.case.variant == "other_channel" and run.case.related_case in by_id
     ]
-    return _share(hits)
+    return share(hits)
 
 
 def _comparable(run: CaseRun) -> tuple[str, list[str], list[str]]:

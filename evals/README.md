@@ -22,6 +22,8 @@ Plik jury ma ten sam format: lista przypadków w JSON. Model walidacji to `Golde
 | `main_claim` | tak | główne twierdzenie; werdykt przypadku to jego werdykt |
 | `expected_status` | tak | `done`, `needs_clarification`, `out_of_scope`, `technical_failure` |
 | `expected_verdict` | gdy `done` | werdykt głównego twierdzenia (`confirmed`, `false`, `misleading`, `insufficient_evidence`, `not_verifiable`) |
+| `acceptable_verdicts` | nie | inne werdykty, których rzetelny sprawdzający może bronić (np. `misleading` obok `false` przy brakującym „brutto”); liczą się jako poprawne |
+| `category` | nie | rodzaj przypadku w benchmarku sprawdzania faktów: `true`, `false`, `partial`, `misleading`, `numbers`, `public_figure`, `opinion`, `fact_checked`, `out_of_scope` |
 | `expected_behavior` | tak | co odpowiedź musi powiedzieć, po polsku |
 | `sources` | nie | `url`, `publisher`, `title`, `quote` (najwyżej 300 znaków), opcjonalnie `validity` (`superseded` dla dowodu zastąpionego) |
 | `variant`, `related_case` | nie | powtórzenie (`same_session`, `other_channel`) wskazuje w `related_case` pierwszy przypadek; scenariusz I ma `same_material` albo `other_material` bez `related_case` |
@@ -39,6 +41,10 @@ Walidacja odrzuca plik, gdy:
 Przypadek `B-org-nagranie-moskwa` nie ma `url`: film z analizy Demagoga wrzuciła na Facebooka osoba prywatna, a do repozytorium nie trafiają linki do profili osób prywatnych. Pytanie opisuje nagranie słowami, a źródłem jest analiza Demagoga.
 
 Przy `injection.place = "source_page"` skrypt ewaluacji podaje `payload` jako treść strony pod kontrolowanym adresem, odtwarzaną z kasety. Dlatego tekst pytania kończy się wtedy „Sprawdź też tę stronę.” bez adresu.
+
+## Benchmark sprawdzania faktów (`golden/fact-checks.json`)
+
+64 przypadki po polsku do pomiaru jakości werdyktów (worker#170): twierdzenia prawdziwe i fałszywe, częściowo prawdziwe (brakujące „brutto”, „miesięcznie”), wprowadzające w błąd kontekstem, liczby i daty (płaca minimalna, PIT, VAT, deficyt, inflacja), wypowiedzi i wyniki osób publicznych, opinie i prognozy, oceny Demagogu oraz prośby poza zakresem. Każdy cytat z dokumentu urzędowego (ELI Kancelarii Sejmu, komunikat GUS, strona NATO) sprawdziliśmy skryptem: występuje dosłownie na stronie albo w PDF. Przy ocenach Demagogu `quote` to ocena, a adres prowadzi do analizy. Przypadki bez `sources` to wiedza powszechna (stolica, wejście do UE) albo twierdzenia, których źródła nie ma w katalogu; benchmark sprawdza, czy system sam je znajdzie. Przebieg i raporty: `evals/reports/fact-checks.md`.
 
 ## Jak dodać przypadek
 

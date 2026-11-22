@@ -37,7 +37,8 @@ def case_outcome(case: GoldenCase, result: CheckResult) -> tuple[str, Outcome]:
     """Score the case by its main claim; several matches keep the worst outcome.
 
     The claims matching the main claim count; when none matches, every claim
-    does. A result that is not done is its state.
+    does. A result that is not done is its state. A verdict among the case's
+    acceptable alternatives is correct.
 
     Args:
         case: The case.
@@ -51,7 +52,11 @@ def case_outcome(case: GoldenCase, result: CheckResult) -> tuple[str, Outcome]:
     """
     expected = expected_label(case)
     predicted = _predicted_labels(case, result)
-    scored = [(label, _outcome(expected, label)) for label in predicted]
+    accepted = {expected, *case.acceptable_verdicts}
+    scored = [
+        (label, "correct" if label in accepted else _outcome(expected, label))
+        for label in predicted
+    ]
     return min(scored, key=lambda pair: OUTCOME_ORDER.index(pair[1]))
 
 

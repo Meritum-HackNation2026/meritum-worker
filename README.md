@@ -90,13 +90,27 @@ uv run meritum-eval                                  # golden set, raport JSON n
 uv run meritum-eval --cases jury.csv --output raport.json --max-concurrency 4
 ```
 
+Z `--api https://meritum-dev.gburek.app` przypadki idą przez API wdrożonego środowiska jako sprawdzenia z kanału web, z prawdziwą wyszukiwarką, Fact Check API i modelem tego środowiska; czas to zegar od wysłania do wyniku. `--judge` dodaje `citation_precision`: model z `MERITUM_LLM_*` ocenia każdy cytat. Taki przebieg uruchamiamy ręcznie, nigdy w CI:
+
+```bash
+set -a; source ../.env; set +a                       # OPENROUTER_API_KEY dla sędziego, nigdy w repozytorium
+MERITUM_LLM_PROVIDER=openrouter MERITUM_LLM_MODEL=anthropic/claude-haiku-5.5 \
+  uv run meritum-eval --cases evals/golden/fact-checks.json --api https://meritum-dev.gburek.app \
+  --judge --max-concurrency 4 --output evals/reports/fact-checks-$(date +%F)-n.json
+```
+
 Model wybiera konfiguracja `MERITUM_LLM_*` (tabela wyżej), więc jeden przebieg na model daje porównywalny raport. Na stubie (`MERITUM_LLM_PROVIDER=stub`) wystarczy `MERITUM_LLM_STUB_FIXTURES`; Vertex AI potrzebuje `MERITUM_LLM_MODEL`, `MERITUM_LLM_REGION` (region UE) i poświadczeń ADC (`gcloud auth application-default login`). Zapisy przebiegu zostają w pamięci procesu, więc ewaluacja nic nie pisze do bazy aplikacji. Pełny przebieg woła model, dlatego nie jest krokiem CI (ADR-28); w CI biegną tylko testy mierników i scenariusze behave na stubie.
 
 Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 
 | Pole | Co liczy |
 | --- | --- |
-| `macro_f1` | werdykt głównego twierdzenia; każdy stan niebędący werdyktem to jedna osobna klasa błędu |
+| `macro_f1` | werdykt głównego twierdzenia; każdy stan niebędący werdyktem to jedna osobna klasa błędu; werdykt z `acceptable_verdicts` liczy się jak oczekiwany |
+| `accuracy` | przypadki z poprawnym wynikiem |
+| `citation_precision` | cytaty, których wymowę potwierdza model-sędzia (tylko z `--judge`); dosłowność fragmentu sprawdza już samo sprawdzenie |
+| `citation_recall` | średni udział hostów z `sources` przypadku, które odpowiedź cytuje albo podaje jako ocenę fact-checkera |
+| `abstention_rate` | sprawdzenia `done`, w których żadne twierdzenie nie dostało werdyktu rozstrzygającego |
+| `fact_check_hit_rate` | przypadki `category: fact_checked`, w których odpowiedź pokazuje ocenę fact-checkera |
 | `citation_coverage`, `citation_correctness` | twierdzenia z werdyktem rozstrzygającym, które mają cytat; cytaty, których host jest wśród `sources` przypadku |
 | `abstention` | przypadki z oczekiwanym `insufficient_evidence` albo `not_verifiable`, które dostały ten werdykt |
 | `robustness` | przypadki z `injection` z poprawnym wynikiem |

@@ -7,6 +7,10 @@ Features:
 from meritum_worker.observability.bundle import Manifest, meritum_eval_bundle
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cassette import Cassette, EvalMode, LlmTake, PageTake
+from meritum_worker.observability.citation_judge import (
+    CitationJudgement,
+    judge_citations,
+)
 from meritum_worker.observability.cli import meritum_eval
 from meritum_worker.observability.comparison import (
     ComparedModel,
@@ -79,6 +83,7 @@ __all__ = [
     "Cassette",
     "CassetteMissError",
     "ChangedCase",
+    "CitationJudgement",
     "ComparedModel",
     "CostLine",
     "CostSummary",
@@ -112,6 +117,7 @@ __all__ = [
     "compare_runs",
     "evaluate_eval_run",
     "finish_eval_run",
+    "judge_citations",
     "load_embeddings_config",
     "load_eval_cases",
     "load_golden_set",

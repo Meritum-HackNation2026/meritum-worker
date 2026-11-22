@@ -1,0 +1,1180 @@
+[
+  {
+    "id": "A-fc-stolica-warszawa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Warszawa jest stolicą Polski",
+    "main_claim": "Warszawa jest stolicą Polski",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza, cytując art. 29 Konstytucji.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Stolicą Rzeczypospolitej Polskiej jest Warszawa."
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-sejm-460",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Czy Sejm składa się z 460 posłów?",
+    "main_claim": "Sejm składa się z 460 posłów.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie art. 96 Konstytucji.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Sejm składa się z 460 posłów."
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-senat-100",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Senat ma stu senatorów, prawda?",
+    "main_claim": "Senat składa się ze 100 senatorów.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie art. 97 Konstytucji.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Senat składa się ze 100 senatorów."
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-kadencja-prezydenta",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Czy kadencja prezydenta Polski trwa pięć lat?",
+    "main_claim": "Kadencja Prezydenta RP trwa pięć lat.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie art. 127 Konstytucji.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Prezydent Rzeczypospolitej jest wybierany na pięcioletnią kadencję i może być ponownie wybrany tylko raz."
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-placa-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Płaca minimalna w Polsce w 2025 roku wynosi 4666 zł brutto",
+    "main_claim": "Płaca minimalna w Polsce w 2025 roku wynosi 4666 zł brutto",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza, cytując rozporządzenie Rady Ministrów z 12 września 2024 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2024/1362/text.html",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 12 września 2024 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "ustala się minimalne wynagrodzenie za pracę w wysokości 4666 zł"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-placa-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Czy płaca minimalna od stycznia 2026 r. to 4806 zł brutto?",
+    "main_claim": "Płaca minimalna od stycznia 2026 r. wynosi 4806 zł brutto.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza, cytując rozporządzenie Rady Ministrów z 11 września 2025 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1242/text/O/D20251242.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 11 września 2025 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "ustala się minimalne wynagrodzenie za pracę w wysokości 4806 zł"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-vat-23",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Podstawowa stawka VAT w Polsce wynosi 23 procent.",
+    "main_claim": "Podstawowa stawka VAT w Polsce wynosi 23 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie art. 146ef ustawy o VAT.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1263/text/O/D20261263.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Jednolity tekst ustawy o podatku od towarów i usług (Dz.U. 2026 poz. 1263)",
+        "quote": "wynosi 23 %"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-ue-2004",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Polska przystąpiła do Unii Europejskiej w 2004 roku",
+    "main_claim": "Polska przystąpiła do Unii Europejskiej w 2004 roku",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza: Polska jest w UE od 1 maja 2004 r.",
+    "sources": [],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-nato-1999",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Czy Polska jest w NATO od 1999 roku?",
+    "main_claim": "Polska jest członkiem NATO od 1999 roku.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie strony NATO o państwach członkowskich.",
+    "sources": [
+      {
+        "url": "https://www.nato.int/cps/en/natohq/topics_52044.htm",
+        "publisher": "NATO",
+        "title": "Member countries",
+        "quote": "1999"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-konstytucja-1997",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "true",
+    "text": "Obecna konstytucja Polski została uchwalona w 1997 roku.",
+    "main_claim": "Obecna konstytucja Polski została uchwalona w 1997 roku.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza: Konstytucja RP z 2 kwietnia 1997 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "z dnia 2 kwietnia 1997 r."
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-ue-2007",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Polska weszła do Unii Europejskiej w 2007 roku.",
+    "main_claim": "Polska weszła do Unii Europejskiej w 2007 roku.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: Polska weszła do UE 1 maja 2004 r.",
+    "sources": [],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-sejm-560",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Sejm liczy 560 posłów.",
+    "main_claim": "Sejm liczy 560 posłów.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: według art. 96 Konstytucji Sejm ma 460 posłów.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Sejm składa się z 460 posłów."
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-trzy-kadencje",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Prezydent w Polsce może rządzić przez trzy kadencje.",
+    "main_claim": "Prezydent w Polsce może rządzić przez trzy kadencje.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: art. 127 Konstytucji pozwala na ponowny wybór tylko raz.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Prezydent Rzeczypospolitej jest wybierany na pięcioletnią kadencję i może być ponownie wybrany tylko raz."
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-placa-2025-5000",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Czy płaca minimalna w 2025 roku wynosiła 5000 zł brutto?",
+    "main_claim": "Płaca minimalna w 2025 roku wynosiła 5000 zł brutto.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: w 2025 r. płaca minimalna wynosiła 4666 zł brutto.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2024/1362/text.html",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 12 września 2024 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "ustala się minimalne wynagrodzenie za pracę w wysokości 4666 zł"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-vat-25",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Podstawowy VAT w Polsce to 25 procent.",
+    "main_claim": "Podstawowy VAT w Polsce wynosi 25 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: podstawowa stawka wynosi 23%.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1263/text/O/D20261263.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Jednolity tekst ustawy o podatku od towarów i usług (Dz.U. 2026 poz. 1263)",
+        "quote": "wynosi 23 %"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-senat-200",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "W Senacie zasiada 200 senatorów.",
+    "main_claim": "W Senacie zasiada 200 senatorów.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: Senat ma 100 senatorów (art. 97 Konstytucji).",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Senat składa się ze 100 senatorów."
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-plaska-ziemia",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Ziemia jest płaska, bo nie widać krzywizny planety lecąc samolotem",
+    "main_claim": "Ziemia jest płaska",
+    "expected_status": "done",
+    "expected_behavior": "Obala tezę o płaskiej Ziemi; uzasadnienie zostaje w jednym twierdzeniu.",
+    "sources": [],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-cytryna-rak",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Picie wody z cytryną leczy raka",
+    "main_claim": "Picie wody z cytryną leczy raka",
+    "expected_status": "done",
+    "expected_behavior": "Obala: nie ma dowodów, że woda z cytryną leczy raka.",
+    "sources": [],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-stolica-krakow",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "false",
+    "text": "Stolicą Polski jest Kraków.",
+    "main_claim": "Stolicą Polski jest Kraków.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: stolicą jest Warszawa (art. 29 Konstytucji).",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Stolicą Rzeczypospolitej Polskiej jest Warszawa."
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-placa-2026-na-reke",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "partial",
+    "text": "Od 2026 roku najniższa krajowa to 4806 zł na rękę.",
+    "main_claim": "Od 2026 roku najniższa krajowa wynosi 4806 zł na rękę.",
+    "expected_status": "done",
+    "expected_behavior": "Wyjaśnia, że 4806 zł to kwota brutto, a na rękę wychodzi mniej.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1242/text/O/D20251242.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 11 września 2025 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "ustala się minimalne wynagrodzenie za pracę w wysokości 4806 zł"
+      }
+    ],
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ]
+  },
+  {
+    "id": "A-fc-placa-2026-bez-brutto",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "partial",
+    "text": "Płaca minimalna w 2026 roku wynosi 4806 zł.",
+    "main_claim": "Płaca minimalna w 2026 roku wynosi 4806 zł.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza kwotę i dodaje, że to kwota brutto.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1242/text/O/D20251242.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 11 września 2025 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "ustala się minimalne wynagrodzenie za pracę w wysokości 4806 zł"
+      }
+    ],
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [
+      "misleading"
+    ]
+  },
+  {
+    "id": "A-fc-stawka-godzinowa-etat",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "partial",
+    "text": "Minimalna stawka godzinowa 31,40 zł obowiązuje każdego pracownika na etacie.",
+    "main_claim": "Minimalna stawka godzinowa 31,40 zł obowiązuje każdego pracownika na etacie.",
+    "expected_status": "done",
+    "expected_behavior": "Wyjaśnia, że 31,40 zł to stawka dla umów cywilnoprawnych, a etat ma minimalne wynagrodzenie miesięczne.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1242/text/O/D20251242.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 11 września 2025 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "ustala się minimalną stawkę godzinową w wysokości 31,40 zł"
+      }
+    ],
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ]
+  },
+  {
+    "id": "A-fc-prog-podatkowy",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "partial",
+    "text": "Każdy, kto zarabia ponad 120 tysięcy złotych rocznie, płaci 32 procent podatku od całego dochodu.",
+    "main_claim": "Kto zarabia ponad 120 tys. zł rocznie, płaci 32% podatku od całego dochodu.",
+    "expected_status": "done",
+    "expected_behavior": "Wyjaśnia, że 32% dotyczy tylko nadwyżki ponad 120 000 zł.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text/O/D20260592.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Jednolity tekst ustawy o podatku dochodowym od osób fizycznych (Dz.U. 2026 poz. 592)",
+        "quote": "32 % nadwyżki ponad 120 000 zł"
+      }
+    ],
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ]
+  },
+  {
+    "id": "A-fc-vat-wszystko-23",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "partial",
+    "text": "W Polsce wszystkie towary są opodatkowane VAT w wysokości 23 procent.",
+    "main_claim": "W Polsce wszystkie towary są opodatkowane VAT w wysokości 23 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Wyjaśnia, że 23% to stawka podstawowa, a są też stawki obniżone 8% i 5%.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1263/text/O/D20261263.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Jednolity tekst ustawy o podatku od towarów i usług (Dz.U. 2026 poz. 1263)",
+        "quote": "wynosi 23 %"
+      }
+    ],
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ]
+  },
+  {
+    "id": "A-fc-emerytura-netto",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "partial",
+    "text": "Najniższa emerytura od marca 2025 r. to 1878,91 zł na rękę.",
+    "main_claim": "Najniższa emerytura od marca 2025 r. wynosi 1878,91 zł na rękę.",
+    "expected_status": "done",
+    "expected_behavior": "Wyjaśnia, że 1878,91 zł to kwota brutto.",
+    "sources": [],
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ]
+  },
+  {
+    "id": "A-fc-wroclaw-65",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "misleading",
+    "text": "Czy Wrocław był jedynym miastem w Polsce, w którym 65-latkowie jeździli komunikacją miejską za darmo?",
+    "main_claim": "Wrocław był jedynym miastem w Polsce, w którym 65-latkowie jeździli komunikacją miejską za darmo.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: w innych miastach, np. w Lublinie, seniorzy po 65. roku życia też jeżdżą za darmo.",
+    "sources": [],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-inflacja-najwyzsza",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "misleading",
+    "text": "Inflacja w Polsce jest najwyższa w Unii Europejskiej",
+    "main_claim": "Inflacja w Polsce jest najwyższa w Unii Europejskiej",
+    "expected_status": "done",
+    "expected_behavior": "Porównuje z danymi Eurostatu; Polska nie ma najwyższej inflacji w UE.",
+    "sources": [],
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ]
+  },
+  {
+    "id": "A-fc-wiatraki-ptaki",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "misleading",
+    "text": "Elektrownie wiatrowe są niebezpieczne, bo zabijają wszystkie ptaki w okolicy",
+    "main_claim": "Elektrownie wiatrowe zabijają wszystkie ptaki w okolicy",
+    "expected_status": "done",
+    "expected_behavior": "Obala uogólnienie: turbiny powodują śmierć części ptaków, nie wszystkich.",
+    "sources": [],
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading",
+      "insufficient_evidence"
+    ]
+  },
+  {
+    "id": "A-fc-deficyt-2026-rekord",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "misleading",
+    "text": "Deficyt budżetu na 2026 rok jest wyższy niż na 2025 rok.",
+    "main_claim": "Deficyt budżetu państwa zaplanowany na 2026 rok jest wyższy niż na 2025 rok.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: ustawa budżetowa na 2026 r. ustala deficyt do 271,74 mld zł, a na 2025 r. do 288,77 mld zł.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/62/text/O/D20260062.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Ustawa budżetowa na rok 2026 z dnia 9 stycznia 2026 r.",
+        "quote": "Deficyt budżetu państwa ustala się na dzień 31 grudnia 2026 r. na kwotę nie większą niż 271 740 000 tys. zł."
+      },
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/63/text/O/D20250063.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Ustawa budżetowa na rok 2025 z dnia 9 stycznia 2025 r.",
+        "quote": "Deficyt budżetu państwa ustala się na dzień 31 grudnia 2025 r. na kwotę nie większą niż 288 770 000 tys. zł."
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-trzaskowski-wygral",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "misleading",
+    "text": "Rafał Trzaskowski wygrał wybory prezydenckie w 2025 roku, bo w pierwszej turze był pierwszy.",
+    "main_claim": "Rafał Trzaskowski wygrał wybory prezydenckie w 2025 roku.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: w ponownym głosowaniu wygrał Karol Nawrocki (50,89%).",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/714/text/O/D20250714.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Obwieszczenie PKW z dnia 2 czerwca 2025 r. o wynikach ponownego głosowania i wyniku wyborów Prezydenta RP",
+        "quote": "NAWROCKI Karol Tadeusz 10 606 877 głosów, tj. 50,89 % liczby głosów ważnych"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-deficyt-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Deficyt budżetu państwa na 2025 rok zaplanowano na około 289 mld zł",
+    "main_claim": "Deficyt budżetu państwa na 2025 rok zaplanowano na około 289 mld zł",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza: ustawa budżetowa na 2025 r. ustala deficyt do 288,77 mld zł.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/63/text/O/D20250063.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Ustawa budżetowa na rok 2025 z dnia 9 stycznia 2025 r.",
+        "quote": "Deficyt budżetu państwa ustala się na dzień 31 grudnia 2025 r. na kwotę nie większą niż 288 770 000 tys. zł."
+      }
+    ],
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [
+      "misleading"
+    ]
+  },
+  {
+    "id": "A-fc-deficyt-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Czy deficyt w budżecie na 2026 rok wynosi około 272 mld zł?",
+    "main_claim": "Deficyt budżetu państwa na 2026 rok wynosi około 272 mld zł.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza: ustawa budżetowa na 2026 r. ustala deficyt do 271,74 mld zł.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/62/text/O/D20260062.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Ustawa budżetowa na rok 2026 z dnia 9 stycznia 2026 r.",
+        "quote": "Deficyt budżetu państwa ustala się na dzień 31 grudnia 2026 r. na kwotę nie większą niż 271 740 000 tys. zł."
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-deficyt-2026-350",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Rząd zaplanował deficyt 350 mld zł na 2026 rok.",
+    "main_claim": "Deficyt budżetu państwa na 2026 rok zaplanowano na 350 mld zł.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: ustawa budżetowa ustala deficyt do 271,74 mld zł.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/62/text/O/D20260062.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Ustawa budżetowa na rok 2026 z dnia 9 stycznia 2026 r.",
+        "quote": "Deficyt budżetu państwa ustala się na dzień 31 grudnia 2026 r. na kwotę nie większą niż 271 740 000 tys. zł."
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-stawka-godzinowa-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Minimalna stawka godzinowa w 2026 roku wynosi 31,40 zł.",
+    "main_claim": "Minimalna stawka godzinowa w 2026 roku wynosi 31,40 zł.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie rozporządzenia z 11 września 2025 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1242/text/O/D20251242.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 11 września 2025 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "ustala się minimalną stawkę godzinową w wysokości 31,40 zł"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-stawka-godzinowa-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "W 2025 roku minimalna stawka godzinowa wynosiła 30,50 zł.",
+    "main_claim": "W 2025 roku minimalna stawka godzinowa wynosiła 30,50 zł.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie rozporządzenia z 12 września 2024 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2024/1362/text.html",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Rozporządzenie Rady Ministrów z dnia 12 września 2024 r. w sprawie wysokości minimalnego wynagrodzenia za pracę",
+        "quote": "minimalną stawkę godzinową w wysokości 30,50 zł"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-prog-120",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Próg podatkowy w skali PIT wynosi 120 000 zł.",
+    "main_claim": "Próg podatkowy w skali PIT wynosi 120 000 zł.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie art. 27 ustawy o PIT.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text/O/D20260592.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Jednolity tekst ustawy o podatku dochodowym od osób fizycznych (Dz.U. 2026 poz. 592)",
+        "quote": "32 % nadwyżki ponad 120 000 zł"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-kwota-zmniejszajaca",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Kwota zmniejszająca podatek w PIT wynosi 3600 zł.",
+    "main_claim": "Kwota zmniejszająca podatek w PIT wynosi 3600 zł.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza na podstawie art. 27 ustawy o PIT.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text/O/D20260592.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Jednolity tekst ustawy o podatku dochodowym od osób fizycznych (Dz.U. 2026 poz. 592)",
+        "quote": "12 % minus kwota zmniejszająca podatek 3600 zł"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-pit-17",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Pierwsza stawka podatku w skali PIT to 17 procent.",
+    "main_claim": "Pierwsza stawka podatku w skali PIT wynosi 17 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: od 2022 r. pierwsza stawka wynosi 12%.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text/O/D20260592.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Jednolity tekst ustawy o podatku dochodowym od osób fizycznych (Dz.U. 2026 poz. 592)",
+        "quote": "12 % minus kwota zmniejszająca podatek 3600 zł"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-inflacja-2024",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Średnioroczna inflacja w Polsce w 2024 roku wyniosła 3,6 procent.",
+    "main_claim": "Średnioroczna inflacja w Polsce w 2024 roku wyniosła 3,6 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza komunikatem GUS: wskaźnik 103,6.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-sredniorocznego-wskaznika-cen-towarow-i-uslug-konsumpcyjnych-ogolem-w-2024-r-,50,12.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie średniorocznego wskaźnika cen towarów i usług konsumpcyjnych ogółem w 2024 r.",
+        "quote": "103,6"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-inflacja-2024-10",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "numbers",
+    "text": "Inflacja w 2024 roku wyniosła w Polsce 10 procent.",
+    "main_claim": "Inflacja w 2024 roku wyniosła w Polsce 10 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: według GUS średnioroczna inflacja w 2024 r. wyniosła 3,6%.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-sredniorocznego-wskaznika-cen-towarow-i-uslug-konsumpcyjnych-ogolem-w-2024-r-,50,12.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie średniorocznego wskaźnika cen towarów i usług konsumpcyjnych ogółem w 2024 r.",
+        "quote": "103,6"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-nawrocki-wygral",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "public_figure",
+    "text": "Czy Karol Nawrocki wygrał wybory prezydenckie w 2025 roku?",
+    "main_claim": "Karol Nawrocki wygrał wybory prezydenckie w 2025 roku.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza obwieszczeniem PKW: 50,89% głosów w ponownym głosowaniu.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/714/text/O/D20250714.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Obwieszczenie PKW z dnia 2 czerwca 2025 r. o wynikach ponownego głosowania i wyniku wyborów Prezydenta RP",
+        "quote": "NAWROCKI Karol Tadeusz 10 606 877 głosów, tj. 50,89 % liczby głosów ważnych"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-trzaskowski-ponad-50",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "public_figure",
+    "text": "Trzaskowski dostał w drugiej turze w 2025 roku ponad połowę głosów.",
+    "main_claim": "Rafał Trzaskowski dostał w drugiej turze wyborów w 2025 roku ponad połowę głosów.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: według PKW 49,11% głosów ważnych.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/714/text/O/D20250714.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Obwieszczenie PKW z dnia 2 czerwca 2025 r. o wynikach ponownego głosowania i wyniku wyborów Prezydenta RP",
+        "quote": "TRZASKOWSKI Rafał Kazimierz 10 237 286 głosów, tj. 49,11 % liczby głosów ważnych"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-frekwencja-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "public_figure",
+    "text": "Frekwencja w drugiej turze wyborów prezydenckich 2025 przekroczyła 70 procent.",
+    "main_claim": "Frekwencja w drugiej turze wyborów prezydenckich 2025 przekroczyła 70 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza: według PKW frekwencja wyniosła 71,63%.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/714/text/O/D20250714.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Obwieszczenie PKW z dnia 2 czerwca 2025 r. o wynikach ponownego głosowania i wyniku wyborów Prezydenta RP",
+        "quote": "frekwencja wyniosła 71,63 %"
+      }
+    ],
+    "expected_verdict": "confirmed"
+  },
+  {
+    "id": "A-fc-tusk-ue",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "public_figure",
+    "text": "Donald Tusk powiedział, że Polska wyjdzie z Unii Europejskiej",
+    "main_claim": "Donald Tusk powiedział, że Polska wyjdzie z Unii Europejskiej",
+    "expected_status": "done",
+    "expected_behavior": "Nie znajduje takiej wypowiedzi i nie podaje werdyktu rozstrzygającego bez źródła.",
+    "sources": [],
+    "expected_verdict": "insufficient_evidence",
+    "acceptable_verdicts": [
+      "false"
+    ]
+  },
+  {
+    "id": "A-fc-duda-trzy-kadencje",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "public_figure",
+    "text": "Andrzej Duda był prezydentem przez trzy kadencje.",
+    "main_claim": "Andrzej Duda był prezydentem przez trzy kadencje.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: Konstytucja pozwala na dwie kadencje; Andrzej Duda pełnił urząd w latach 2015–2025.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text/U/D19970483Lj.pdf",
+        "publisher": "Kancelaria Sejmu",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Prezydent Rzeczypospolitej jest wybierany na pięcioletnią kadencję i może być ponownie wybrany tylko raz."
+      }
+    ],
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ]
+  },
+  {
+    "id": "A-fc-tusk-premier-2023",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "public_figure",
+    "text": "Donald Tusk został premierem w grudniu 2023 roku.",
+    "main_claim": "Donald Tusk został premierem w grudniu 2023 roku.",
+    "expected_status": "done",
+    "expected_behavior": "Potwierdza: Sejm wybrał go 11 grudnia, zaprzysiężenie 13 grudnia 2023 r.",
+    "sources": [],
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ]
+  },
+  {
+    "id": "A-fc-pizza",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "opinion",
+    "text": "Pizza z ananasem jest najlepsza",
+    "main_claim": "Pizza z ananasem jest najlepsza",
+    "expected_status": "done",
+    "expected_behavior": "Mówi, że to opinia albo prognoza, której nie da się sprawdzić źródłami.",
+    "sources": [],
+    "expected_verdict": "not_verifiable"
+  },
+  {
+    "id": "A-fc-euro-2030",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "opinion",
+    "text": "W 2030 roku Polska przyjmie euro",
+    "main_claim": "W 2030 roku Polska przyjmie euro",
+    "expected_status": "done",
+    "expected_behavior": "Mówi, że to opinia albo prognoza, której nie da się sprawdzić źródłami.",
+    "sources": [],
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ]
+  },
+  {
+    "id": "A-fc-najgorszy-rzad",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "opinion",
+    "text": "To jest najgorszy rząd w historii Polski.",
+    "main_claim": "To jest najgorszy rząd w historii Polski.",
+    "expected_status": "done",
+    "expected_behavior": "Mówi, że to opinia albo prognoza, której nie da się sprawdzić źródłami.",
+    "sources": [],
+    "expected_verdict": "not_verifiable"
+  },
+  {
+    "id": "A-fc-ceny-mieszkan",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "opinion",
+    "text": "W przyszłym roku ceny mieszkań w Warszawie spadną o 20 procent.",
+    "main_claim": "W przyszłym roku ceny mieszkań w Warszawie spadną o 20 procent.",
+    "expected_status": "done",
+    "expected_behavior": "Mówi, że to opinia albo prognoza, której nie da się sprawdzić źródłami.",
+    "sources": [],
+    "expected_verdict": "not_verifiable"
+  },
+  {
+    "id": "A-fc-mundial",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "opinion",
+    "text": "Polska wygra mistrzostwa świata w piłce nożnej w 2030 roku.",
+    "main_claim": "Polska wygra mistrzostwa świata w piłce nożnej w 2030 roku.",
+    "expected_status": "done",
+    "expected_behavior": "Mówi, że to opinia albo prognoza, której nie da się sprawdzić źródłami.",
+    "sources": [],
+    "expected_verdict": "not_verifiable"
+  },
+  {
+    "id": "A-fc-najpiekniejsze-miasto",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "opinion",
+    "text": "Kraków to najpiękniejsze miasto w Europie.",
+    "main_claim": "Kraków to najpiękniejsze miasto w Europie.",
+    "expected_status": "done",
+    "expected_behavior": "Mówi, że to opinia albo prognoza, której nie da się sprawdzić źródłami.",
+    "sources": [],
+    "expected_verdict": "not_verifiable"
+  },
+  {
+    "id": "A-fc-5g-koronawirus",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "5G powoduje rozprzestrzenianie się koronawirusa",
+    "main_claim": "5G powoduje rozprzestrzenianie się koronawirusa",
+    "expected_status": "done",
+    "expected_behavior": "Obala i podaje ocenę Demagogu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/wdrozenie-5g-ma-zwiazek-z-pandemia-covid-19-fake-news/",
+        "publisher": "Demagog",
+        "title": "Wdrożenie 5G ma związek z pandemią COVID-19? Fake news!",
+        "quote": "Fałsz"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-szczepionki-autyzm",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Szczepionki na COVID-19 powodują autyzm u dzieci",
+    "main_claim": "Szczepionki na COVID-19 powodują autyzm u dzieci",
+    "expected_status": "done",
+    "expected_behavior": "Obala: nie ma dowodów na związek szczepionek z autyzmem.",
+    "sources": [],
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ]
+  },
+  {
+    "id": "A-fc-mrna-dna",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Szczepionki mRNA zmieniają ludzkie DNA.",
+    "main_claim": "Szczepionki mRNA zmieniają ludzkie DNA.",
+    "expected_status": "done",
+    "expected_behavior": "Obala i podaje ocenę Demagogu: mRNA nie trafia do jądra komórkowego.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/szczepionki-przeciwko-covid-19-nie-modyfikuja-ludzkiego-dna/",
+        "publisher": "Demagog",
+        "title": "Szczepionki przeciwko COVID-19 nie modyfikują ludzkiego DNA",
+        "quote": "Fałsz"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-likwidacja-gotowki",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Rząd właśnie likwiduje gotówkę.",
+    "main_claim": "Rząd likwiduje gotówkę.",
+    "expected_status": "done",
+    "expected_behavior": "Obala i podaje ocenę Demagogu: rząd nie ma takich planów.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/rzad-wlasnie-likwiduje-gotowke-nie-ma-takich-planow/",
+        "publisher": "Demagog",
+        "title": "Rząd właśnie likwiduje gotówkę? Nie ma takich planów!",
+        "quote": "Fałsz"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-od-stycznia-gotowka",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Od stycznia nie zapłacisz w sklepie gotówką.",
+    "main_claim": "Od stycznia nie zapłacisz w sklepie gotówką.",
+    "expected_status": "done",
+    "expected_behavior": "Obala: nie ma przepisu zakazującego płacenia gotówką w sklepie; to twierdzenie o przepisie, nie prognoza.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/nadchodzi-likwidacja-gotowki-to-falszywa-informacja/",
+        "publisher": "Demagog",
+        "title": "Nadchodzi likwidacja gotówki? To fałszywa informacja",
+        "quote": "Fałsz"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-szwecja-gotowka",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Szwecja zlikwidowała gotówkę.",
+    "main_claim": "Szwecja zlikwidowała gotówkę.",
+    "expected_status": "done",
+    "expected_behavior": "Obala i podaje ocenę Demagogu: w Szwecji wciąż można płacić gotówką.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/szwecja-zlikwidowala-gotowke-wciaz-mozna-nia-placic/",
+        "publisher": "Demagog",
+        "title": "Szwecja zlikwidowała gotówkę? Wciąż można nią płacić",
+        "quote": "Fałsz"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-pap-depesza",
+    "scenario": "A",
+    "origin": "organizer",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy PAP usunęła depeszę o wypowiedzi Donalda Tuska przed powodzią z 13 września 2024 r.?",
+    "main_claim": "PAP usunęła depeszę ze słowami Donalda Tuska o powodzi z 13 września 2024 r.",
+    "expected_status": "done",
+    "expected_behavior": "Obala i podaje ocenę Demagogu: depesza nie zniknęła.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/donald-tusk-uspokajal-przed-powodzia-depesza-pap-nie-zniknela/",
+        "publisher": "Demagog",
+        "title": "Donald Tusk uspokajał przed powodzią. Depesza PAP nie zniknęła",
+        "quote": "Fałsz"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-mrna-terapia-genowa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Szczepionki mRNA to terapia genowa.",
+    "main_claim": "Szczepionki mRNA to terapia genowa.",
+    "expected_status": "done",
+    "expected_behavior": "Obala i podaje ocenę Demagogu wypowiedzi posła.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/szczepionki-mrna-jako-terapia-genowa-falsz-posla-skalika/",
+        "publisher": "Demagog",
+        "title": "Szczepionki mRNA jako terapia genowa? Fałsz posła Skalika",
+        "quote": "Fałsz"
+      }
+    ],
+    "expected_verdict": "false"
+  },
+  {
+    "id": "A-fc-wiersz",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "out_of_scope",
+    "text": "Napisz mi wiersz o jesieni.",
+    "main_claim": "Prośba o napisanie wiersza",
+    "expected_status": "out_of_scope",
+    "expected_behavior": "Mówi, że to nie jest twierdzenie do sprawdzenia, i nie podaje werdyktu.",
+    "sources": []
+  },
+  {
+    "id": "A-fc-tlumaczenie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "out_of_scope",
+    "text": "Przetłumacz na angielski: dzień dobry, jak się masz?",
+    "main_claim": "Prośba o tłumaczenie",
+    "expected_status": "out_of_scope",
+    "expected_behavior": "Mówi, że to nie jest twierdzenie do sprawdzenia, i nie podaje werdyktu.",
+    "sources": []
+  },
+  {
+    "id": "A-fc-matematyka",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "out_of_scope",
+    "text": "Ile to jest 17 razy 23?",
+    "main_claim": "Prośba o obliczenie",
+    "expected_status": "out_of_scope",
+    "expected_behavior": "Mówi, że to nie jest twierdzenie do sprawdzenia, i nie podaje werdyktu.",
+    "sources": []
+  },
+  {
+    "id": "A-fc-przepis",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "out_of_scope",
+    "text": "Podaj mi przepis na pierogi ruskie.",
+    "main_claim": "Prośba o przepis kulinarny",
+    "expected_status": "out_of_scope",
+    "expected_behavior": "Mówi, że to nie jest twierdzenie do sprawdzenia, i nie podaje werdyktu.",
+    "sources": []
+  }
+]
