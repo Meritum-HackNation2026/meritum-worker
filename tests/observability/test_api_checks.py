@@ -2,13 +2,14 @@
 
 import asyncio
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 import httpx2
 
 from meritum_worker.observability import GoldenCase
 from meritum_worker.observability.adapters import ApiChecks
+from meritum_worker.observability.constants import API_RETRIES
 
 DONE = json.loads(
     (Path(__file__).parent / "fixtures" / "api_check_done.json").read_text("utf-8")
@@ -18,16 +19,21 @@ PENDING = {"check_id": DONE["check_id"], "steps": [], "result": None}
 
 
 def _client(
-    replies: list[httpx2.Response],
+    replies: Sequence[httpx2.Response | Exception],
     seen: list[httpx2.Request],
     poll_seconds: float = 0,
     timeout_seconds: float = 5,
     *,
     fresh: bool = False,
 ) -> ApiChecks:
+    queue = list(replies)
+
     def reply(request: httpx2.Request) -> httpx2.Response:
         seen.append(request)
-        return replies.pop(0)
+        answer = queue.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
 
     client = httpx2.AsyncClient(transport=httpx2.MockTransport(reply))
     return ApiChecks(
@@ -102,3 +108,37 @@ def test_a_fresh_run_tags_the_text_so_the_result_cache_misses(
     assert all(t.startswith(case().text) for t in texts)
     assert suffixes[0] != suffixes[1]
     assert all(set(s) <= {"\u200b", "\u200c"} for s in suffixes)
+
+
+def test_post_refused_by_a_restarting_api_is_retried(
+    case: Callable[..., GoldenCase],
+) -> None:
+    seen: list[httpx2.Request] = []
+    refused = httpx2.ConnectError("connection refused")
+    checks = _client([refused, _accepted(), httpx2.Response(200, json=DONE)], seen)
+    run = asyncio.run(checks.check(case()))
+    assert run.result.status == "done"
+    assert [r.method for r in seen] == ["POST", "POST", "GET"]
+
+
+def test_status_read_survives_a_bad_gateway_and_a_dropped_connection(
+    case: Callable[..., GoldenCase],
+) -> None:
+    seen: list[httpx2.Request] = []
+    dropped = httpx2.RemoteProtocolError("server disconnected")
+    replies = [_accepted(), httpx2.Response(502), dropped, httpx2.Response(504)]
+    checks = _client([*replies, httpx2.Response(200, json=DONE)], seen)
+    run = asyncio.run(checks.check(case()))
+    assert run.result.status == "done"
+    assert run.check_id == DONE["check_id"]
+    assert [r.method for r in seen] == ["POST", "GET", "GET", "GET", "GET"]
+
+
+def test_api_that_stays_down_ends_the_case_after_a_bounded_number_of_tries(
+    case: Callable[..., GoldenCase],
+) -> None:
+    seen: list[httpx2.Request] = []
+    down = [httpx2.ConnectError("connection refused") for _ in range(50)]
+    run = asyncio.run(_client(down, seen).check(case()))
+    assert run.result.status == "technical_failure"
+    assert len(seen) == API_RETRIES
