@@ -20,23 +20,19 @@ from meritum_core.checks.contracts import (
 )
 from meritum_core.evidence import compute_verdict_changes, rate_review
 from meritum_core.security.pii import mask_personal_data
-from meritum_core.shared.llm import Prompt
 from pydantic import ValidationError
 
 from meritum_worker import evidence
-from meritum_worker.checks.answers import AnswerDraft, plain_text
+from meritum_worker.checks.answers import AnswerDraft, answer_prompt, plain_text
 from meritum_worker.checks.constants import (
     ANSWER_ATTEMPTS,
     DRAFT_MAX_CHARS,
     EXPLANATION_MAX_CHARS,
     LIMITATION_MAX_CHARS,
-    STANCE_LABELS,
     UNRESOLVED_MAX_CHARS,
-    VERDICT_LABELS,
 )
 from meritum_worker.checks.fact_check_constants import FACT_CHECK_UNAVAILABLE_NOTE
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
-from meritum_worker.checks.prompts import ANSWER_INSTRUCTIONS
 from meritum_worker.checks.usage import model_usage
 
 _log = logging.getLogger(__name__)
@@ -70,8 +66,7 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
     facts = [claim for claim in state.claims if claim.is_fact]
     catalog = {entry.domain: entry for entry in deps.catalog}
     judged = [_judge(state, catalog, i, fact) for i, fact in enumerate(facts)]
-    data = (state.question, *map(_described, facts, judged, strict=True))
-    prompt = Prompt(instructions=ANSWER_INSTRUCTIONS, data=data)
+    prompt = answer_prompt(state.question, facts, judged)
     models = list(state.models)
     result = state.technical_failure()
     for attempt in range(1, ANSWER_ATTEMPTS + 1):
@@ -185,21 +180,6 @@ def _judge(
         claim_date=fact.claim_date or date.min,
         reviews=premises,
         review_context=context,
-    )
-
-
-def _described(fact: ExtractedClaim, judged: evidence.Judgement) -> str:
-    # Source fragments go to the model as data, so it can explain them.
-    quotes = [
-        f"- {STANCE_LABELS[c.stance]}, {c.source.publisher}: {c.fragment}"
-        for c in judged.citations
-    ]
-    ratings = (
-        f"- {STANCE_LABELS[r.stance]}, {r.publisher}: ocena {r.rating}, {r.title}"
-        for r in judged.claim_review_premises
-    )
-    return "\n".join(
-        (fact.claim, f"verdict: {VERDICT_LABELS[judged.verdict]}", *quotes, *ratings)
     )
 
 
