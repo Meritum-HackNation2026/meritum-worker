@@ -34,11 +34,15 @@ ANSWER_INSTRUCTIONS: Final = (
     " Answer with exactly one item per claim item, in the same order: an"
     " explanation in Polish of how the fragments lead to the verdict (when two"
     " numbers measure different things, such as an estimate from a statement and"
-    " a budget item for a given year, say so), and for insufficient_evidence an"
+    " a budget item for a given year, say so), and for the verdict"
+    " „Brak wystarczających dowodów” an"
     " unresolved text naming what could not be established and the kind of"
     " source that would settle it (for example the local transport operator's"
     " announcement or ticket rules), adding that no result in the database does"
     " not mean the change did not happen. Then list the limitations of the check."
+    " Every text is read by a citizen: never write code names such as"
+    " insufficient_evidence, not_verifiable, supports or refutes; name a verdict only"
+    " by its Polish name given in the data, for example „Brak wystarczających dowodów”."
 )
 """Instructions of the write_answer model call; the verdicts come from code (ADR-05)."""
 
@@ -181,3 +185,24 @@ CORPUS_VERSION_ENV: Final = "MERITUM_CORPUS_VERSION"
 
 INJECTION_EXCERPT_MAX_CHARS: Final = 300
 """Longest InjectionEvent.excerpt the contract accepts (US-BEZ-01)."""
+
+VERDICT_LABELS: Final = {
+    "confirmed": "Potwierdzone",
+    "false": "Fałszywe",
+    "misleading": "Wprowadzające w błąd",
+    "insufficient_evidence": "Brak wystarczających dowodów",
+    "not_verifiable": "Nie podlega weryfikacji",
+}
+"""Polish verdict names, as in copy/pl.json (verdict.*); the user never sees a code."""
+
+STANCE_LABELS: Final = {
+    "supports": "potwierdza",
+    "refutes": "przeczy",
+    "context": "daje kontekst",
+}
+"""Polish stance names for the model data, so no code reaches its text."""
+
+CODE_PATTERN: Final = re.compile(
+    r"\b(" + "|".join([*VERDICT_LABELS, "supports", "refutes"]) + r")\b"
+)
+"""A verdict or stance code standing alone in a model text (write_answer post-check)."""

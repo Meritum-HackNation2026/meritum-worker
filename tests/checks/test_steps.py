@@ -10,6 +10,7 @@ from meritum_core.shared.llm import LlmPort, LlmResult, Prompt, ProviderUnavaila
 from pydantic import BaseModel
 
 from meritum_worker.checks import CheckDeps, CheckState
+from meritum_worker.checks.constants import ANSWER_INSTRUCTIONS
 from meritum_worker.checks.steps import save_record, write_answer
 
 type MakeDeps = Callable[..., CheckDeps]
@@ -127,3 +128,25 @@ def test_save_record_copies_what_later_steps_collect(
     assert record.injection_events == [event]
     assert record.web_search_calls == 2
     assert record.retrieval_errors == ["corpus timeout"]
+
+
+def test_write_answer_replaces_verdict_codes_in_text_for_citizens(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    out = asyncio.run(write_answer(state, make_deps("llm_stub_answer_codes.json")))
+    assert out.result is not None
+    claim = out.result.claims[0]
+    assert claim.explanation == (
+        "Werdykt „Brak wystarczających dowodów” oznacza,"
+        " że źródła nie rozstrzygają sprawy."
+    )
+    assert claim.unresolved is not None
+    assert "insufficient_evidence" not in claim.unresolved
+    assert out.result.limitations[0] == (
+        "Wynik „Nie podlega weryfikacji” nie dotyczy tego twierdzenia."
+    )
+
+
+def test_write_answer_prompt_names_verdicts_in_polish_only() -> None:
+    assert "for insufficient_evidence" not in ANSWER_INSTRUCTIONS
+    assert "Brak wystarczających dowodów" in ANSWER_INSTRUCTIONS

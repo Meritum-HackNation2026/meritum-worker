@@ -115,3 +115,8 @@ Funkcja: Smoke test workera
     Zakładając agent główny strumieniuje wstępną odpowiedź
     Gdy cytaty nie przeszły jeszcze weryfikacji
     Wtedy wersja wstępna nie zawiera werdyktu
+
+  Scenariusz: tekst dla obywatela nie zawiera kodów
+    Zakładając model zwraca wyjaśnienie z nazwą kodu werdyktu albo ograniczenia
+    Gdy workflow buduje CheckResult
+    Wtedy wyjaśnienie i ograniczenia nie zawierają nazw kodów
