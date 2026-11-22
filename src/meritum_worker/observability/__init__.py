@@ -4,7 +4,6 @@ Features:
     US-OBS-04, US-OBS-05, US-OBS-06, US-OBS-07, F-27, F-28, US-WDR-08, US-BEZ-03, F-30
 """
 
-from meritum_worker.observability.adapters import BlobCaseSets
 from meritum_worker.observability.bundle import Manifest, meritum_eval_bundle
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cassette import Cassette, EvalMode, LlmTake, PageTake
@@ -32,6 +31,7 @@ from meritum_worker.observability.eval_run import (
     start_eval_run,
 )
 from meritum_worker.observability.factory import (
+    build_case_sets,
     build_eval_run_deps,
     build_readiness_probes,
 )
@@ -73,7 +73,6 @@ from meritum_worker.observability.scoring import score_runs
 
 __all__ = [
     "DEFAULT_CASES_FILE",
-    "BlobCaseSets",
     "CaseRun",
     "CaseScore",
     "CaseSource",
@@ -103,6 +102,7 @@ __all__ = [
     "RunComparison",
     "ScenarioScore",
     "TooFewCasesError",
+    "build_case_sets",
     "build_eval_run_deps",
     "build_readiness_probes",
     "case_outcome",

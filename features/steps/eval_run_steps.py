@@ -28,9 +28,10 @@ from meritum_worker.checks import (
     web_ports,
 )
 from meritum_worker.observability import (
-    BlobCaseSets,
+    EvalCaseSets,
     EvalRunDeps,
     GoldenSet,
+    build_case_sets,
     compare_runs,
     load_golden_set,
     run_eval_run,
@@ -58,7 +59,7 @@ def _check_deps() -> CheckDeps:
     )
 
 
-def _setup(context: Context, case_sets: BlobCaseSets) -> None:
+def _setup(context: Context, case_sets: EvalCaseSets) -> None:
     context.runs = InMemoryEvalRuns()
     context.inbox = InMemoryNotificationRepository()
     context.deps = EvalRunDeps(
@@ -71,12 +72,12 @@ def _setup(context: Context, case_sets: BlobCaseSets) -> None:
     )
 
 
-def _golden_case_sets() -> BlobCaseSets:
+def _golden_case_sets() -> EvalCaseSets:
     store = build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
-    return BlobCaseSets(GOLDEN_PATH, store)
+    return build_case_sets(GOLDEN_PATH, store)
 
 
-async def _store_own_cases(cases: GoldenSet) -> tuple[BlobCaseSets, str]:
+async def _store_own_cases(cases: GoldenSet) -> tuple[EvalCaseSets, str]:
     store = build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
     data = json.dumps([c.model_dump(mode="json") for c in cases.root]).encode()
     ref = await store.put(
@@ -85,7 +86,7 @@ async def _store_own_cases(cases: GoldenSet) -> tuple[BlobCaseSets, str]:
         content_type="application/json",
         expires_at=datetime.now(UTC) + timedelta(days=1),
     )
-    return BlobCaseSets(GOLDEN_PATH, store), ref.blob_id
+    return build_case_sets(GOLDEN_PATH, store), ref.blob_id
 
 
 def _start(

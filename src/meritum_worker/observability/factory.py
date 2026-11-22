@@ -47,7 +47,7 @@ from meritum_worker.observability.constants import (
 from meritum_worker.observability.eval_run import EvalRunDeps
 from meritum_worker.observability.fakes import InMemoryEvalRuns
 from meritum_worker.observability.models import GoldenCase
-from meritum_worker.observability.ports import EvalRunRepository
+from meritum_worker.observability.ports import EvalCaseSets, EvalRunRepository
 from meritum_worker.observability.readiness import Probe
 from meritum_worker.observability.runner import DepsFor
 
@@ -122,6 +122,22 @@ def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckD
     )
 
 
+def build_case_sets(golden: Path, blobs: BlobStore) -> EvalCaseSets:
+    """The golden set from disk and staff uploads from the blob store.
+
+    Args:
+        golden: The golden set's JSON file.
+        blobs: Where the backend stored uploaded case files.
+
+    Returns:
+        The case-set port of the `eval_run` workflow.
+
+    Features:
+        US-OBS-06, US-POW-05, F-28, ADR-31
+    """
+    return BlobCaseSets(golden, blobs)
+
+
 def build_eval_run_deps(
     settings: LlmSettings,
     database: DatabaseSettings,
@@ -151,7 +167,7 @@ def build_eval_run_deps(
     store = blobs or build_blob_store(BlobSettings(provider=BlobProvider.MEMORY))
     return EvalRunDeps(
         runs=runs,
-        case_sets=BlobCaseSets(golden, store),
+        case_sets=build_case_sets(golden, store),
         deps_for=build_eval_deps(settings, corpus_version),
         notifications=build_app_repositories(database).notifications,
     )
