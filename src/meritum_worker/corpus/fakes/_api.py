@@ -1,6 +1,7 @@
 """A fake set of public APIs behind core's real fetcher, no network.
 
-Requests go through ``build_page_fetcher`` and ``JsonAsTextTransport`` like in
+Requests go through ``build_page_fetcher``, ``JsonAsTextTransport`` and
+``PdfAsTextTransport`` like in
 production; only DNS and the socket are replaced.
 
 Features:
@@ -13,7 +14,7 @@ import httpx
 from meritum_core.corpus.fetching import PageFetcherPort, build_page_fetcher
 from meritum_core.corpus.fetching.ports import IpAddress
 
-from meritum_worker.corpus.adapters import JsonAsTextTransport
+from meritum_worker.corpus.adapters import JsonAsTextTransport, PdfAsTextTransport
 
 
 class FakePublicApi:
@@ -27,13 +28,13 @@ class FakePublicApi:
     """
 
     def __init__(self) -> None:
-        self._answers: dict[str, tuple[int, str, str]] = {}
+        self._answers: dict[str, tuple[int, str, str | bytes]] = {}
         self.requested: list[str] = []
 
     def answer(
         self,
         url: str,
-        body: str,
+        body: str | bytes,
         *,
         status: int = 200,
         content_type: str = "application/json",
@@ -42,7 +43,7 @@ class FakePublicApi:
 
         Args:
             url: The full request URL, query included.
-            body: The response body.
+            body: The response body; bytes for a PDF.
             status: The HTTP status.
             content_type: The response's media type.
         """
@@ -54,14 +55,19 @@ class FakePublicApi:
         Returns:
             The fetcher.
         """
-        transport = JsonAsTextTransport(lambda: httpx.MockTransport(self._handle))
+        transport = JsonAsTextTransport(
+            lambda: PdfAsTextTransport(lambda: httpx.MockTransport(self._handle))
+        )
         return build_page_fetcher(resolver=_public, transport=transport)
 
     def _handle(self, request: httpx.Request) -> httpx.Response:
         url = f"https://{request.headers['host']}{request.url.raw_path.decode()}"
         self.requested.append(url)
         status, content_type, body = self._answers.get(url, (404, "text/plain", ""))
-        return httpx.Response(status, headers={"content-type": content_type}, text=body)
+        content = body.encode() if isinstance(body, str) else body
+        return httpx.Response(
+            status, headers={"content-type": content_type}, content=content
+        )
 
 
 async def _public(_host: str) -> list[IpAddress]:  # ruff: ignore[unused-async]  # the resolver port is async

@@ -14,6 +14,7 @@ dependencies = [
     "psycopg[binary]>=3.3",
     "pydantic>=2.14.4",
     "pydantic-evals>=2.71.0",
+    "pypdfium2>=5",
 ]
 
 [project.scripts]
@@ -127,6 +128,7 @@ max-lines = 250
 
 [tool.meritum-conventions.line-limit-exceptions]
 "src/meritum_worker/main.py" = "registers every DBOS workflow; split into a main/ package in its own PR, so parallel PRs do not conflict on a move"
+"src/meritum_worker/corpus/factory.py" = "wires every port of the corpus slice; split into a factory/ package in its own PR, so parallel PRs do not conflict on a move"
 "src/meritum_worker/observability/factory.py" = "builds every port of meritum-eval, the only wiring module observability has; split into a factory/ package in its own PR"
 
 # --------------------------------------------------------------------------- #

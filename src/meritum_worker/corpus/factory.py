@@ -33,6 +33,7 @@ from meritum_worker.corpus.adapters import (
 from meritum_worker.corpus.adapters import (
     build_corpus_retention as build_corpus_retention,  # ruff: ignore[useless-import-alias]  # explicit re-export for the corpus package
 )
+from meritum_worker.corpus.catalog_api import LegalActsSettings
 from meritum_worker.corpus.constants import (
     EUVSDISINFO_MCP_URL,
     REQUEST_TIMEOUT_SECONDS,
@@ -169,6 +170,7 @@ def build_ingest_deps(
         store=build_corpus_writer(settings),
         injection=injection,
         api_fetcher=api_fetcher,
+        legal=LegalActsSettings().legal_acts(),
     )
 
 

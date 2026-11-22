@@ -47,6 +47,7 @@ from meritum_worker.corpus.documents import (
     DocumentPassage,
     IngestFailure,
     IngestReport,
+    LegalActs,
     ManifestEntry,
 )
 from meritum_worker.corpus.errors import (
@@ -182,6 +183,7 @@ __all__ = [
     "IngestDeps",
     "IngestFailure",
     "IngestReport",
+    "LegalActs",
     "LivePagesPort",
     "LiveSearchPorts",
     "LiveSearchResult",

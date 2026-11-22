@@ -1,0 +1,114 @@
+{
+ "address": "WDU19970780483",
+ "announcementDate": "1997-04-02",
+ "changeDate": "2026-11-17T00:00:00",
+ "displayAddress": "Dz.U. 1997 nr 78 poz. 483",
+ "pos": 483,
+ "publisher": "DU",
+ "status": "obowiązujący",
+ "textHTML": false,
+ "textPDF": true,
+ "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+ "type": "Ustawa",
+ "volume": 78,
+ "year": 1997,
+ "authorizedBody": [],
+ "directives": [],
+ "entryIntoForce": "1997-10-17",
+ "inForce": "IN_FORCE",
+ "keywords": [
+  "sądy powszechne",
+  "konstytucja",
+  "naczelne i centralne organy administracji",
+  "finansowa gospodarka",
+  "prawa obywatelskie",
+  "sędziowie",
+  "wyznania",
+  "tworzenie prawa",
+  "ustrój państwa",
+  "samorząd terytorialny",
+  "godło i barwy państwa",
+  "wybory",
+  "referendum"
+ ],
+ "keywordsNames": [
+  "Sejm",
+  "Naczelny Sąd Administracyjny",
+  "Najwyższa Izba Kontroli",
+  "Siły Zbrojne",
+  "Sąd Najwyższy",
+  "Krajowa Rada Radiofonii i Telewizji",
+  "Rzecznik Praw Obywatelskich",
+  "Trybunał Konstytucyjny",
+  "Prezydent RP",
+  "Senat",
+  "Trybunał Stanu"
+ ],
+ "obligated": [],
+ "previousTitle": [],
+ "prints": [],
+ "references": {
+  "Akty uchylone": [
+   {
+    "id": "DU/1996/488",
+    "date": "1997-10-17"
+   },
+   {
+    "id": "DU/1995/729",
+    "date": "1997-10-17"
+   }
+  ],
+  "Akty uznane za uchylone": [
+   {
+    "id": "MP/1997/480",
+    "date": "1997-10-17"
+   },
+   {
+    "id": "MP/1997/299",
+    "date": "1997-10-17"
+   }
+  ],
+  "Akty wykonawcze": [
+   {
+    "id": "MP/2026/955"
+   },
+   {
+    "id": "MP/2026/934"
+   }
+  ],
+  "Akty zmieniające": [
+   {
+    "id": "DU/2009/946",
+    "date": "2009-10-21"
+   },
+   {
+    "id": "DU/2006/1471",
+    "date": "2006-11-07"
+   }
+  ],
+  "Sprostowanie": [
+   {
+    "id": "DU/2001/319"
+   }
+  ]
+ },
+ "releasedBy": [
+  "ZGROMADZENIE NARODOWE"
+ ],
+ "texts": [
+  {
+   "fileName": "D19970483.pdf",
+   "type": "O"
+  },
+  {
+   "fileName": "D19970483.pdf",
+   "type": "I"
+  },
+  {
+   "fileName": "D19970483Lj.pdf",
+   "type": "U"
+  }
+ ],
+ "validFrom": "1997-10-17",
+ "ELI": "DU/1997/483"
+}

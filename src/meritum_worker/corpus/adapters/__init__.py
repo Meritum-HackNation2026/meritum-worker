@@ -17,6 +17,7 @@ from ._memory_corpus import MemoryCorpusWriter
 from ._migrations import apply_corpus_migrations
 from ._openrouter_ranking import OpenRouterReranker
 from ._organiser_file import OrganiserFile
+from ._pdf_transport import PdfAsTextTransport
 from ._postgres import PostgresEuvsCopy
 from ._postgres_archive import PostgresArchiveRegistry
 from ._postgres_corpus import PostgresCorpusWriter
@@ -38,6 +39,7 @@ __all__ = [
     "MemoryEuvsCopy",
     "OpenRouterReranker",
     "OrganiserFile",
+    "PdfAsTextTransport",
     "PostgresArchiveRegistry",
     "PostgresCorpusRetention",
     "PostgresCorpusWriter",
