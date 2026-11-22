@@ -5,6 +5,7 @@ Features:
 """
 
 from meritum_worker.observability.bundle import Manifest, meritum_eval_bundle
+from meritum_worker.observability.case_parts import CaseSource, Injection
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cassette import Cassette, EvalMode, LlmTake, PageTake
 from meritum_worker.observability.citation_judge import (
@@ -40,12 +41,7 @@ from meritum_worker.observability.factory import (
     build_readiness_probes,
 )
 from meritum_worker.observability.golden import load_golden_set
-from meritum_worker.observability.models import (
-    CaseSource,
-    GoldenCase,
-    GoldenSet,
-    Injection,
-)
+from meritum_worker.observability.models import GoldenCase, GoldenSet
 from meritum_worker.observability.outcomes import case_outcome, macro_f1
 from meritum_worker.observability.ports import EvalCaseSets, EvalRunRepository
 from meritum_worker.observability.readiness import (

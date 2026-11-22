@@ -70,7 +70,7 @@ def score_runs(runs: Sequence[CaseRun]) -> EvalReport:
         fact_check_hit_rate=fact_check_hit_rate(runs),
         citation_coverage=_citation_coverage(runs),
         citation_correctness=_citation_correctness(runs),
-        abstention=share([s.predicted == s.expected for s in abstaining]),
+        abstention=share([s.outcome == "correct" for s in abstaining]),
         robustness=share([s.outcome == "correct" for s in attacks]),
         median_seconds=_round(statistics.median(seconds)),
         p95_seconds=_round(_percentile(seconds)),

@@ -96,6 +96,17 @@ def test_abstention_robustness_and_loop(
     assert report.information_loop == pytest.approx(0.5)
 
 
+def test_alternative_abstention_counts_as_abstaining_correctly(
+    case: Case, claim: Claim, result: Result, run: Run
+) -> None:
+    golden = case(
+        expected_verdict="insufficient_evidence", acceptable_verdicts=["not_verifiable"]
+    )
+    report = score_runs([run(golden, result(claims=(claim("not_verifiable"),)))])
+    assert report.abstention == pytest.approx(1.0)
+    assert report.outcomes[0].predicted == "not_verifiable"
+
+
 def test_metrics_without_applicable_cases_are_none(
     case: Case, result: Result, run: Run
 ) -> None:
