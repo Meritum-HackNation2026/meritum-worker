@@ -101,3 +101,7 @@ def test_a_claim_without_a_stated_date_is_judged_as_about_the_present() -> None:
 def test_a_gross_official_amount_needs_no_gross_word_in_the_source() -> None:
     assert "netto" in STANCE_INSTRUCTIONS
     assert "na rękę" in STANCE_INSTRUCTIONS
+
+
+def test_a_value_changed_later_in_the_sentence_decides_the_stance() -> None:
+    assert "a later clause that changes the value" in STANCE_INSTRUCTIONS
