@@ -10,6 +10,7 @@ from datetime import date
 from meritum_core.corpus.fetching import FetchedPage
 
 from meritum_worker.corpus.catalog_api.constants import API_RECORD_CONTENT_TYPE
+from meritum_worker.corpus.catalog_api.legal_acts import LegalActMeta
 
 
 class InvalidApiResponseError(ValueError):
@@ -30,6 +31,7 @@ class ApiRecord:
         published_at: When the publisher released the record, if the API says.
         wants_text: The record is a legal act whose full text is fetched too.
         text_url: Where that full text is; None when the API offers none.
+        act: What ELI says about the act; None for other records.
 
     Features:
         US-KOR-02, F-10, F-12, ADR-12
@@ -40,6 +42,7 @@ class ApiRecord:
     published_at: date | None = None
     wants_text: bool = False
     text_url: str | None = None
+    act: LegalActMeta | None = None
 
     def page(self) -> FetchedPage:
         """The record as a fetched page, the way ``store_page`` takes it.

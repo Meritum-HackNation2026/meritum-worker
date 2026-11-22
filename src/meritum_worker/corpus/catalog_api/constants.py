@@ -96,6 +96,9 @@ SEJM_ELI_PDF_URL: Final = "https://api.sejm.gov.pl/eli/acts/{eli}/text.pdf"
 SEJM_ELI_FILE_URL: Final = "https://api.sejm.gov.pl/eli/acts/{eli}/text/{kind}/{name}"
 """One named text file of an act, such as the consolidated text ``U``."""
 
+SEJM_IN_FORCE: Final = "IN_FORCE"
+"""ELI ``inForce`` of an act in force."""
+
 SEJM_CONSOLIDATED_TEXT: Final = "U"
 """``texts[].type`` of the Sejm's consolidated text (tekst ujednolicony), which
 has every later amendment applied; preferred over the journal text."""

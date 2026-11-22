@@ -11,6 +11,7 @@ from meritum_worker.corpus.catalog_api import (
     LegalActsSettings,
     act_body,
     act_parts,
+    act_units,
     api_listings,
     parse_listing,
 )
@@ -137,3 +138,54 @@ def test_consolidated_texts_in_force_come_from_the_search() -> None:
     assert len(records) == 3
     assert all(r.wants_text for r in records)
     assert records[0].text_url == f"{ACTS}/DU/2025/1226/text/U/D20251226Lj.pdf"
+
+
+def test_act_record_carries_its_eli_metadata() -> None:
+    (record,) = parse_listing(
+        act_listing("DU/1997/483"), recorded("sejm-eli-du-1997-483.json")
+    )
+    assert record.act is not None
+    assert record.act.model_dump() == {
+        "eli": "DU/1997/483",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "document_type": "Ustawa",
+        "legal_status": "obowiązujący",
+        "in_force": True,
+        "in_force_from": date(1997, 10, 17),
+        "in_force_until": None,
+        "journal_publisher": "DU",
+        "journal_year": 1997,
+        "journal_position": 483,
+        "display_address": "Dz.U. 1997 nr 78 poz. 483",
+        "published_on": date(1997, 4, 2),
+    }
+
+
+def test_expired_act_states_until_when_it_was_in_force() -> None:
+    answer = json.loads(recorded("sejm-eli-du-2025-1242.json"))
+    answer |= {"inForce": "NOT_IN_FORCE", "expirationDate": "2026-12-31"}
+    (record,) = parse_listing(act_listing("DU/2025/1242"), json.dumps(answer))
+    assert record.act is not None
+    assert not record.act.in_force
+    assert record.act.in_force_from == date(2026, 1, 1)
+    assert record.act.in_force_until == date(2026, 12, 31)
+    journal = (
+        record.act.journal_publisher,
+        record.act.journal_year,
+        record.act.journal_position,
+    )
+    assert journal == ("DU", 2025, 1242)
+    assert "w mocy od 2026-01-01 do 2026-12-31" in record.text
+
+
+def test_act_units_split_articles_and_keep_their_labels() -> None:
+    body = act_body(
+        "Preambuła.\r\nRozdział I\r\nArt. 29. Stolicą Rzeczypospolitej Polskiej"
+        " jest Warszawa.\r\nArt. 96. 1. Sejm składa się z 460 posłów.\r\n"
+        "2. Wybory do Sejmu są powszechne.\r\n§ 1. Ustala się 4806 zł."
+    )
+    units = act_units(body)
+    assert [u.label for u in units] == ["", "Rozdział", "Art. 29.", "Art. 96.", "§ 1."]
+    assert units[3].text == (
+        "Art. 96. 1. Sejm składa się z 460 posłów.\n2. Wybory do Sejmu są powszechne."
+    )

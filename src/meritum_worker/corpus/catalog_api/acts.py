@@ -28,7 +28,9 @@ from meritum_worker.corpus.catalog_api.constants import (
     SEJM_ELI_ACT_URL,
     SEJM_ELI_FILE_URL,
     SEJM_ELI_PDF_URL,
+    SEJM_IN_FORCE,
 )
+from meritum_worker.corpus.catalog_api.legal_acts import LegalActMeta
 from meritum_worker.corpus.catalog_api.records import ApiRecord
 from meritum_worker.corpus.chunking import chunk_text
 from meritum_worker.corpus.constants import PARAGRAPH_SEPARATOR
@@ -47,7 +49,13 @@ class _Act(BaseModel):
     display_address: str = Field(alias="displayAddress")
     announced: date = Field(alias="announcementDate")
     promulgation: date | None = None
-    in_force_from: date | None = Field(default=None, alias="entryIntoForce")
+    entry_into_force: date | None = Field(default=None, alias="entryIntoForce")
+    valid_from: date | None = Field(default=None, alias="validFrom")
+    expiration: date | None = Field(default=None, alias="expirationDate")
+    in_force: str = Field(default="", alias="inForce")
+    publisher: str
+    year: int
+    position: int = Field(alias="pos")
     has_pdf: bool = Field(default=False, alias="textPDF")
     texts: list[_TextFile] = []
 
@@ -87,18 +95,37 @@ def sejm_act_search(text: str) -> list[ApiRecord]:
 
 
 def _record(act: _Act) -> ApiRecord:
-    in_force = f", w mocy od {act.in_force_from}" if act.in_force_from else ""
-    published = act.promulgation or act.announced
-    header = (
-        f"{act.title}\n\n{act.type}, ELI: {act.eli}, {act.display_address}, "
-        f"status: {act.status}{in_force}, ogłoszono {published}."
+    meta = LegalActMeta(
+        eli=act.eli,
+        title=act.title,
+        document_type=act.type,
+        legal_status=act.status,
+        in_force=act.in_force == SEJM_IN_FORCE,
+        in_force_from=act.valid_from or act.entry_into_force,
+        in_force_until=act.expiration,
+        journal_publisher=act.publisher,
+        journal_year=act.year,
+        journal_position=act.position,
+        display_address=act.display_address,
+        published_on=act.promulgation or act.announced,
     )
     return ApiRecord(
         url=SEJM_ELI_ACT_URL.format(eli=act.eli),
-        text=header,
-        published_at=published,
+        text=_header(meta),
+        published_at=meta.published_on,
         wants_text=True,
         text_url=_text_url(act),
+        act=meta,
+    )
+
+
+def _header(meta: LegalActMeta) -> str:
+    since = f", w mocy od {meta.in_force_from}" if meta.in_force_from else ""
+    until = f" do {meta.in_force_until}" if meta.in_force_until else ""
+    return (
+        f"{meta.title}\n\n{meta.document_type}, ELI: {meta.eli}, "
+        f"{meta.display_address}, status: {meta.legal_status}{since}{until}, "
+        f"ogłoszono {meta.published_on}."
     )
 
 
