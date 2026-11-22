@@ -27,9 +27,7 @@ def _memory_store() -> BlobStore:
 
 
 async def _store_cases(store: BlobStore, cases: GoldenSet) -> str:
-    data = json.dumps(
-        [case.model_dump(mode="json") for case in cases.root]
-    ).encode()
+    data = json.dumps([case.model_dump(mode="json") for case in cases.root]).encode()
     ref = await store.put(
         data,
         kind=BlobKind.DATASET,

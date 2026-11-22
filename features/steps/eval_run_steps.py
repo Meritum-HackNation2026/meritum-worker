@@ -28,13 +28,13 @@ from meritum_worker.checks import (
     web_ports,
 )
 from meritum_worker.observability import (
+    BlobCaseSets,
     EvalRunDeps,
     GoldenSet,
     compare_runs,
     load_golden_set,
     run_eval_run,
 )
-from meritum_worker.observability.adapters import BlobCaseSets
 from meritum_worker.observability.fakes import InMemoryEvalRuns
 
 ROOT = Path(__file__).resolve().parents[2]
