@@ -175,8 +175,8 @@ def test_ingestion_runs_only_where_it_is_enabled() -> None:
 
 def test_entry_page_discovery_fetches_the_catalogue_domain() -> None:
     discovery = corpus.build_document_discovery()
-    pages = asyncio.run(discovery.pages(entry("www.gov.pl/web/rcb")))
-    assert [p.url for p in pages] == ["https://www.gov.pl/web/rcb"]
+    pages = asyncio.run(discovery.pages(entry("www.gov.pl/web/gov/ostrzezenia")))
+    assert [p.url for p in pages] == ["https://www.gov.pl/web/gov/ostrzezenia"]
 
 
 def test_gus_is_fetched_from_its_releases_page_not_the_login_home_page() -> None:

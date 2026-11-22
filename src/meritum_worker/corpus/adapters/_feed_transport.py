@@ -12,11 +12,14 @@ from typing import override
 
 import httpx
 
-from meritum_worker.corpus.feeds import FEED_AS_MEDIA_TYPE, FEED_MEDIA_TYPES
+from meritum_worker.corpus.feeds import FEED_AS_MEDIA_TYPE, LISTING_MEDIA_TYPES
 
 
 class FeedTransport(httpx.AsyncBaseTransport):
-    """Relabels RSS, Atom and XML responses as ``text/plain``, keeping the charset.
+    """Relabels RSS, Atom, XML and HTML answers as ``text/plain``, keeping the charset.
+
+    The discovery fetcher reads only listings: feeds, sitemaps and the HTML news
+    listings of gov.pl sections, whose links are in the markup.
 
     Args:
         inner: The transport that sends the request; a fresh
@@ -31,18 +34,18 @@ class FeedTransport(httpx.AsyncBaseTransport):
 
     @override
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        """Send the request and relabel a feed's media type.
+        """Send the request and relabel a listing's media type.
 
         Args:
             request: The request core's fetcher built.
 
         Returns:
-            The response; a feed's ``content-type`` becomes ``text/plain``.
+            The response; a listing's ``content-type`` becomes ``text/plain``.
         """
         response = await self._inner.handle_async_request(request)
         declared = str(response.headers.get("content-type", ""))
         media, _, params = declared.partition(";")
-        if media.strip().lower() in FEED_MEDIA_TYPES:
+        if media.strip().lower() in LISTING_MEDIA_TYPES:
             relabelled = (
                 f"{FEED_AS_MEDIA_TYPE};{params}" if params else FEED_AS_MEDIA_TYPE
             )
