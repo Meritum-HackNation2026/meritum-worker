@@ -85,6 +85,7 @@ async def _notify_progress(state: CheckState, deps: CheckDeps) -> None:
         deps.notifications,
         key=f"{state.check_id}:check_progress",
         kind="check_progress",
+        step_code="transcribe_audio",
         link=CHECK_LINK.format(check_id=state.check_id),
         now=datetime.now(UTC),
         check_id=state.check_id,

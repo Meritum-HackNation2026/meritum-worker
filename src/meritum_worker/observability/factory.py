@@ -6,8 +6,10 @@ Features:
 
 from collections.abc import Mapping
 from dataclasses import replace
+from pathlib import Path
 
 from httpx2 import AsyncClient
+from meritum_core.observability import build_app_repositories
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
@@ -22,10 +24,15 @@ from meritum_worker.observability.adapters import (
     CassettePii,
     CassetteReranker,
     CassetteWebSearch,
+    FileCaseSets,
+    PostgresEvalRuns,
 )
 from meritum_worker.observability.cassette import Cassette
 from meritum_worker.observability.constants import EUVSDISINFO_PROBE
+from meritum_worker.observability.eval_run import EvalRunDeps
+from meritum_worker.observability.fakes import InMemoryEvalRuns
 from meritum_worker.observability.models import GoldenCase
+from meritum_worker.observability.ports import EvalRunRepository
 from meritum_worker.observability.readiness import Probe
 from meritum_worker.observability.runner import DepsFor
 
@@ -97,6 +104,40 @@ def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckD
         corpus=CassetteCorpus(cassette, deps.corpus if record else None),
         reranker=CassetteReranker(cassette, deps.reranker if record else None),
         corpus_version=cassette.corpus_version,
+    )
+
+
+def build_eval_run_deps(
+    settings: LlmSettings,
+    database: DatabaseSettings,
+    corpus_version: str,
+    golden: Path,
+    uploads: Path,
+) -> EvalRunDeps:
+    """Ports of the `eval_run` workflow: the model, the app database and the files.
+
+    Args:
+        settings: The model to evaluate, usually ``LlmSettings()``.
+        database: Where runs and notifications are stored; PostgreSQL on dev and
+            prd, in memory by default.
+        corpus_version: The snapshot every check of the run searches.
+        golden: The golden set's JSON file.
+        uploads: The directory of uploaded case files.
+
+    Returns:
+        The workflow's ports.
+
+    Features:
+        US-OBS-06, F-28, ADR-28
+    """
+    runs: EvalRunRepository = InMemoryEvalRuns()
+    if database.provider is DatabaseProvider.POSTGRES and database.url is not None:
+        runs = PostgresEvalRuns(database.url.get_secret_value())
+    return EvalRunDeps(
+        runs=runs,
+        case_sets=FileCaseSets(golden, uploads),
+        deps_for=build_eval_deps(settings, corpus_version),
+        notifications=build_app_repositories(database).notifications,
     )
 
 

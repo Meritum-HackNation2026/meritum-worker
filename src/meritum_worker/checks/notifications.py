@@ -7,7 +7,12 @@ Features:
 from datetime import datetime
 from uuid import NAMESPACE_URL, uuid5
 
-from meritum_core.checks.contracts import Notification, NotificationKind
+from meritum_core.checks.contracts import (
+    AnalysisStepCode,
+    Notification,
+    NotificationKind,
+    SystemMessageCode,
+)
 from meritum_core.notifications import NotificationRepository
 
 from meritum_worker.checks.constants import NOTIFICATION_RETENTION, USER_ID_PATTERN
@@ -24,6 +29,8 @@ async def save_notification(  # ruff: ignore[too-many-arguments] - one keyword p
     session_id: str | None = None,
     check_id: str | None = None,
     case_id: str | None = None,
+    step_code: AnalysisStepCode | None = None,
+    message_code: SystemMessageCode | None = None,
 ) -> Notification:
     """Save a notification the backend lists and pushes over SSE.
 
@@ -40,6 +47,8 @@ async def save_notification(  # ruff: ignore[too-many-arguments] - one keyword p
         session_id: the browser session, when nobody is signed in.
         check_id: the check it is about.
         case_id: the moderator case it is about.
+        step_code: the finished step a ``check_progress`` notification reports.
+        message_code: what a ``system`` notification says.
 
     Returns:
         The saved notification.
@@ -63,6 +72,8 @@ async def save_notification(  # ruff: ignore[too-many-arguments] - one keyword p
         session_id=session_id,
         check_id=check_id,
         case_id=case_id,
+        step_code=step_code,
+        message_code=message_code,
     )
     await inbox.save(notification)
     return notification

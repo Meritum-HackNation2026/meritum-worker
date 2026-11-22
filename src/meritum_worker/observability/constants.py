@@ -122,3 +122,27 @@ BUNDLE_NAME: Final = "meritum-eval-bundle"
 
 BUNDLE_FILES: Final = ("cases.json", "sources.json", "manifest.json")
 """Files of the public bundle: cases, their sources with quotes, the manifest."""
+
+EVAL_RUN_LINK: Final = "/ewaluacja/{run_id}"
+"""In-app path of a finished run, opened by its eval_run_done notification."""
+
+EVAL_RUN_DONE_KEY: Final = "eval_run_done:{run_id}"
+"""Notification key; one per run, so a retried workflow notifies once."""
+
+CREATE_EVAL_RUNS_SQL: Final = (
+    "CREATE TABLE IF NOT EXISTS eval_runs (id text PRIMARY KEY,"
+    " user_id text, started_at timestamptz NOT NULL, run jsonb NOT NULL)"
+)
+"""Creates the table of stored runs (adapters/_postgres_runs.py)."""
+
+UPSERT_EVAL_RUN_SQL: Final = (
+    "INSERT INTO eval_runs (id, user_id, started_at, run) VALUES (%s, %s, %s, %s)"
+    " ON CONFLICT (id) DO UPDATE SET run = excluded.run"
+)
+"""Stores a run, replacing the one with the same id."""
+
+EVAL_FILES_DIR_VAR: Final = "MERITUM_EVAL_FILES_DIR"
+"""Variable naming the directory of uploaded case files."""
+
+DEFAULT_EVAL_FILES_DIR: Final = "evals/uploads"
+"""Uploads directory without ``MERITUM_EVAL_FILES_DIR``, relative to the repo root."""

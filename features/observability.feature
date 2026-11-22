@@ -45,3 +45,22 @@ Funkcja: Golden set A–J i ewaluacja
     Gdy zespół tworzy paczkę do odtworzenia
     Wtedy paczka zawiera przypadki, adresy źródeł, cytowane fragmenty i manifest z identyfikatorami dokumentów, sumami kontrolnymi i fetched_at
     I nie zawiera pełnych tekstów ani kaset
+
+
+  # --- przebieg ewaluacji jako workflow (worker#38) ---
+
+  Scenariusz: przebieg uruchomiony ze strony
+    Zakładając backend zleca workflow przebiegu ewaluacji dla golden setu
+    Gdy przebieg się kończy
+    Wtedy w bazie jest EvalRun z miernikami, datą, corpus_version i wynikami każdego przypadku
+    I emitowane jest zdarzenie powiadomienia o końcu przebiegu dla analityka, który go uruchomił
+
+  Scenariusz: własny zestaw
+    Zakładając zestaw z pliku CSV zapisany przez backend
+    Gdy backend zleca przebieg na tym zestawie
+    Wtedy przebieg liczy te same mierniki co na golden secie
+
+  Scenariusz: porównanie dwóch przebiegów
+    Zakładając dwa zapisane przebiegi
+    Gdy backend prosi o porównanie
+    Wtedy wynik podaje różnice mierników i przypadki, które zmieniły wynik
