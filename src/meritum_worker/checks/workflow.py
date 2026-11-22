@@ -157,9 +157,8 @@ async def _run_lane(
 ) -> CheckState:
     code, functions = lane
     for function in functions:
-        state = await runtime.step(
-            function.__name__, _bind(code, function, deps), state
-        )
+        run = _bind(code, function, deps)
+        state = await runtime.step(function.__name__, run, state)
     return state
 
 
@@ -174,6 +173,8 @@ def _lane_outcome(
 def _merged(before: CheckState, outputs: list[CheckState]) -> CheckState:
     # Lanes start from the same state: lists keep every lane's new items, and
     # any other field takes the value of the one lane that changed it.
+    if len(outputs) == 1:  # alone in its stage, a lane may also rewrite a list
+        return outputs[0]
     merged = before
     for output in outputs:
         update = {
@@ -189,8 +190,7 @@ def _field(
     name: str, before: CheckState, merged: CheckState, output: CheckState
 ) -> object:
     base, ours, theirs = (getattr(s, name) for s in (before, merged, output))
-    only_appended = isinstance(base, list) and theirs[: len(base)] == base
-    if only_appended:
+    if isinstance(base, list) and theirs[: len(base)] == base:  # only appended
         return [*ours, *theirs[len(base) :]]
     if ours != base or isinstance(base, list):
         # Two parallel steps changing one field, or rewriting a list, would

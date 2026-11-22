@@ -1,0 +1,35 @@
+{
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "PAP usunęła depeszę o wyborach",
+        "kind": "fact",
+        "explanation": "Zdarzenie, które źródła mogą potwierdzić.",
+        "claim_date": "2026-11-14",
+        "claim_date_source": "input_published_at"
+      }
+    ]
+  },
+  "AnswerDraft": {
+    "claims": [
+      {
+        "claim": "PAP usunęła depeszę o wyborach",
+        "claim_date": "2026-11-14",
+        "claim_date_source": "input_published_at",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie przeszukuje korpusu, więc nie ocenia twierdzenia.",
+        "unresolved": "Nie sprawdzono źródeł: odpowiedź pochodzi z modelu zastępczego."
+      }
+    ],
+    "limitations": [
+      "Odpowiedź z modelu zastępczego, bez przeszukania korpusu."
+    ]
+  },
+  "StanceJudgement": {
+    "relevant": false
+  },
+  "InjectionClassification": {
+    "injected": false
+  }
+}

@@ -131,6 +131,13 @@ Funkcja: Smoke test workera
     Oraz odpowiedź mówi, że nie szukano wcześniejszych wystąpień obrazu
     Oraz odpowiedź mówi, że data na obrazie nie potwierdza daty publikacji
 
+  Scenariusz: zrzut wpisu z datą, którą model uznał za datę publikacji
+    Zakładając zdjęcie z tekstem "PAP usunęła depeszę o wyborach. 21:37 · 14.11.2026" i model oznacza tę datę jako datę publikacji
+    Gdy workflow sprawdza obraz
+    Wtedy twierdzenie z OCR dostaje werdykt
+    Oraz wynik zawiera tekst odczytany z obrazu
+    Oraz odpowiedź mówi, że data na obrazie nie potwierdza daty publikacji
+
   Scenariusz: awaria OCR
     Zakładając dostawca OCR zwraca błąd
     Gdy workflow sprawdza obraz
