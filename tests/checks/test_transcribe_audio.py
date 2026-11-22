@@ -162,4 +162,6 @@ def test_transcribe_audio_tells_a_long_recording_is_transcribed(
     asyncio.run(transcribe_audio(state, deps))
     asyncio.run(transcribe_audio(state, deps))  # a retried step replaces the entry
     inbox = asyncio.run(deps.notifications.list_for("session_id", "session-1"))
-    assert [n.kind for n in inbox] == ["check_progress"] * sent
+    assert [(n.kind, n.step_code) for n in inbox] == [
+        ("check_progress", "transcribe_audio")
+    ] * sent
