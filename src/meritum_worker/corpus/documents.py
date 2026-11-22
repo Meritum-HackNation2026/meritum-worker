@@ -1,7 +1,7 @@
 """Catalogue documents, their passages and corpus snapshots as the worker writes them.
 
 Features:
-    US-KOR-02, US-KOR-05, F-10, F-12, ADR-19
+    US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13, ADR-19
 """
 
 from datetime import date
@@ -118,10 +118,12 @@ class IngestFailure(BaseModel):
     Attributes:
         domain: Catalogue domain.
         url: The page.
-        reason: A ``FetchFailureReason`` code, ``tdm_reserved`` or ``empty_text``.
+        reason: A ``FetchFailureReason`` code, ``tdm_reserved``, ``empty_text``
+            or ``feed_unreadable``.
+        at: When the run that failed started; None outside a run.
 
     Features:
-        US-KOR-02, US-KOR-05, F-10, F-12
+        US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13
     """
 
     model_config = ConfigDict(frozen=True)
@@ -129,6 +131,24 @@ class IngestFailure(BaseModel):
     domain: str
     url: str
     reason: str
+    at: AwareDatetime | None = None
+
+
+class DiscoveredPage(BaseModel):
+    """A page an entry's discovery found, with the date its feed gives.
+
+    Attributes:
+        url: Absolute http(s) URL of the page.
+        published_on: Publication date from the feed or sitemap, None if unknown.
+
+    Features:
+        US-KOR-03, F-13
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    url: str
+    published_on: date | None = None
 
 
 class IngestReport(BaseModel):

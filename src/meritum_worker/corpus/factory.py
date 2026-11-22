@@ -16,7 +16,8 @@ from meritum_core.security.injection import InjectionDetectorPort
 from meritum_core.shared.embeddings import EmbeddingsPort
 
 from meritum_worker.corpus.adapters import (
-    EntryPageDiscovery,
+    FeedDiscovery,
+    FeedTransport,
     McpEuvsDisinfo,
     MemoryCorpusWriter,
     MemoryEuvsCopy,
@@ -129,15 +130,15 @@ def build_organiser_file() -> OrganiserFilePort:
 
 
 def build_document_discovery() -> DocumentDiscoveryPort:
-    """Build the discovery of catalogue pages: each entry's own page for now.
+    """Build the discovery of catalogue pages: feeds, sitemaps or the entry page.
 
     Returns:
-        The entry-page discovery.
+        The feed discovery on core's SSRF-safe fetcher.
 
     Features:
-        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+        US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13, ADR-32
     """
-    return EntryPageDiscovery()
+    return FeedDiscovery(build_page_fetcher(transport=FeedTransport()))
 
 
 def build_ingest_deps(
@@ -153,7 +154,7 @@ def build_ingest_deps(
         injection: The detector pages are scanned with before they are stored.
 
     Returns:
-        Entry-page discovery, core's SSRF-safe fetcher, the embeddings, the
+        Feed discovery, core's SSRF-safe fetcher, the embeddings, the
         writer, the detector and the fetcher of public APIs.
 
     Features:

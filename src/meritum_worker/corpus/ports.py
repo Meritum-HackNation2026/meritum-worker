@@ -3,7 +3,7 @@
 They stay in the worker: only the worker writes the corpus (ADR-32).
 
 Features:
-    US-KOR-08, US-KOR-02, F-11, F-12, ADR-32
+    US-KOR-08, US-KOR-02, US-KOR-03, F-11, F-12, F-13, ADR-32
 """
 
 from collections.abc import Mapping, Sequence
@@ -18,6 +18,7 @@ from meritum_core.shared.embeddings import EmbeddingsPort
 
 from meritum_worker.corpus.documents import (
     CorpusSnapshot,
+    DiscoveredPage,
     Document,
     DocumentMeta,
     DocumentPassage,
@@ -124,14 +125,17 @@ class DocumentDiscoveryPort(Protocol):
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
     """
 
-    async def urls(self, entry: CatalogEntry) -> list[str]:
-        """Return the absolute http(s) URLs of the entry's pages.
+    async def pages(self, entry: CatalogEntry) -> list[DiscoveredPage]:
+        """Return the entry's pages: the entry page, or what its feed lists.
 
         Args:
             entry: An ingestible catalogue entry.
 
         Returns:
-            The URLs, without duplicates.
+            The pages, newest first, with the feed's publication date.
+
+        Raises:
+            DiscoveryError: The feed or sitemap could not be fetched or read.
         """
         ...
 

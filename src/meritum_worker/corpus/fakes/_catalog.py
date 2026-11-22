@@ -12,6 +12,8 @@ from meritum_core.corpus.fetching import (
     PageFetchError,
 )
 
+from meritum_worker.corpus.documents import DiscoveredPage
+
 
 class FakeCatalogSite:
     """Discovery and fetcher in one: every domain has numbered pages.
@@ -61,8 +63,8 @@ class FakeCatalogSite:
         """
         self._texts[url] = text
 
-    async def urls(self, entry: CatalogEntry) -> list[str]:
-        """Return the domain's pages (see ``DocumentDiscoveryPort.urls``).
+    async def pages(self, entry: CatalogEntry) -> list[DiscoveredPage]:
+        """Return the domain's pages (see ``DocumentDiscoveryPort.pages``).
 
         Args:
             entry: The catalogue entry.
@@ -72,7 +74,7 @@ class FakeCatalogSite:
         """
         urls = [f"https://{entry.domain}/strona-{i}" for i in range(self._pages)]
         self.discovered.append((entry.domain, urls))
-        return urls
+        return [DiscoveredPage(url=url) for url in urls]
 
     async def fetch(self, url: str, *, purpose: FetchPurpose) -> FetchedPage:
         """Return the page's text (see ``PageFetcherPort.fetch``).

@@ -1,9 +1,10 @@
 """Catalogue ingestion runs and snapshots, on ports only.
 
 Features:
-    US-KOR-02, US-KOR-05, F-10, F-12, ADR-19, ADR-32
+    US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13, ADR-19, ADR-32
 """
 
+import logging
 from collections.abc import Iterable, Mapping
 from datetime import datetime, timedelta
 
@@ -23,9 +24,17 @@ from meritum_worker.corpus.constants import (
     SNAPSHOT_VERSION_FORMAT,
     TDM_RESERVED_ENTRY,
 )
-from meritum_worker.corpus.documents import CorpusSnapshot, IngestReport
-from meritum_worker.corpus.pages import failed_page, store_page
+from meritum_worker.corpus.documents import (
+    CorpusSnapshot,
+    DiscoveredPage,
+    IngestReport,
+)
+from meritum_worker.corpus.errors import DiscoveryError
+from meritum_worker.corpus.feeds import FEED_METHODS, canonical_url
+from meritum_worker.corpus.pages import failed_page, source_id_for, store_page
 from meritum_worker.corpus.ports import CorpusWriterPort, IngestDeps
+
+_log = logging.getLogger(__name__)
 
 
 def ingestion_enabled(env: Mapping[str, str]) -> bool:
@@ -132,13 +141,16 @@ async def ingest_catalog(
 async def ingest_pages(
     entry: CatalogEntry, deps: IngestDeps, *, now: datetime
 ) -> IngestReport:
-    """Fetch, chunk, embed and store every page of one entry.
+    """Fetch, chunk, embed and store every new page of one entry.
 
     The attempt is noted first, so a domain whose pages all fail waits its
     ``refresh_minutes`` too. A page that fails (robots.txt, Content-Signal,
     HTTP error, TDM meta tags, embeddings down) goes to the report and the
-    next page follows. An ``ingest: api`` entry stores one document per API
-    record instead (``catalog_api``).
+    next page follows; so does a feed or sitemap that fails, with its domain
+    and the run's time. Pages listed by a feed are deduplicated by canonical
+    URL, and those already in the corpus are not fetched again. An
+    ``ingest: api`` entry stores one document per API record instead
+    (``catalog_api``).
 
     Args:
         entry: An ingestible catalogue entry.
@@ -149,21 +161,48 @@ async def ingest_pages(
         The entry's report.
 
     Features:
-        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+        US-KOR-02, US-KOR-03, US-KOR-05, F-10, F-12, F-13, ADR-32
     """
     await deps.store.record_attempt(entry.domain, now)
     if entry.ingest == API_METHOD:
         return await ingest_api_entry(entry, deps, now=now)
+    try:
+        listed = await deps.discovery.pages(entry)
+    except DiscoveryError as error:
+        _log.warning("feed of %s failed: %s", entry.domain, error.reason)
+        return failed_page(entry, error.url, error.reason, at=now)
     report = IngestReport()
-    for url in await deps.discovery.urls(entry):
-        try:
-            page = await deps.fetcher.fetch(url, purpose=FetchPurpose.SOURCE)
-            report += await store_page(page, entry, deps, now=now, url=url)
-        except PageFetchError as error:
-            report += failed_page(entry, url, error.reason.value)
-        except EmbeddingsUnavailableError:
-            report += failed_page(entry, url, EMBEDDINGS_UNAVAILABLE)
+    for found in await _new_pages(entry, listed, deps.store):
+        report += await _ingest_page(entry, found, deps, now=now)
     return report
+
+
+async def _new_pages(
+    entry: CatalogEntry, listed: list[DiscoveredPage], store: CorpusWriterPort
+) -> list[DiscoveredPage]:
+    pages: dict[str, DiscoveredPage] = {}
+    for found in listed:
+        pages.setdefault(canonical_url(found.url), found)
+    if entry.ingest not in FEED_METHODS:
+        return [p.model_copy(update={"url": u}) for u, p in pages.items()]
+    return [
+        p.model_copy(update={"url": u})
+        for u, p in pages.items()
+        if await store.document(source_id_for(u)) is None
+    ]
+
+
+async def _ingest_page(
+    entry: CatalogEntry, found: DiscoveredPage, deps: IngestDeps, *, now: datetime
+) -> IngestReport:
+    url = found.url
+    try:
+        page = await deps.fetcher.fetch(url, purpose=FetchPurpose.SOURCE)
+        return await store_page(page, entry, deps, now=now, found=found)
+    except PageFetchError as error:
+        return failed_page(entry, url, error.reason.value, at=now)
+    except EmbeddingsUnavailableError:
+        return failed_page(entry, url, EMBEDDINGS_UNAVAILABLE, at=now)
 
 
 async def take_snapshot(
