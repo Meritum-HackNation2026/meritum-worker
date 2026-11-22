@@ -9,6 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from httpx2 import AsyncClient
+from meritum_core.corpus import CorpusSettings
 from meritum_core.observability import build_app_repositories
 from meritum_core.shared.blobs import (
     BlobProvider,
@@ -38,6 +39,7 @@ from meritum_worker.observability.adapters import (
     CassetteReranker,
     CassetteWebSearch,
     PostgresEvalRuns,
+    PostgresSnapshotCorpus,
 )
 from meritum_worker.observability.cassette import Cassette
 from meritum_worker.observability.constants import (
@@ -53,6 +55,7 @@ from meritum_worker.observability.models import GoldenCase
 from meritum_worker.observability.ports import EvalCaseSets, EvalRunRepository
 from meritum_worker.observability.readiness import Probe
 from meritum_worker.observability.runner import DepsFor
+from meritum_worker.observability.snapshot import SnapshotCorpusPort
 
 
 def build_eval_deps(
@@ -189,6 +192,22 @@ def build_eval_run_deps(
         deps_for=build_eval_deps(settings, corpus_version),
         notifications=build_app_repositories(database).notifications,
     )
+
+
+def build_snapshot_corpus(settings: CorpusSettings) -> SnapshotCorpusPort | None:
+    """The snapshots an embeddings comparison searches, read from the corpus store.
+
+    Args:
+        settings: Usually ``CorpusSettings()`` from ``MERITUM_CORPUS_*``.
+
+    Returns:
+        The reader of the database; None without ``database_url``.
+
+    Features:
+        US-OBS-04, US-WDR-02, F-27, ADR-19
+    """
+    url = settings.database_url
+    return None if url is None else PostgresSnapshotCorpus(url.get_secret_value())
 
 
 def _with_faults(deps: CheckDeps) -> DepsFor:

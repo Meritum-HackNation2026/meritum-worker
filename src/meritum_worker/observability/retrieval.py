@@ -1,11 +1,12 @@
 """Compare embedding models by corpus retrieval on the golden set (US-OBS-04).
 
-The golden set's own sources stand in for the corpus: each case with sources
-queries by its main claim, and a hit is one of its sources ranked in the top k.
-Config files name the model and its price, so no model is named in code.
+Each candidate re-embeds the passages of one corpus snapshot and searches it
+the way checks do (hybrid search, fused, top 20). Each case with sources
+queries by its main claim, and a hit is a passage of one of its sources in the
+top k. Config files name the model and its price, so no model is named in code.
 
 Features:
-    US-WDR-02, US-OBS-04, F-27
+    US-WDR-02, US-OBS-04, F-12, F-27
 """
 
 import math
@@ -15,11 +16,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
-from meritum_core.shared.embeddings import (
-    EmbeddingsPort,
-    EmbeddingsSettings,
-    Vector,
-)
+from meritum_core.corpus import CorpusProvider, CorpusSettings, build_corpus_search
+from meritum_core.shared.embeddings import EmbeddingsPort, EmbeddingsSettings
 from pydantic import BaseModel, ConfigDict, Field
 
 from meritum_worker.observability.constants import (
@@ -28,9 +26,9 @@ from meritum_worker.observability.constants import (
     COST_SAMPLE_QUERIES,
     REPORT_DECIMALS,
     RETRIEVAL_TOP_K,
-    STAND_IN_CORPUS,
 )
 from meritum_worker.observability.models import GoldenSet
+from meritum_worker.observability.snapshot import MeteredEmbeddings, SnapshotCorpus
 
 
 class EmbeddingsConfig(BaseModel):
@@ -63,11 +61,13 @@ class RetrievalScore(BaseModel):
         region: Region of the provider.
         dimensions: Vector size.
         queries: Distinct main claims of the cases with sources.
-        documents: Distinct source URLs embedded as the corpus.
-        top_k: Ranks that count as a hit.
-        hit_rate: Queries with one of their sources in the top k.
-        mean_reciprocal_rank: Mean of 1 / rank of the first own source.
-        characters: Characters embedded, queries and documents.
+        queries_with_targets: Queries with a source in the snapshot, scored.
+        documents: Documents of the snapshot.
+        passages: Passages of the snapshot, each embedded once.
+        top_k: Ranks of the fused search that count as a hit.
+        hit_rate: Scored queries with a passage of their sources in the top k.
+        mean_reciprocal_rank: Mean of 1 / rank of that passage, 0 below top k.
+        characters: Characters embedded, queries and passages.
         cost_usd: Cost of this run.
         cost_100_queries_usd: Cost of 100 queries at the mean query length.
 
@@ -83,7 +83,9 @@ class RetrievalScore(BaseModel):
     region: str
     dimensions: int
     queries: int
+    queries_with_targets: int
     documents: int
+    passages: int
     top_k: int
     hit_rate: float
     mean_reciprocal_rank: float
@@ -93,12 +95,12 @@ class RetrievalScore(BaseModel):
 
 
 class EmbeddingsComparison(BaseModel):
-    """Every embedding candidate's score on the same case file.
+    """Every embedding candidate's score on the same case file and snapshot.
 
     Attributes:
         generated_at: When the comparison ran.
         cases_file: The case file every candidate ran on.
-        corpus: What the queries searched; a stand-in until the real corpus.
+        corpus: The ``corpus_version`` every candidate searched.
         models: One entry per config file, in the order given.
 
     Features:
@@ -109,7 +111,7 @@ class EmbeddingsComparison(BaseModel):
 
     generated_at: datetime
     cases_file: str
-    corpus: str = STAND_IN_CORPUS
+    corpus: str
     models: tuple[RetrievalScore, ...]
 
 
@@ -133,37 +135,48 @@ def load_embeddings_config(path: Path) -> EmbeddingsConfig:
 
 async def score_retrieval(
     cases: GoldenSet,
+    corpus: SnapshotCorpus,
     config: EmbeddingsConfig,
     embeddings: EmbeddingsPort,
     top_k: int = RETRIEVAL_TOP_K,
 ) -> RetrievalScore:
-    """Rank the golden set's sources for each case's main claim.
+    """Search the snapshot for each case's main claim; its sources are targets.
 
     Args:
         cases: The case file; cases without sources are skipped, and cases
             with the same main claim are one query.
+        corpus: The snapshot every candidate searches.
         config: The candidate, for its label and price.
-        embeddings: The candidate's model.
-        top_k: Ranks that count as a hit.
+        embeddings: The candidate's model; it embeds every passage once.
+        top_k: Ranks of the fused search that count as a hit.
 
     Returns:
         The candidate's score.
 
     Features:
-        US-WDR-02, US-OBS-04, F-27
+        US-WDR-02, US-OBS-04, F-12, F-27
     """
-    documents = _corpus(cases)
-    index = {url: i for i, url in enumerate(documents)}
-    vectors = await embeddings.embed_documents(list(documents.values()))
+    metered = MeteredEmbeddings(embeddings)
+    search = build_corpus_search(
+        CorpusSettings(provider=CorpusProvider.MEMORY),
+        metered,
+        snapshots={corpus.version: corpus.passages},
+    )
+    urls = {source: _normalised(url) for source, url in corpus.urls.items()}
     queries = _queries(cases)
-    ranks: list[int] = []
-    for claim, urls in queries.items():
-        order = _ranking(await embeddings.embed_query(claim), vectors)
-        own = {index[url] for url in urls}
-        # Every query's own sources are in the corpus, so a rank always exists.
-        ranks.append(next(r for r, i in enumerate(order, 1) if i in own))
+    known = set(urls.values())
+    targeted = {claim: own for claim, own in queries.items() if own & known}
+    ranks: list[float] = []
+    for claim, own in targeted.items():
+        found = await search.search(
+            claim,
+            claim_date=corpus.taken_at.date(),
+            corpus_version=corpus.version,
+            limit=top_k,
+        )
+        hits = (r for r, p in enumerate(found, 1) if urls.get(p.source_id) in own)
+        ranks.append(next(hits, math.inf))
     query_chars = sum(map(len, queries))
-    characters = query_chars + sum(len(text) for text in documents.values())
     mean_query = query_chars / max(len(queries), 1)
     settings = config.embeddings
     return RetrievalScore(
@@ -173,24 +186,30 @@ async def score_retrieval(
         region=settings.region,
         dimensions=settings.dimensions,
         queries=len(queries),
-        documents=len(index),
+        queries_with_targets=len(targeted),
+        documents=len(urls),
+        passages=len(corpus.passages),
         top_k=top_k,
         hit_rate=_mean([rank <= top_k for rank in ranks]),
         mean_reciprocal_rank=_mean([1 / rank for rank in ranks]),
-        characters=characters,
-        cost_usd=_price(characters, config),
+        characters=metered.characters,
+        cost_usd=_price(metered.characters, config),
         cost_100_queries_usd=_price(mean_query * COST_SAMPLE_QUERIES, config),
     )
 
 
 def compare_embeddings(
-    scores: Sequence[RetrievalScore], cases_file: str, generated_at: datetime
+    scores: Sequence[RetrievalScore],
+    cases_file: str,
+    corpus_version: str,
+    generated_at: datetime,
 ) -> EmbeddingsComparison:
     """Put each candidate's score into one comparison.
 
     Args:
         scores: One score per config file.
         cases_file: The case file the scores come from.
+        corpus_version: The snapshot every candidate searched.
         generated_at: When the comparison ran.
 
     Returns:
@@ -200,39 +219,26 @@ def compare_embeddings(
         US-WDR-02, US-OBS-04, F-27
     """
     return EmbeddingsComparison(
-        generated_at=generated_at, cases_file=cases_file, models=tuple(scores)
+        generated_at=generated_at,
+        cases_file=cases_file,
+        corpus=corpus_version,
+        models=tuple(scores),
     )
-
-
-def _corpus(cases: GoldenSet) -> dict[str, str]:
-    # Each source URL once, as its title and cited fragment.
-    documents: dict[str, str] = {}
-    for case in cases.root:
-        for source in case.sources:
-            documents.setdefault(str(source.url), f"{source.title}\n{source.quote}")
-    return documents
 
 
 def _queries(cases: GoldenSet) -> dict[str, set[str]]:
     # One query per distinct main claim, so a claim repeated by H or E cases
-    # weighs as much as any other; its own sources are every case's sources.
+    # weighs as much as any other; its targets are every case's sources.
     queries: dict[str, set[str]] = {}
     for case in cases.root:
         if case.sources:
             urls = queries.setdefault(case.main_claim, set())
-            urls.update(str(source.url) for source in case.sources)
+            urls.update(_normalised(str(source.url)) for source in case.sources)
     return queries
 
 
-def _ranking(query: Vector, documents: Sequence[Vector]) -> list[int]:
-    # Document indices from the most similar; ties keep file order.
-    similarity = [_cosine(query, document) for document in documents]
-    return sorted(range(len(documents)), key=lambda i: -similarity[i])
-
-
-def _cosine(a: Vector, b: Vector) -> float:
-    norms = math.hypot(*a) * math.hypot(*b)
-    return sum(x * y for x, y in zip(a, b, strict=True)) / norms if norms else 0.0
+def _normalised(url: str) -> str:
+    return url.removesuffix("/")
 
 
 def _mean(values: Sequence[float]) -> float:

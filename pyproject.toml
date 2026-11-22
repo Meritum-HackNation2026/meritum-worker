@@ -126,6 +126,7 @@ max-lines = 250
 
 [tool.meritum-conventions.line-limit-exceptions]
 "src/meritum_worker/main.py" = "registers every DBOS workflow; split into a main/ package in its own PR, so parallel PRs do not conflict on a move"
+"src/meritum_worker/observability/factory.py" = "builds every port of meritum-eval, the only wiring module observability has; split into a factory/ package in its own PR"
 
 # --------------------------------------------------------------------------- #
 # Dead code (vulture) and security (bandit)

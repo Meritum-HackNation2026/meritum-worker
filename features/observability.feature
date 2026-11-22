@@ -31,10 +31,11 @@ Funkcja: Golden set A–J i ewaluacja
     Gdy zespół uruchamia "uv run meritum-eval --compare-models config-a.toml config-b.toml"
     Wtedy raport podaje dla każdej konfiguracji macro-F1, poprawność cytowań, medianę czasu, tokeny na sekundę i koszt 100 testów
 
-  Scenariusz: porównanie embeddingów
-    Zakładając dwie konfiguracje modelu embeddingów
+  Scenariusz: porównanie embeddingów na prawdziwym korpusie
+    Zakładając korpus wczytany z migawki i dwie konfiguracje modelu embeddingów
     Gdy zespół uruchamia porównanie
-    Wtedy raport podaje trafność wyszukiwania w korpusie na przypadkach z golden setu i koszt
+    Wtedy raport podaje trafność wyszukiwania w korpusie na przypadkach z golden setu, z top 20 jak w wyszukiwaniu hybrydowym, i koszt
+    I pole corpus w raporcie wskazuje migawkę corpus_version zamiast korpusu zastępczego
 
   Scenariusz: powtórzenie przebiegu bez kluczy
     Zakładając nagrane kasety i migawka 2026-11-20T10:00Z
