@@ -16,7 +16,7 @@ from meritum_core.corpus.web_search import WebSearchSettings, build_web_search
 from meritum_core.observability import build_app_repositories
 from meritum_core.security.pii import PiiGateSettings, build_pii_gate
 from meritum_core.shared.blobs import BlobProvider, BlobSettings, build_blob_store
-from meritum_core.shared.database import DatabaseSettings
+from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.embeddings import EmbeddingsSettings, build_embeddings
 from meritum_core.shared.llm import LlmSettings, build_llm
 
@@ -40,6 +40,7 @@ from meritum_worker.corpus import (
 from meritum_worker.corpus.adapters import GoogleFactCheck
 from meritum_worker.evidence import sanctions_from_env
 from meritum_worker.moderation import build_moderation_deps
+from meritum_worker.moderation.adapters import DbosCheckResults
 from meritum_worker.security import InjectionGateSettings, build_detector
 
 
@@ -98,7 +99,9 @@ def build_check_deps(
         corpus_version=ResearchSettings().corpus_version,
         # Read only: the link and domain of the documents passages come from.
         corpus_documents=build_corpus_writer(CorpusSettings()),
-        moderation=build_moderation_deps(app, embeddings, os.environ),
+        moderation=build_moderation_deps(
+            app, embeddings, os.environ, DbosCheckResults(_app_conninfo(database))
+        ),
         web_search_provider=search.provider.value,
         fact_check=build_fact_check(FactCheckSettings()),
         # Only where the role may write the shared corpus schema (infra/004).
@@ -145,3 +148,9 @@ def build_fact_check(
     if settings.provider is FactCheckProvider.GOOGLE:
         return GoogleFactCheck(settings.api_key.get_secret_value(), http_client)
     return FakeFactCheck()
+
+
+def _app_conninfo(settings: DatabaseSettings) -> str | None:
+    if settings.provider is DatabaseProvider.POSTGRES and settings.url is not None:
+        return settings.url.get_secret_value()
+    return None

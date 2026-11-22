@@ -6,7 +6,7 @@ Features:
 
 import re
 from datetime import timedelta
-from typing import Final
+from typing import Final, LiteralString
 
 from meritum_core.checks.contracts import CaseReason
 from meritum_core.jobs.contracts import CHECK
@@ -91,3 +91,8 @@ ANSWER_NOTICE_WORKFLOW: Final = "case_answers"
 
 ANSWER_NOTICE_CRON: Final = "*/5 * * * *"
 """Every five minutes; a repeated run replaces entries, so it adds none."""
+
+SERVED_OF_CHECK: Final[LiteralString] = (
+    "SELECT served FROM result_cache_checks WHERE check_id = %s AND served IS NOT NULL"
+)
+"""The entry a cache hit got; the backend writes it with the hit (backend#25)."""
