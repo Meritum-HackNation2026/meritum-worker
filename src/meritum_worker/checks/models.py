@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 from meritum_core.checks import CheckRecordRepository, CheckResult, InjectionEvent
 from meritum_core.checks.constants import MIN_TEXT_CHARS
 from meritum_core.checks.contracts import (
+    CatalogEntry,
     ClaimDateSource,
     ClaimResult,
     FailureCode,
@@ -18,8 +19,11 @@ from meritum_core.checks.contracts import (
 )
 from meritum_core.checks.transcription import TranscriptionPort
 from meritum_core.corpus.fetching import PageFetcherPort
+from meritum_core.corpus.web_search import WebSearchPort
+from meritum_core.evidence.models import SourceDocument
 from meritum_core.jobs.contracts import CheckInput
 from meritum_core.notifications import NotificationRepository
+from meritum_core.security.injection import InjectionDetectorPort
 from meritum_core.security.pii import PiiGatePort
 from meritum_core.shared.blobs import BlobStore
 from meritum_core.shared.llm import LlmPort
@@ -87,13 +91,17 @@ class CheckDeps:
         llm: the language model, from the core LLM factory.
         records: where the CheckRecord is saved.
         pages: the SSRF-safe page fetcher, from the core fetching factory.
-        pii: the personal-data masking gate applied to pages and transcripts.
+        pii: the personal-data masking gate for pages, transcripts and web queries.
         blobs: the store holding uploaded recordings (ADR-31).
         transcriber: transcription over the same store (ADR-30).
         notifications: the inbox the end of a long check is announced in.
+        web_search: live web search, limited to catalogue domains.
+        injection: the detector pages found by web search are scanned with.
+        catalog: the loaded source catalogue.
 
     Features:
-        US-SPR-01, US-SPR-07, US-SPR-11, US-OBS-01, US-POW-01, F-06, F-08, F-22
+        US-SPR-01, US-SPR-07, US-SPR-11, US-OBS-01, US-POW-01, US-KOR-04, F-06,
+        F-08, F-13, F-22
     """
 
     llm: LlmPort
@@ -103,6 +111,9 @@ class CheckDeps:
     blobs: BlobStore
     transcriber: TranscriptionPort
     notifications: NotificationRepository
+    web_search: WebSearchPort
+    injection: InjectionDetectorPort
+    catalog: tuple[CatalogEntry, ...]
 
 
 class CheckState(BaseModel):
@@ -124,6 +135,7 @@ class CheckState(BaseModel):
         audio_seconds: the recording's length, once transcribe_audio read it.
         skipped_steps: step codes that had nothing to do for this input.
         claims: the dated claims to answer, at most MAX_CLAIMS_PER_CHECK.
+        evidence: source documents found for the claims, each past quarantine.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
 
@@ -146,6 +158,7 @@ class CheckState(BaseModel):
     audio_seconds: float | None = None
     skipped_steps: list[str] = []
     claims: list[ExtractedClaim] = []
+    evidence: list[SourceDocument] = []
     limitations: list[str] = []
     result: CheckResult | None = None
 

@@ -11,6 +11,7 @@ from meritum_worker.checks.fakes import (
     InlineCheckRuntime,
     audio_ports,
     ogg_opus,
+    web_ports,
 )
 from meritum_worker.checks.models import (
     AnswerDraft,
@@ -37,4 +38,5 @@ __all__ = [
     "ogg_opus",
     "pipeline",
     "run_check",
+    "web_ports",
 ]

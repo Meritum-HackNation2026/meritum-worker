@@ -22,6 +22,7 @@ from meritum_worker.checks import (
     ExtractedClaim,
     FakePageFetcher,
     audio_ports,
+    web_ports,
 )
 from meritum_worker.checks.steps import extract_claims, write_answer
 
@@ -33,6 +34,7 @@ def _deps(llm: LlmPort) -> CheckDeps:
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
         **audio_ports(),
+        **web_ports(),
     )
 
 

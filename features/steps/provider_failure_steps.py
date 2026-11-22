@@ -4,16 +4,19 @@ The web search step and the model are replaced with fakes; no network.
 """
 
 import asyncio
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import override
 from unittest.mock import patch
 
 from behave import given, then, when
 from behave.runner import Context
 from meritum_core.checks import CheckRequest
 from meritum_core.checks.fakes import InMemoryCheckRecordRepository
+from meritum_core.corpus.web_search import WebSearchCandidate
 from meritum_core.jobs.contracts import CheckInput
-from meritum_core.security.pii import NullPiiGate
+from meritum_core.security.pii import MaskedText, NullPiiGate
 from meritum_core.shared.llm import (
     LlmPort,
     LlmProvider,
@@ -27,14 +30,13 @@ from pydantic import BaseModel
 
 from meritum_worker.checks import (
     CheckDeps,
-    CheckState,
     FakePageFetcher,
     InlineCheckRuntime,
     audio_ports,
     run_check,
-    steps,
+    web_ports,
 )
-from meritum_worker.checks.constants import STEP_TIMEOUTS
+from meritum_worker.corpus import WEB_SEARCH_TIMEOUT, FakeWebSearch, live_search
 
 FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "llm_stub_answer.json"
 CHECK_ID = "check-behave-j"
@@ -64,6 +66,7 @@ def _deps(llm: LlmPort | None = None) -> CheckDeps:
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
         **audio_ports(),
+        **web_ports(),
     )
 
 
@@ -84,26 +87,23 @@ def _run(context: Context) -> None:
 
 @given("sprawdzenie czeka na wynik wyszukiwania w sieci")
 def waits_for_web_search(context: Context) -> None:
-    context.deps = _deps()
+    class _HangingSearch(FakeWebSearch):
+        @override
+        async def search(
+            self, query: MaskedText, *, limit: int = 10
+        ) -> list[WebSearchCandidate]:
+            await asyncio.sleep(3600)
+            return await super().search(query, limit=limit)
 
-    async def search_web(state: CheckState, _deps: CheckDeps) -> CheckState:
-        await asyncio.sleep(3600)
-        return state
-
-    for patcher in (
-        patch.object(steps, "search_web", search_web),
-        patch.dict(STEP_TIMEOUTS),
-    ):
-        patcher.start()
-        context.add_cleanup(patcher.stop)
+    context.deps = replace(_deps(), web_search=_HangingSearch())
 
 
 @when("wyszukiwarka nie odpowiada przez 10 s")
 def web_search_hangs(context: Context) -> None:
-    assert STEP_TIMEOUTS["search_web"] == timedelta(seconds=10)
+    assert timedelta(seconds=10) == WEB_SEARCH_TIMEOUT
     # The real limit is checked above; the run uses a short one to stay fast.
-    STEP_TIMEOUTS["search_web"] = timedelta(milliseconds=10)
-    _run(context)
+    with patch.object(live_search, "WEB_SEARCH_TIMEOUT", timedelta(milliseconds=10)):
+        _run(context)
 
 
 @then("wynik ma stan technical_failure bez twierdzeń i bez werdyktu")

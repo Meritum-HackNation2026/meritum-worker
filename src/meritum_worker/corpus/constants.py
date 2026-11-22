@@ -1,9 +1,10 @@
-"""Settings of the EUvsDisinfo sync (not secrets) and of corpus migrations.
+"""Settings of the EUvsDisinfo sync (not secrets), corpus migrations and live search.
 
 Features:
-    US-KOR-08, US-KOR-02, F-11, F-12
+    US-KOR-08, US-KOR-02, US-KOR-04, US-SPR-04, F-11, F-12, F-13
 """
 
+from datetime import timedelta
 from typing import Final
 
 EUVSDISINFO_MCP_URL: Final = "https://euvsdisinfo-mcp-server.vercel.app/mcp"
@@ -138,3 +139,33 @@ MODEL_ID: Final = r"^@?[A-Za-z0-9][A-Za-z0-9_@/-]*$"
 OPENROUTER_MODEL_ID: Final = r"^[a-z0-9-]+/[A-Za-z0-9._:-]+$"
 """Pattern of an OpenRouter model id (``cohere/rerank-v3.5``); it only goes in
 the JSON body, so a ``.`` is allowed."""
+
+WEB_SEARCH_TIMEOUT: Final = timedelta(seconds=10)
+"""One deadline for live search in a check: the searches, the page fetches and
+their scans (US-SPR-04, US-SPR-06, F-13, F-18). Searches past it make the check a
+technical_failure; a page not scanned by then is dropped and the check goes on."""
+
+WEB_SEARCH_MARGIN: Final = timedelta(seconds=1)
+"""Time the search_web step gets past WEB_SEARCH_TIMEOUT, so pages cut at the
+deadline drop out before the step's own backstop timeout ends the check."""
+
+WEB_QUERIES_PER_CHECK: Final = 5
+"""Most web searches one check sends: one per checked fact (US-KOR-04, F-13)."""
+
+WEB_RESULTS_PER_QUERY: Final = 3
+"""Catalogue addresses asked per search; each is fetched and scanned in quarantine."""
+
+WEB_PAGE_MAX_CHARS: Final = 4000
+"""Longest page text kept as evidence and scanned: the limit of a pasted text."""
+
+WEB_SOURCE_ID_PREFIX: Final = "web-"
+"""Prefix of the id of a page found by live search, followed by its URL's hash."""
+
+WEB_SOURCE_ID_HASH_CHARS: Final = 32
+"""Hex characters of the URL's SHA-256 kept in a live search source id."""
+
+WEB_TITLE_MAX_CHARS: Final = 200
+"""Longest Source.title; a live search page is titled with its URL, cut to this."""
+
+INJECTION_EXCERPT_MAX_CHARS: Final = 300
+"""Longest InjectionEvent.excerpt the contract accepts."""

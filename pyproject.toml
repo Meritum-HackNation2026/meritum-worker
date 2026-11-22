@@ -123,7 +123,7 @@ max-lines = 250
 paths = ["src", "scripts", "tests", "features"]
 # DBOS and behave register functions through their decorators.
 ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator", "@field_validator"]
-ignore_names = ["before_scenario", "model_config", "__call__"]  # behave hook; Pydantic settings; Protocol call signatures
+ignore_names = ["before_scenario", "model_config", "__call__", "mask"]  # behave hook; Pydantic settings; Protocol call signatures; PiiGatePort.mask, called by core
 min_confidence = 60
 
 # bandit is a security linter, not a dead-code tool. Ruff's S rules already run
@@ -145,4 +145,4 @@ addopts = ["-ra", "--import-mode=importlib", "-m", "not integration"]
 filterwarnings = ["error"]
 
 [tool.uv.sources]
-meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "8ff71c71e82e05009e382be4117c91b870febab5" }
+meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "1c5cb71f9f05ca513ac2e3510d285c37cb0c61f6" }

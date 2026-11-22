@@ -1,12 +1,14 @@
-"""A fake EUvsDisinfo MCP server for tests and behave scenarios, no network.
+"""Fakes of the corpus slice for tests and behave: EUvsDisinfo and web search.
 
 Features:
-    US-KOR-08, F-11
+    US-KOR-08, US-KOR-04, F-11, F-13
 """
 
 import json
 
 from httpx2 import AsyncClient, MockTransport, Request, Response
+from meritum_core.corpus.web_search import WebSearchCandidate
+from meritum_core.security.pii import MaskedText
 
 
 class FakeEuvsDisinfoServer:
@@ -199,3 +201,36 @@ def _article(article_id: int) -> dict[str, object]:
         "thumbnailURL": "",
         "url": f"https://euvsdisinfo.eu/article-{article_id}/",
     }
+
+
+class FakeWebSearch:
+    """WebSearchPort that finds the same candidates for every query.
+
+    Args:
+        candidates: what every search returns; none by default.
+
+    Attributes:
+        queries: the text of every query, in order.
+
+    Features:
+        US-KOR-04, F-13
+    """
+
+    def __init__(self, candidates: tuple[WebSearchCandidate, ...] = ()) -> None:
+        self.queries: list[str] = []
+        self._candidates = candidates
+
+    async def search(
+        self, query: MaskedText, *, limit: int = 10
+    ) -> list[WebSearchCandidate]:
+        """Note the query and return the candidates.
+
+        Args:
+            query: the masked claim.
+            limit: most candidates returned.
+
+        Returns:
+            The first ``limit`` candidates given at construction.
+        """
+        self.queries.append(query.text)
+        return list(self._candidates[:limit])

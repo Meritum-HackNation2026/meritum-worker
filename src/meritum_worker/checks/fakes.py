@@ -30,6 +30,8 @@ from meritum_core.shared.blobs import (
 
 from meritum_worker.checks.models import CheckState
 from meritum_worker.checks.ports import StepRun
+from meritum_worker.corpus import FakeWebSearch
+from meritum_worker.security import CleanInjectionDetector
 
 
 class InlineCheckRuntime:
@@ -215,3 +217,33 @@ def audio_ports(transcript: Path | None = None) -> AudioPorts:
         transcriber=build_transcriber(settings, blobs),
         notifications=InMemoryNotificationRepository(),
     )
+
+
+class WebPorts(TypedDict):
+    """The CheckDeps ports of live search, for ``CheckDeps(**web_ports())``.
+
+    Attributes:
+        web_search: a search that finds nothing.
+        injection: a detector that finds nothing.
+        catalog: an empty catalogue.
+
+    Features:
+        US-KOR-04, F-13
+    """
+
+    web_search: FakeWebSearch
+    injection: CleanInjectionDetector
+    catalog: tuple[()]
+
+
+def web_ports() -> WebPorts:
+    """Live search ports with no network: no results, nothing flagged.
+
+    Returns:
+        The ports.
+
+    Features:
+        US-KOR-04, F-13
+    """
+    search, detector = FakeWebSearch(), CleanInjectionDetector()
+    return WebPorts(web_search=search, injection=detector, catalog=())

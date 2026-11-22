@@ -1,12 +1,14 @@
-"""In-memory WorkflowStore for tests and behave: no DBOS.
+"""In-memory WorkflowStore and a clean injection detector for tests: no DBOS.
 
 Features:
-    US-BEZ-05, F-20
+    US-BEZ-05, US-BEZ-01, F-19, F-20
 """
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+
+from meritum_core.security.injection import InjectionScan
 
 from meritum_worker.security.models import StoredWorkflow
 
@@ -123,3 +125,22 @@ class InMemoryWorkflowStore:
         """
         for workflow_id in workflow_ids:
             self._runs.pop(workflow_id, None)
+
+
+class CleanInjectionDetector:
+    """InjectionDetectorPort that finds no instruction in any text.
+
+    Features:
+        US-BEZ-01, F-19
+    """
+
+    async def scan(self, text: str) -> InjectionScan:  # ruff: ignore[no-self-use]  # InjectionDetectorPort is an instance protocol
+        """Return the text with no span.
+
+        Args:
+            text: the scanned text.
+
+        Returns:
+            A scan that detected nothing.
+        """
+        return InjectionScan(text=text)

@@ -18,7 +18,7 @@ from meritum_core.checks.fakes import InMemoryCheckRecordRepository
 from meritum_core.security.pii import NullPiiGate
 from meritum_core.shared.llm import LlmProvider, LlmSettings, build_llm
 
-from meritum_worker.checks import CheckDeps, FakePageFetcher, audio_ports
+from meritum_worker.checks import CheckDeps, FakePageFetcher, audio_ports, web_ports
 from meritum_worker.observability import (
     GoldenCase,
     GoldenSet,
@@ -123,16 +123,21 @@ def jury_csv(context: Context) -> None:
 
 @when('członek jury uruchamia "uv run meritum-eval --cases jury.csv"')
 def jury_runs_eval(context: Context) -> None:
-    previous = os.environ.get("MERITUM_LLM_STUB_FIXTURES")
-    os.environ["MERITUM_LLM_STUB_FIXTURES"] = str(STUB_ANSWER)
+    stub = {
+        "MERITUM_LLM_PROVIDER": "stub",
+        "MERITUM_LLM_STUB_FIXTURES": str(STUB_ANSWER),
+    }
+    previous = {name: os.environ.get(name) for name in stub}
+    os.environ.update(stub)
     try:
         meritum_eval(
             ["--cases", str(context.path), "--output", str(context.report_path)]
         )
     finally:
-        os.environ.pop("MERITUM_LLM_STUB_FIXTURES")
-        if previous is not None:
-            os.environ["MERITUM_LLM_STUB_FIXTURES"] = previous
+        for name, value in previous.items():
+            os.environ.pop(name, None)
+            if value is not None:
+                os.environ[name] = value
 
 
 @then(
@@ -184,6 +189,7 @@ def _deps(seconds: float, fixtures: Path | None) -> CheckDeps:
         pages=FakePageFetcher(),
         pii=NullPiiGate(),
         **audio_ports(),
+        **web_ports(),
     )
 
 

@@ -1,0 +1,31 @@
+{
+  "ClaimExtraction": {
+    "out_of_scope": false,
+    "claims": [
+      {
+        "claim": "RCB wydało dziś rano ostrzeżenie przed burzami dla Mazowsza",
+        "kind": "fact",
+        "explanation": "Twierdzenie o komunikacie instytucji, które da się sprawdzić na jej stronie."
+      }
+    ]
+  },
+  "AnswerDraft": {
+    "claims": [
+      {
+        "claim": "RCB wydało dziś rano ostrzeżenie przed burzami dla Mazowsza",
+        "claim_date": "2026-01-05",
+        "claim_date_source": "today",
+        "verdict": "insufficient_evidence",
+        "explanation": "Model zastępczy nie ocenia twierdzenia, choć dostał dowody.",
+        "unresolved": "Model zastępczy nie cytuje źródeł."
+      }
+    ],
+    "limitations": [
+      "Odpowiedź z modelu zastępczego, bez oceny dowodów."
+    ]
+  },
+  "InjectionClassification": {
+    "injected": false,
+    "instructions": []
+  }
+}

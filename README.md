@@ -33,13 +33,18 @@ Workflow `check` bierze model, repozytorium zapisów, fetcher stron (ochrona SSR
 
 | Zmienna | Domyślnie | Znaczenie |
 | --- | --- | --- |
-| `MERITUM_LLM_PROVIDER` | `stub` | `stub` (bez kluczy i sieci) albo `vertex` |
-| `MERITUM_LLM_STUB_FIXTURES` | brak | plik z odpowiedziami stuba; w obrazie `/app/features/fixtures/llm_stub_answer.json`. Bez niego stub nie ma odpowiedzi i każde sprawdzenie kończy się stanem `technical_failure`, więc dev na stubie musi go mieć |
+| `MERITUM_LLM_PROVIDER` | `openrouter` | `openrouter` (Claude Haiku 5.5, decyzja D9), `vertex` albo `stub` (bez kluczy i sieci; testy ustawiają go jawnie). Model, rozumowanie i pozostałe `MERITUM_LLM_*` opisuje README meritum-core |
+| `OPENROUTER_API_KEY` | brak | klucz OpenRouter, wymagany dla `openrouter`; deploy podaje go z sekretu repozytorium (`OPENROUTER_API_KEY_DEV` z `develop`, `OPENROUTER_API_KEY_PRD` z `main`) |
+| `MERITUM_LLM_STUB_FIXTURES` | brak | plik z odpowiedziami stuba; w obrazie `/app/features/fixtures/llm_stub_answer.json`. Bez niego stub nie ma odpowiedzi i każde sprawdzenie kończy się stanem `technical_failure`, więc środowisko na stubie musi go mieć |
 | `MERITUM_DATABASE_PROVIDER` | `memory` | `memory` (fake'i w procesie: testy, CI, praca bez bazy; zapisy giną przy restarcie) albo `postgres` (dev i prd) |
 | `MERITUM_DATABASE_URL` | brak | adres libpq z `search_path` schematu aplikacji (`app_dev`, `app_prd`); wymagany dla `postgres` |
 | `MERITUM_PII_GATE` | `none` | bramka maskowania danych osobowych w tekście strony z linku: `none` (tylko wzorce telefonów, e-maili i PESEL; pominięcie bramki trafia do logu) albo `sdp` (Google Sensitive Data Protection) |
 | `MERITUM_PII_PROJECT` | brak | projekt Google Cloud rozliczany za Sensitive Data Protection; wymagany dla `sdp` |
 | `MERITUM_PII_LOCATION` | `europe-central2` | region UE punktu końcowego Sensitive Data Protection; sprawdzany tylko dla `sdp` |
+| `MERITUM_WEB_SEARCH_PROVIDER` | `stub` | wyszukiwanie na żywo: `stub` (adresy z pliku, bez sieci) albo `vertex_search` (Vertex AI Search, lokalizacja `global`) |
+| `MERITUM_WEB_SEARCH_PROJECT` | brak | projekt aplikacji Vertex AI Search (na dev `196419832223`); wymagany dla `vertex_search` |
+| `MERITUM_WEB_SEARCH_ENGINE` | brak | id aplikacji (engine) nad website data store (na dev `meritum-live-search`, serving config `default_search`); wymagany dla `vertex_search` |
+| `MERITUM_WEB_SEARCH_STUB_FIXTURE` | brak | plik JSON z listą adresów, które zwraca stub; bez niego stub nic nie znajduje |
 
 Przy `technical_failure` wynik zawiera `failure_code` z kontraktu meritum-core. Pole `message` w wynikach bez werdyktu zawiera tekst diagnostyczny do użytku wewnętrznego.
 
@@ -124,6 +129,10 @@ uv run meritum-eval --compare-embeddings evals/embeddings/*.toml --output evals/
 - `--compare-embeddings`: porównanie na zastępczym korpusie (w raporcie `corpus`), bo pełny korpus z bazy jeszcze nie powstał (worker#17). Korpusem są źródła z golden setu, tytuł i cytat, każdy adres raz. Zapytaniem jest każde różne główne twierdzenie przypadków ze źródłami, więc powtórzenia tego samego twierdzenia liczą się raz. `hit_rate` to odsetek zapytań, w których własne źródło trafiło na pierwsze miejsce, a `mean_reciprocal_rank` to średnia z 1/pozycja pierwszego własnego źródła. Koszt liczymy z `usd_per_million_chars` w pliku kandydata; przy cenniku za tokeny to przybliżenie opisane w komentarzu pliku. Kilkanaście dokumentów wystarcza, żeby porównać kandydatów między sobą, ale nie mówi, jak trafne będzie wyszukiwanie w pełnym korpusie.
 
 Jak dodać kandydata: skopiuj plik z katalogu, zmień `name` (nazwa pliku bez `.toml`, sprawdza to test) i tabelę `[llm]` albo `[embeddings]`. Pola tabeli to pola `LlmSettings` albo `EmbeddingsSettings` z meritum-core. Nieznane pole kończy się błędem, a klucze API przychodzą wyłącznie ze środowiska. Model bez endpointu ZDR na OpenRouterze dostaje `openrouter_zdr = false` i wolno go uruchamiać tylko na golden secie, nigdy na danych użytkowników. Raporty z przebiegów z prawdziwymi modelami trafiają do `evals/reports/`. Te przebiegi robimy ręcznie, poza CI (ADR-28).
+
+## Wyszukiwanie na żywo
+
+Krok `search_web` biegnie równolegle z `search_corpus` (jeden etap workflow, dwa kroki DBOS). Dla każdego faktu, najwyżej 5, wysyła jedno zapytanie przez `WebSearchPort` z meritum-core, który przepuszcza tylko adresy z domen katalogu. Każdy adres pobiera fetcher z meritum-core z kontrolą `robots.txt` i Content-Signal; strona, której końcowy adres po przekierowaniu wyszedł poza katalog, odpada. Pobrana strona czeka w kwarantannie na skan detektorem wstrzyknięć: czysta jest dowodem w tym sprawdzeniu (`Source.via = web_search`, trafia do `CheckRecord.source_ids`), a strona z poleceniem wypada z `InjectionEvent(action=source_dropped)` i jej adresem w `limitations`. Sprawdzenie nie zmienia wspólnego korpusu; stronę do następnej migawki przekaże [worker#90](https://github.com/Meritum-HackNation2026/meritum-worker/issues/90). Cały krok ma jeden limit 10 s (`WEB_SEARCH_TIMEOUT` w `corpus/constants.py`) na wyszukiwanie, pobranie i skan. Wyszukiwanie, które nie skończy się w tym czasie, albo jego awaria dają `technical_failure` z kodem `web_search_unavailable`. Strona, której nie zdążyliśmy zeskanować albo której detektor nie zeskanował, nie jest dowodem, trafia tylko do logu, a sprawdzenie biegnie dalej.
 
 ## Bramka klasyfikatora wstrzyknięć
 
