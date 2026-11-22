@@ -8,12 +8,13 @@ import sys
 import threading
 from datetime import UTC, datetime
 from functools import cache
+from pathlib import Path
 from typing import Any
 
 import httpx2
 import psycopg
 from dbos import DBOS, DBOSConfig, StepOptions, WorkflowSerializationFormat
-from meritum_core.checks.contracts import CatalogEntry
+from meritum_core.checks.contracts import CatalogEntry, EvalRun
 from meritum_core.corpus import CorpusSettings
 from meritum_core.corpus.catalog import load_catalog
 from meritum_core.jobs.constants import READINESS_KEY
@@ -23,6 +24,7 @@ from meritum_core.jobs.contracts import (
     DEFAULT_QUEUE,
     DELETE_SUBJECT,
     ESCALATE_CLAIM,
+    EVAL_RUN,
     PING,
     READINESS,
 )
@@ -211,6 +213,61 @@ async def readiness_workflow(payload: dict[str, Any]) -> dict[str, Any]:
         serialization_type=WorkflowSerializationFormat.PORTABLE,
     )
     return report
+
+
+def _eval_run_deps(corpus_version: str) -> observability.EvalRunDeps:
+    root = Path.cwd()
+    uploads = os.environ.get(
+        observability.EVAL_FILES_DIR_VAR, observability.DEFAULT_EVAL_FILES_DIR
+    )
+    return observability.build_eval_run_deps(
+        LlmSettings(),
+        DatabaseSettings(),
+        corpus_version,
+        root / observability.DEFAULT_CASES_FILE,
+        root / uploads,
+    )
+
+
+@DBOS.workflow(
+    name=EVAL_RUN.name, serialization_type=WorkflowSerializationFormat.PORTABLE
+)
+async def eval_run_workflow(payload: dict[str, Any]) -> dict[str, Any]:
+    """Run the golden set or a staff file and store the EvalRun (EVAL_RUN).
+
+    Starting, checking the cases and finishing are three steps, so a recovered
+    run does not check the cases again once they are done.
+
+    Args:
+        payload: the `EvalRunInput` JSON object.
+
+    Returns:
+        The `EvalRunOutput` JSON object; the staff user gets eval_run_done.
+
+    Features:
+        US-OBS-06, US-POW-05, F-28, ADR-03
+    """
+    deps = _eval_run_deps(EVAL_RUN.input.model_validate(payload).corpus_version)
+
+    async def start() -> str:
+        return (await observability.start_eval_run(payload, deps)).model_dump_json()
+
+    async def evaluate(running: str) -> str:
+        run = EvalRun.model_validate_json(running)
+        return (await observability.evaluate_eval_run(run, deps)).model_dump_json()
+
+    async def finish(done: str) -> dict[str, Any]:
+        run = EvalRun.model_validate_json(done)
+        output = await observability.finish_eval_run(run, deps)
+        return output.model_dump(mode="json")
+
+    running = await DBOS.run_step_async(
+        {"name": "start", "retries_allowed": True}, start
+    )
+    done = await DBOS.run_step_async({"name": "evaluate"}, evaluate, running)
+    return await DBOS.run_step_async(
+        {"name": "finish", "retries_allowed": True}, finish, done
+    )
 
 
 def _retention_deps() -> security.RetentionDeps:
