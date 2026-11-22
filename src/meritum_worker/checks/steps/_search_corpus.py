@@ -13,12 +13,11 @@ from datetime import date
 from meritum_core.security.pii import mask_personal_data
 
 from meritum_worker.checks.constants import (
-    MAX_PARALLEL_CLAIMS,
     NO_CORPUS_VERSION,
     SEARCH_CORPUS_STEP,
 )
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
-from meritum_worker.corpus import Reranking, rerank_passages
+from meritum_worker.corpus import MAX_PARALLEL_CLAIMS, Reranking, rerank_passages
 
 
 async def search_corpus(state: CheckState, deps: CheckDeps) -> CheckState:

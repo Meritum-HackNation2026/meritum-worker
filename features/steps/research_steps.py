@@ -9,7 +9,7 @@ from check_support import DEFAULT_TEXT, deps, run
 from meritum_core.corpus import Passage
 
 from meritum_worker.checks import FakeCorpusSearch
-from meritum_worker.checks.constants import MAX_PARALLEL_CLAIMS
+from meritum_worker.corpus import MAX_PARALLEL_CLAIMS, FakeWebSearch
 
 FOUR_FACTS = [f"W 2024 r. wskaźnik numer {i} wyniósł {i},5%." for i in range(1, 5)]
 PASSAGE = Passage(
@@ -24,8 +24,12 @@ PASSAGE = Passage(
 @given("tekst z 4 twierdzeniami")
 def four_claims(context: Context) -> None:
     context.corpus = FakeCorpusSearch([PASSAGE])
+    context.web = FakeWebSearch()
     context.deps = dataclasses.replace(
-        deps("claims_four_facts.json"), corpus=context.corpus, corpus_version="v1"
+        deps("claims_four_facts.json"),
+        corpus=context.corpus,
+        corpus_version="v1",
+        web_search=context.web,
     )
 
 
@@ -38,6 +42,8 @@ def research_agents_run(context: Context) -> None:
 def at_most_three_at_once(context: Context) -> None:
     assert len(context.corpus.queries) == len(FOUR_FACTS)
     assert context.corpus.most_at_once == MAX_PARALLEL_CLAIMS
+    assert len(context.web.queries) == len(FOUR_FACTS)
+    assert context.web.most_at_once == MAX_PARALLEL_CLAIMS
 
 
 @then("AnalysisStatus pokazuje kilka kroków w stanie active naraz")

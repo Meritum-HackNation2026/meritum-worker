@@ -15,9 +15,9 @@ from meritum_worker.checks import (
     FakeCorpusSearch,
     corpus_ports,
 )
-from meritum_worker.checks.constants import MAX_PARALLEL_CLAIMS
 from meritum_worker.checks.settings import ResearchSettings
-from meritum_worker.checks.steps import search_corpus
+from meritum_worker.checks.steps import search_corpus, search_web
+from meritum_worker.corpus import MAX_PARALLEL_CLAIMS, FakeWebSearch
 
 type MakeDeps = Callable[..., CheckDeps]
 
@@ -134,3 +134,13 @@ def test_research_settings_pin_the_snapshot_from_the_environment(
     assert ResearchSettings().corpus_version == "none"
     monkeypatch.setenv("MERITUM_CORPUS_VERSION", "2026-11-21T10:00Z")
     assert ResearchSettings().corpus_version == "2026-11-21T10:00Z"
+
+
+def test_search_web_researches_at_most_three_claims_at_once(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    web = FakeWebSearch()
+    deps = dataclasses.replace(make_deps(), web_search=web)
+    asyncio.run(search_web(_with_facts(state, 5), deps))
+    assert len(web.queries) == 5
+    assert web.most_at_once == MAX_PARALLEL_CLAIMS
