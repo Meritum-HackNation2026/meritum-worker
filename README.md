@@ -221,6 +221,30 @@ Test adaptera PostgreSQL uruchamiamy lokalnie na obrazie `meritum-postgres` z me
 MERITUM_TEST_DATABASE_URL=postgresql://... uv run pytest -m integration tests/corpus
 ```
 
+## Wczytywanie katalogu i migawki korpusu
+
+Dwa zaplanowane workflowy DBOS z `src/meritum_worker/corpus/` budują korpus z katalogu źródeł z meritum-core (`load_catalog()`, `catalog.yaml`):
+
+- `corpus_ingest` co 15 minut bierze pozycje z `role: evidence` i `ingest` równym `static`, `rss` albo `sitemap`, pomija wykluczone (`excluded`) i z `tdm_reservation: reserved`, a z pozostałych tylko te, którym od ostatniej próby (`corpus.ingest_attempts`, także nieudanej) minęło `refresh_minutes` (domyślnie raz na dobę). Pozycje `live`, `web_search`, `mcp` i `source_status` nie trafiają do korpusu. Pozycje `api` czekają na własne adaptery ([worker#82](https://github.com/Meritum-HackNation2026/meritum-worker/issues/82)), bo API odpowiadają JSON-em, którego fetcher z core nie przyjmuje. Wybór pozycji to pierwszy krok DBOS, a każda pozycja to osobny krok z ponowieniami, więc ponowiony krok pobiera wszystkie strony pozycji od nowa. Strony pobiera fetcher z core z celem `SOURCE` (ochrona SSRF, `robots.txt`, Content-Signal, znaczniki TDM w stronie), dzieli je na fragmenty do 1200 znaków (`chunk_text`), wektoryzuje portem embeddingów i zapisuje. Błąd jednej strony (także niedostępne embeddingi) trafia do raportu kroku z adresem i powodem, a przebieg idzie dalej. Raport kroku zostaje w historii workflowu DBOS.
+- `corpus_snapshot` co godzinę zapisuje `corpus_version` nazwaną od godziny (`2026-11-20T10:00Z`) z manifestem: identyfikatory dokumentów, sumy kontrolne i `fetched_at`. Strona zapisana między migawkami, także strona z wyszukiwania na żywo po skanie (`corpus.store_page`), wchodzi do następnej. `store_page` odrzuca strony pozycji wykluczonych i zastrzeżonych dla TDM także na tej drodze.
+
+Na razie każda pozycja ma jedną stronę: adres `https://<domena>` (`EntryPageDiscovery`). Wpisy z kanałów RSS i map stron dołoży [worker#22](https://github.com/Meritum-HackNation2026/meritum-worker/issues/22) jako kolejną implementację `DocumentDiscoveryPort`, więc dopiero wtedy prawdziwy korpus przekroczy 100 dokumentów.
+
+Dokumenty leżą w `corpus.documents` (adres, domena, `publisher_id` i licencja z katalogu, `fetched_at`, suma kontrolna, pełny tekst), fragmenty w `corpus.passages`, manifesty w `corpus.snapshot_manifest` (migracje corpus 0001 i 0003 z meritum-core; 0003 dodaje też `corpus.ingest_attempts`). Pełny tekst czyta tylko system; wyszukiwanie zwraca fragmenty. Zmieniona strona dostaje nowe fragmenty, a stare dostają `retired_at`, więc sprawdzenie z poprzednią wersją widzi to samo co wcześniej. Retencję pełnych tekstów buduje [worker#77](https://github.com/Meritum-HackNation2026/meritum-worker/issues/77) na tym modelu: wyczyści `full_text` po 90 dniach od `fetched_at` (`FULL_TEXT_RETENTION_DAYS` w core) i zostawi wiersz.
+
+| Zmienna | Domyślnie | Opis |
+|---|---|---|
+| `MERITUM_CORPUS_INGEST` | brak | `enabled` tworzy oba harmonogramy przy starcie workera. Ustawiamy ją tylko tam, gdzie rola może pisać do schematu `corpus` (prd); bez niej harmonogramów nie ma, a uruchomiony ręcznie workflow nic nie robi |
+| `MERITUM_CORPUS_PROVIDER`, `MERITUM_CORPUS_DATABASE_URL` | `memory` | gdzie zapisywać dokumenty i migawki (te same ustawienia co kopia EUvsDisinfo) |
+| `MERITUM_EMBEDDINGS_*` | `stub` | model embeddingów z meritum-core; korpus i wyszukiwanie muszą używać tego samego |
+
+Testy na prawdziwym PostgreSQL i DBOS, poza CI (baza z `MERITUM_TEST_DATABASE_URL` bez dokumentów i migawek; test ją potem czyści):
+
+```bash
+MERITUM_TEST_DATABASE_URL=postgresql://... MERITUM_DBOS_URL=postgresql://... \
+  uv run pytest -m integration tests/corpus
+```
+
 ## CI/CD
 
 `.github/workflows/ci.yml`: `lint` i `tests` na runnerach GCP, `deploy` na `dellpromaxgb10` tylko z `develop` i `main`, po zielonym CI. `deploy/deploy.sh` buduje obraz, robi migracje, podmienia kontener z `--stop-timeout 40` i czeka, aż worker zgłosi gotowość. Niedokończone workflowy wznawia nowy kontener.

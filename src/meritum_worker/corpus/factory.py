@@ -1,4 +1,4 @@
-"""Builds the EUvsDisinfo client and the local copy, and runs the sync with them.
+"""Builds the corpus adapters (EUvsDisinfo, catalogue documents) and runs the sync.
 
 Features:
     US-KOR-08, F-11, ADR-32
@@ -10,13 +10,17 @@ from datetime import datetime
 from google.auth.credentials import Credentials
 from httpx2 import AsyncClient
 from meritum_core.corpus import CorpusProvider, CorpusSettings
+from meritum_core.corpus.fetching import build_page_fetcher
 from meritum_core.corpus.rerank import NullReranker, RerankerPort
 from meritum_core.shared.embeddings import EmbeddingsPort
 
 from meritum_worker.corpus.adapters import (
+    EntryPageDiscovery,
     McpEuvsDisinfo,
+    MemoryCorpusWriter,
     MemoryEuvsCopy,
     OpenRouterReranker,
+    PostgresCorpusWriter,
     PostgresEuvsCopy,
     VertexReranker,
     WorkersAiReranker,
@@ -28,7 +32,13 @@ from meritum_worker.corpus.constants import (
 )
 from meritum_worker.corpus.errors import MissingTokenError
 from meritum_worker.corpus.models import SyncReport
-from meritum_worker.corpus.ports import EuvsCopyPort, EuvsDisinfoPort
+from meritum_worker.corpus.ports import (
+    CorpusWriterPort,
+    DocumentDiscoveryPort,
+    EuvsCopyPort,
+    EuvsDisinfoPort,
+    IngestDeps,
+)
 from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
 from meritum_worker.corpus.sync import missing_env, sync_euvsdisinfo
 
@@ -74,17 +84,73 @@ def build_euvsdisinfo_copy(settings: CorpusSettings | None = None) -> EuvsCopyPo
 
     Features:
         US-KOR-08, F-11, ADR-26
+    """  # ruff: ignore[docstring-extraneous-exception]  # raised by _postgres_url
+    url = _postgres_url(settings)
+    return MemoryEuvsCopy() if url is None else PostgresEuvsCopy(url)
+
+
+def build_corpus_writer(settings: CorpusSettings | None = None) -> CorpusWriterPort:
+    """Build the writer of catalogue documents and snapshots.
+
+    Args:
+        settings: Usually ``CorpusSettings()`` from ``MERITUM_CORPUS_*``; postgres
+            writes the shared ``corpus`` schema. None (tests) or memory: in process.
+
+    Returns:
+        The PostgreSQL or the in-memory writer.
+
+    Raises:
+        ValueError: postgres without a database URL (settings built unvalidated).
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+    """  # ruff: ignore[docstring-extraneous-exception]  # raised by _postgres_url
+    url = _postgres_url(settings)
+    return MemoryCorpusWriter() if url is None else PostgresCorpusWriter(url)
+
+
+def build_document_discovery() -> DocumentDiscoveryPort:
+    """Build the discovery of catalogue pages: each entry's own page for now.
+
+    Returns:
+        The entry-page discovery.
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
     """
-    if settings is None:
-        return MemoryEuvsCopy()
-    match settings.provider:
-        case CorpusProvider.POSTGRES:
-            if settings.database_url is None:
-                msg = "MERITUM_CORPUS_DATABASE_URL is required for postgres"
-                raise ValueError(msg)
-            return PostgresEuvsCopy(settings.database_url.get_secret_value())
-        case CorpusProvider.MEMORY:
-            return MemoryEuvsCopy()
+    return EntryPageDiscovery()
+
+
+def build_ingest_deps(
+    settings: CorpusSettings, embeddings: EmbeddingsPort
+) -> IngestDeps:
+    """Build the ports of the catalogue ingestion from the worker's settings.
+
+    Args:
+        settings: ``CorpusSettings()``: where documents and snapshots go.
+        embeddings: The model the corpus is searched with.
+
+    Returns:
+        Entry-page discovery, core's SSRF-safe fetcher, the embeddings, the writer.
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+    """
+    return IngestDeps(
+        discovery=build_document_discovery(),
+        fetcher=build_page_fetcher(),
+        embeddings=embeddings,
+        store=build_corpus_writer(settings),
+    )
+
+
+def _postgres_url(settings: CorpusSettings | None) -> str | None:
+    if settings is None or settings.provider is CorpusProvider.MEMORY:
+        return None
+    if settings.database_url is None:
+        msg = "MERITUM_CORPUS_DATABASE_URL is required for postgres"
+        raise ValueError(msg)
+    return settings.database_url.get_secret_value()
 
 
 async def run_euvsdisinfo_sync(

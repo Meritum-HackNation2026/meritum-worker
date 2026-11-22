@@ -1,15 +1,26 @@
-"""Ports of the EUvsDisinfo sync: the MCP client and the local copy.
+"""Ports of the corpus slice: EUvsDisinfo sync, catalogue ingestion and snapshots.
 
-The client port stays in the worker: only the worker calls it (ADR-32).
+They stay in the worker: only the worker writes the corpus (ADR-32).
 
 Features:
-    US-KOR-08, F-11, ADR-32
+    US-KOR-08, US-KOR-02, F-11, F-12, ADR-32
 """
 
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
+from meritum_core.checks.contracts import CatalogEntry
+from meritum_core.corpus.fetching import PageFetcherPort
+from meritum_core.shared.embeddings import EmbeddingsPort
+
+from meritum_worker.corpus.documents import (
+    CorpusSnapshot,
+    Document,
+    DocumentMeta,
+    DocumentPassage,
+)
 from meritum_worker.corpus.models import EuvsArticle, EuvsCase, StoredEntry
 
 
@@ -102,3 +113,125 @@ class EuvsCopyPort(Protocol):
             domains: Domain to the keys of live cases that link to it.
         """
         ...
+
+
+@runtime_checkable
+class DocumentDiscoveryPort(Protocol):
+    """Finds the pages of one catalogue entry to ingest.
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+    """
+
+    async def urls(self, entry: CatalogEntry) -> list[str]:
+        """Return the absolute http(s) URLs of the entry's pages.
+
+        Args:
+            entry: An ingestible catalogue entry.
+
+        Returns:
+            The URLs, without duplicates.
+        """
+        ...
+
+
+@runtime_checkable
+class CorpusWriterPort(Protocol):
+    """Writes catalogue documents, their passages and snapshots to ``corpus``.
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-19, ADR-32
+    """
+
+    async def documents(self) -> list[DocumentMeta]:
+        """Return the metadata of every live document, without the text.
+
+        Returns:
+            The documents in no particular order.
+        """
+        ...
+
+    async def document(self, source_id: str) -> DocumentMeta | None:
+        """Return one live document's metadata.
+
+        Args:
+            source_id: The document.
+
+        Returns:
+            The metadata, None when the corpus has no such document.
+        """
+        ...
+
+    async def last_attempt(self, domain: str) -> datetime | None:
+        """Return when the catalogue ingestion last tried a domain.
+
+        Args:
+            domain: A catalogue domain.
+
+        Returns:
+            The time, None when it was never tried.
+        """
+        ...
+
+    async def record_attempt(self, domain: str, at: datetime) -> None:
+        """Note that the catalogue ingestion tries a domain now, whatever the outcome.
+
+        Args:
+            domain: A catalogue domain.
+            at: When the run started.
+        """
+        ...
+
+    async def save_document(
+        self, document: Document, passages: Sequence[DocumentPassage]
+    ) -> None:
+        """Add or replace a document, keyed by ``source_id``, in one transaction.
+
+        Args:
+            document: The document with its full text.
+            passages: Its new passages; they retire the earlier ones, which old
+                snapshots keep. Empty when the text did not change.
+        """
+        ...
+
+    async def take_snapshot(self, version: str) -> CorpusSnapshot:
+        """Take snapshot ``version`` after every finished write, or return it.
+
+        Args:
+            version: The snapshot name; taking it again returns the first one.
+
+        Returns:
+            The snapshot with the manifest of every live document.
+        """
+        ...
+
+    async def snapshot(self, version: str) -> CorpusSnapshot | None:
+        """Return a snapshot taken earlier.
+
+        Args:
+            version: The snapshot name.
+
+        Returns:
+            The snapshot, None when there is none.
+        """
+        ...
+
+
+@dataclass(frozen=True)
+class IngestDeps:
+    """The ports one ingestion run uses.
+
+    Attributes:
+        discovery: Finds each entry's pages.
+        fetcher: The SSRF-safe fetcher from core; honours robots.txt and Content-Signal.
+        embeddings: Multilingual embeddings for passages.
+        store: The corpus writer.
+
+    Features:
+        US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
+    """
+
+    discovery: DocumentDiscoveryPort
+    fetcher: PageFetcherPort
+    embeddings: EmbeddingsPort
+    store: CorpusWriterPort

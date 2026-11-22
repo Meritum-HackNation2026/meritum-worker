@@ -173,3 +173,78 @@ WEB_TITLE_MAX_CHARS: Final = 200
 
 INJECTION_EXCERPT_MAX_CHARS: Final = 300
 """Longest InjectionEvent.excerpt the contract accepts."""
+CHUNK_MAX_CHARS: Final = 1200
+"""Longest passage: short enough to quote with a link (US-KOR-05, F-12)."""
+
+PARAGRAPH_SEPARATOR: Final = "\n\n"
+"""Joins the paragraphs grouped into one passage."""
+
+INGESTED_METHODS: Final = frozenset({"static", "rss", "sitemap"})
+"""Catalogue ``ingest`` values fetched as web pages (ADR-32); ``api`` answers JSON
+the page fetcher refuses, so it waits for per-API adapters (worker#82)."""
+
+EVIDENCE_ROLE: Final = "evidence"
+"""Catalogue ``role`` of entries ingested as evidence (not ``source_status``)."""
+
+TDM_RESERVED_ENTRY: Final = "reserved"
+"""Catalogue ``tdm_reservation`` of an owner who opted out of text and data mining."""
+
+PLAN_STEP: Final = "plan due entries"
+"""DBOS step that picks the due entries once, so a retried entry refetches all."""
+
+INGEST_STEP_PREFIX: Final = "ingest "
+"""Prefix of an entry's DBOS step name, before its catalogue domain."""
+
+SNAPSHOT_STEP: Final = "take snapshot"
+"""DBOS step of the snapshot workflow."""
+
+DEFAULT_REFRESH_MINUTES: Final = 1440
+"""Refresh interval of a catalogue entry that names none: once a day."""
+
+INGEST_WORKFLOW: Final = "corpus_ingest"
+"""DBOS name of the scheduled catalogue ingestion workflow."""
+
+INGEST_SCHEDULE: Final = "*/15 * * * *"
+"""Cron of the ingestion: 15 is the shortest ``refresh_minutes`` allowed."""
+
+SNAPSHOT_WORKFLOW: Final = "corpus_snapshot"
+"""DBOS name of the scheduled snapshot workflow."""
+
+SNAPSHOT_SCHEDULE: Final = "0 * * * *"
+"""Cron of the snapshots: a new ``corpus_version`` every hour, on the hour (ADR-19)."""
+
+SNAPSHOT_VERSION_FORMAT: Final = "%Y-%m-%dT%H:%MZ"
+"""strftime format of a ``corpus_version`` from its scheduled UTC time."""
+
+INGEST_ENV: Final = "MERITUM_CORPUS_INGEST"
+"""Turns on ingestion and snapshots; set only where ``corpus`` is writable (prd)."""
+
+INGEST_ENABLED: Final = "enabled"
+"""The ``MERITUM_CORPUS_INGEST`` value that turns them on."""
+
+SOURCE_ID_PREFIX: Final = "doc-"
+"""Prefix of a catalogue document's ``source_id``, before a hash of its URL."""
+
+SOURCE_ID_HASH_CHARS: Final = 24
+"""Hex characters of the URL's sha256 kept in a ``source_id`` (96 bits)."""
+
+PASSAGE_CHECKSUM_CHARS: Final = 12
+"""Hex characters of the text checksum in a passage id."""
+
+TDM_RESERVED: Final = "tdm_reserved"
+"""Failure reason of a page whose meta tags reserve text and data mining."""
+
+EMPTY_TEXT: Final = "empty_text"
+"""Failure reason of a page with no main text."""
+
+ENTRY_NOT_INGESTIBLE: Final = "entry_not_ingestible"
+"""Failure reason of a page of an excluded or TDM-reserved catalogue entry."""
+
+EMBEDDINGS_UNAVAILABLE: Final = "embeddings_unavailable"
+"""Failure reason of a page whose passages could not be embedded."""
+
+EMBED_BATCH: Final = 100
+"""Passages embedded per call."""
+
+CORPUS_WRITE_LOCK: Final = 17_0001
+"""Advisory lock: writes take it shared, a snapshot exclusive (ADR-19)."""
