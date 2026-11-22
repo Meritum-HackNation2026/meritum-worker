@@ -29,6 +29,7 @@ from meritum_core.evidence import (
     settle_verdict,
 )
 
+from meritum_worker.evidence.constants import MISLEADING_RATING_TECHNIQUE
 from meritum_worker.evidence.models import Judgement
 
 
@@ -101,7 +102,9 @@ def judge(  # ruff: ignore[too-many-arguments]  # one keyword per kind of eviden
         catalog: catalogue entries by domain.
         claim_date: the date the claim refers to.
         present_tense: whether the claim speaks about the present.
-        reviews: fact-checkers' ratings of this claim, each one secondary publisher.
+        reviews: fact-checkers' ratings of this claim, each one secondary publisher;
+            one with stance ``context`` (partly true, manipulation) gives
+            ``misleading`` unless the evidence conflicts.
         review_context: ratings shown as context only.
 
     Returns:
@@ -117,9 +120,10 @@ def judge(  # ruff: ignore[too-many-arguments]  # one keyword per kind of eviden
     decisive = fresh & {"supports", "refutes"} or {c.stance for c in current}
     decisive |= {r.stance for r in reviews}
     conflicting = {"supports", "refutes"} <= decisive
-    verdict = settle_verdict(
-        _proposed(decisive), citations, reviews, claim_date=claim_date
-    )
+    # A matched partial rating (stance context) makes the claim misleading (worker#280).
+    rated_partly = any(r.stance == "context" for r in reviews)
+    proposed = "misleading" if rated_partly else _proposed(decisive)
+    verdict = settle_verdict(proposed, citations, reviews, claim_date=claim_date)
     max_age = _max_age_hours(verdict, citations, catalog)
     technique = None
     archival = False
@@ -131,6 +135,8 @@ def judge(  # ruff: ignore[too-many-arguments]  # one keyword per kind of eviden
             present_tense=present_tense,
             max_age_hours=max_age,
         )
+    if verdict == "misleading" and technique is None:
+        technique = MISLEADING_RATING_TECHNIQUE
     strength = compute_strength(
         verdict,
         citations,
