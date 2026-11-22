@@ -1,12 +1,14 @@
 """DbosCheckResults reads the checks and the rechecks DBOS keeps; DBOS is faked."""
 
 import asyncio
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
+from typing import Self
 
 import pytest
 from dbos import DBOS
 from meritum_core.checks import CheckResult
+from psycopg import AsyncConnection
 
 from meritum_worker.moderation.adapters import DbosCheckResults
 
@@ -83,3 +85,42 @@ def test_a_recheck_claim_is_found_for_the_moderators() -> None:
 def test_unanswered_rechecks_join_the_history_of_unanswered_claims() -> None:
     found = asyncio.run(DbosCheckResults().unanswered_since(ASKED))
     assert {p.check_id for p in found} == {"chk_1", "re_1"}
+
+
+class _Served:
+    """psycopg AsyncConnection fake: ``result_cache_checks`` holds one cache hit."""
+
+    def __init__(self, served: dict[str, object]) -> None:
+        self._served = served
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(self, *_exc: object) -> None:
+        return None
+
+    async def execute(self, _query: str, params: tuple[str]) -> SimpleNamespace:
+        row = (self._served,) if params == ("hit_1",) else None
+
+        async def fetchone() -> tuple[dict[str, object]] | None:  # ruff: ignore[unused-async]  # replaces an async psycopg call
+            return row
+
+        return SimpleNamespace(fetchone=fetchone)
+
+
+def test_a_check_served_from_the_result_cache_has_its_claim(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    served = {
+        **RUNS[0].output["result"],
+        "source_ids": [],
+        "cached_at": ASKED.isoformat(),
+        "expires_at": (ASKED + timedelta(days=7)).isoformat(),
+    }
+
+    async def connect(_conninfo: str) -> _Served:  # ruff: ignore[unused-async]  # replaces an async psycopg call
+        return _Served(served)
+
+    monkeypatch.setattr(AsyncConnection, "connect", connect)
+    claim = asyncio.run(DbosCheckResults("postgresql://app").claim("hit_1", 0))
+    assert claim == "twierdzenie z check"
