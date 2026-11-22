@@ -16,6 +16,7 @@ from meritum_worker.checks.announcements import (
     notify_service_state,
 )
 from meritum_worker.checks.answers import AnswerDraft
+from meritum_worker.checks.constants import CHECK_LINK
 from meritum_worker.checks.fakes import (
     AudioPorts,
     FailingCheckRuntime,
@@ -36,6 +37,7 @@ from meritum_worker.checks.ports import CheckRuntime
 from meritum_worker.checks.workflow import pipeline, run_check
 
 __all__ = [
+    "CHECK_LINK",
     "AnswerDraft",
     "AudioPorts",
     "CheckDeps",

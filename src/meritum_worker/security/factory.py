@@ -7,6 +7,7 @@ Features:
 from google.auth.credentials import Credentials
 from httpx2 import AsyncClient
 from meritum_core.corpus import CorpusSettings
+from meritum_core.jobs.contracts import CHECK
 from meritum_core.observability import build_app_repositories
 from meritum_core.security.injection import (
     InjectionDetectorPort,
@@ -95,13 +96,14 @@ def build_detector(
     return build_injection_detector(llm=llm, gate=gate)
 
 
-def build_retention_deps(
+def build_retention_deps(  # ruff: ignore[too-many-arguments]  # keyword-only test seams beside the two settings
     database: DatabaseSettings,
     blobs: BlobSettings | None,
     *,
     workflows: WorkflowStore | None = None,
     corpus: CorpusSettings | None = None,
     corpus_store: CorpusRetentionPort | None = None,
+    check_workflows: tuple[str, ...] = (CHECK.name,),
 ) -> RetentionDeps:
     """Build the ports of the retention and ``delete_subject`` workflows.
 
@@ -113,6 +115,7 @@ def build_retention_deps(
         corpus: corpus settings, usually ``CorpusSettings()`` when the worker
             ingests the catalogue; None: an empty in-memory corpus.
         corpus_store: the corpus retention itself (tests); wins over ``corpus``.
+        check_workflows: the names of workflows whose input is a ``CheckInput``.
 
     Returns:
         The ports.
@@ -126,6 +129,7 @@ def build_retention_deps(
         blobs=_blob_cleaner(blobs),
         removed_checks=_removed_checks(database),
         corpus=build_corpus_retention(corpus) if corpus_store is None else corpus_store,
+        check_workflows=check_workflows,
     )
 
 

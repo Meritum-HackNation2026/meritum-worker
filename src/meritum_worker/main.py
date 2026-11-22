@@ -6,6 +6,7 @@ import os
 import signal
 import sys
 import threading
+from dataclasses import replace
 from datetime import UTC, datetime
 from functools import cache
 from pathlib import Path
@@ -13,7 +14,13 @@ from typing import Any
 
 import httpx2
 import psycopg
-from dbos import DBOS, DBOSConfig, StepOptions, WorkflowSerializationFormat
+from dbos import (
+    DBOS,
+    DBOSConfig,
+    SetWorkflowID,
+    StepOptions,
+    WorkflowSerializationFormat,
+)
 from meritum_core.checks.contracts import CatalogEntry, EvalRun
 from meritum_core.corpus import CorpusSettings
 from meritum_core.corpus.catalog import load_catalog
@@ -41,6 +48,7 @@ from meritum_worker import (
     evidence,
     jobs,
     moderation,
+    notifications,
     observability,
     security,
 )
@@ -446,7 +454,12 @@ async def archive_page_workflow(payload: dict[str, Any]) -> dict[str, Any]:
 def _retention_deps() -> security.RetentionDeps:
     blobs = BlobSettings() if security.BLOB_PROVIDER_ENV in os.environ else None
     documents = CorpusSettings() if corpus.ingestion_enabled(os.environ) else None
-    return security.build_retention_deps(DatabaseSettings(), blobs, corpus=documents)
+    return security.build_retention_deps(
+        DatabaseSettings(),
+        blobs,
+        corpus=documents,
+        check_workflows=(CHECK.name, notifications.RECHECK_CLAIM_WORKFLOW),
+    )
 
 
 async def _erase(payload: dict[str, object]) -> int:
@@ -590,11 +603,103 @@ async def corpus_snapshot_workflow(scheduled: datetime, _context: object) -> Non
         _context: The schedule's context (unused).
 
     Features:
-        US-KOR-02, US-KOR-05, F-10, F-12, ADR-19, ADR-21
+        US-KOR-02, US-KOR-05, US-POW-03, F-10, F-12, F-39, ADR-19, ADR-21
     """
     if corpus.ingestion_enabled(os.environ):
         options: StepOptions = {"name": corpus.SNAPSHOT_STEP, "retries_allowed": True}
         await DBOS.run_step_async(options, _snapshot, scheduled)
+        # Unanswered questions are checked again on the new snapshot (US-POW-03).
+        await DBOS.start_workflow_async(recheck_workflow, scheduled)
+
+
+def _recheck_deps() -> notifications.RecheckDeps:
+    deps = check_deps()
+    if deps.moderation is None:  # build_check_deps always sets it
+        msg = "moderation ports are not configured"
+        raise RuntimeError(msg)
+    return notifications.RecheckDeps(
+        results=deps.moderation.results,
+        records=deps.records,
+        corpus=deps.corpus,
+        snapshots=_ingest_deps().store,
+        inbox=deps.notifications,
+    )
+
+
+async def _plan_rechecks(scheduled: datetime) -> list[dict[str, Any]]:
+    plans = await notifications.plan_rechecks(
+        scheduled, _recheck_deps(), datetime.now(UTC)
+    )
+    return [plan.model_dump(mode="json") for plan in plans]
+
+
+async def _announce_recheck(plan: dict[str, Any], output: dict[str, Any]) -> bool:
+    return await notifications.announce_recheck(
+        notifications.Recheck.model_validate(plan),
+        CHECK.output.model_validate(output).result,
+        _recheck_deps(),
+        datetime.now(UTC),
+    )
+
+
+@DBOS.workflow(name=notifications.RECHECK_CLAIM_WORKFLOW)
+async def recheck_claim_workflow(
+    payload: dict[str, Any], corpus_version: str
+) -> dict[str, Any]:
+    """Check one unanswered claim again on the new snapshot; its own CheckRecord.
+
+    Args:
+        payload: the `CheckInput` JSON object of the new check.
+        corpus_version: the new snapshot, searched instead of the pinned one.
+
+    Returns:
+        The `CheckOutput` JSON object.
+
+    Features:
+        US-POW-03, F-39, ADR-29
+    """
+    deps = replace(check_deps(), corpus_version=corpus_version)
+    output = await checks.run_check(
+        payload, DBOS.workflow_id or "", deps, build_check_runtime()
+    )
+    return output.model_dump(mode="json")
+
+
+@DBOS.workflow(name=notifications.RECHECK_WORKFLOW)
+async def recheck_workflow(scheduled: datetime) -> int:
+    """Recheck the unanswered claims the snapshot of ``scheduled`` may answer.
+
+    Each recheck is a child workflow whose id is the new check's id, so a
+    recovered run does not start it twice.
+
+    Args:
+        scheduled: when the snapshot workflow fired; names the snapshot.
+
+    Returns:
+        How many askers got ``new_evidence``.
+
+    Features:
+        US-POW-03, F-39, ADR-29
+    """
+    plan_step: StepOptions = {
+        "name": notifications.RECHECK_PLAN_STEP,
+        "retries_allowed": True,
+    }
+    announce_step: StepOptions = {
+        "name": notifications.RECHECK_ANNOUNCE_STEP,
+        "retries_allowed": True,
+    }
+    sent = 0
+    for plan in await DBOS.run_step_async(plan_step, _plan_rechecks, scheduled):
+        with SetWorkflowID(plan["check_id"]):
+            handle = await DBOS.start_workflow_async(
+                recheck_claim_workflow, plan["job"], plan["corpus_version"]
+            )
+        output = await handle.get_result()
+        sent += await DBOS.run_step_async(
+            announce_step, _announce_recheck, plan, output
+        )
+    return sent
 
 
 def config() -> DBOSConfig:

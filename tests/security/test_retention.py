@@ -175,3 +175,18 @@ def test_erasure_by_channel_user_hash_drops_their_checks_and_audio(
     asyncio.run(erase_subject(payload, _deps(store, tmp_path)))
     assert store.ids() == {"chk_2"}
     assert not audio.exists()
+
+
+def test_erasure_drops_every_named_check_workflow_of_the_person() -> None:
+    store = InMemoryWorkflowStore()
+    store.add("chk_1", "check", {"channel_user_hash": HASH}, created_at=NOW)
+    store.add("chk_2", "recheck_claim", {"channel_user_hash": HASH}, created_at=NOW)
+    deps = build_retention_deps(
+        DatabaseSettings(provider="memory"),
+        None,
+        workflows=store,
+        check_workflows=("check", "recheck_claim"),
+    )
+    payload = {"kind": "channel_user_hash", "value": HASH}
+    asyncio.run(erase_subject(payload, deps))
+    assert store.ids() == set()

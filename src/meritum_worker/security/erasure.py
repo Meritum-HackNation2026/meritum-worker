@@ -8,7 +8,6 @@ from collections.abc import Mapping
 
 from meritum_core.checks import SubjectKind
 from meritum_core.jobs.contracts import (
-    CHECK,
     CONTRACT_VERSION,
     DELETE_SUBJECT,
     ESCALATE_CLAIM,
@@ -76,6 +75,9 @@ async def erase_subject(
 async def _checks_of(
     deps: RetentionDeps, kind: SubjectKind, value: str
 ) -> list[StoredWorkflow]:
-    return await find_workflows(
-        deps.workflows, CHECK.name, lambda p: names_subject(p, kind, value)
-    )
+    found: list[StoredWorkflow] = []
+    for name in deps.check_workflows:
+        found += await find_workflows(
+            deps.workflows, name, lambda p: names_subject(p, kind, value)
+        )
+    return found
