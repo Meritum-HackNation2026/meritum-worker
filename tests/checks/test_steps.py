@@ -150,3 +150,23 @@ def test_write_answer_replaces_verdict_codes_in_text_for_citizens(
 def test_write_answer_prompt_names_verdicts_in_polish_only() -> None:
     assert "for insufficient_evidence" not in ANSWER_INSTRUCTIONS
     assert "Brak wystarczających dowodów" in ANSWER_INSTRUCTIONS
+
+
+def test_write_answer_cuts_too_long_texts_to_the_contract_limits(
+    state: CheckState, make_deps: MakeDeps
+) -> None:
+    out = asyncio.run(write_answer(state, make_deps("llm_stub_answer_long.json")))
+    assert out.result is not None
+    assert out.result.status == "done"
+    claim = out.result.claims[0]
+    assert len(claim.explanation) <= 800
+    assert claim.explanation.endswith("inna.")
+    assert claim.unresolved is not None
+    assert len(claim.unresolved) <= 500
+    assert all(len(text) <= 300 for text in out.result.limitations)
+    assert out.result.limitations[0].endswith("katalogu.")
+
+
+def test_write_answer_prompt_gives_the_length_limits() -> None:
+    assert "800" in ANSWER_INSTRUCTIONS
+    assert "300" in ANSWER_INSTRUCTIONS

@@ -8,7 +8,12 @@ import re
 
 from pydantic import BaseModel
 
-from meritum_worker.checks.constants import CODE_PATTERN, STANCE_LABELS, VERDICT_LABELS
+from meritum_worker.checks.constants import (
+    CODE_PATTERN,
+    SENTENCE_END,
+    STANCE_LABELS,
+    VERDICT_LABELS,
+)
 from meritum_worker.evidence import ClaimExplanation
 
 
@@ -27,17 +32,21 @@ class AnswerDraft(BaseModel):
     limitations: list[str]
 
 
-def plain_text(text: str) -> str:
-    """Replace verdict and stance codes in a model text with their Polish names.
+def plain_text(text: str, limit: int) -> str:
+    """Make a model text fit for the citizen: Polish names, contract length.
 
-    The prompt forbids codes; this is the check after it, so a code that slips
-    through never reaches the citizen.
+    The prompt forbids codes and gives the limits; this is the check after it,
+    so a code that slips through never reaches the citizen and a text over the
+    contract limit is cut instead of failing the whole check.
 
     Args:
         text: an explanation, unresolved or limitation written by the model.
+        limit: the longest text the contract accepts for this field.
 
     Returns:
-        The text with each code replaced by its Polish name; verdicts are quoted.
+        The text with each code replaced by its Polish name (verdicts quoted),
+        cut after its last whole sentence within the limit, or after its last
+        whole word with an ellipsis when no sentence fits.
 
     Features:
         US-SPR-01, F-22
@@ -51,4 +60,14 @@ def plain_text(text: str) -> str:
             else STANCE_LABELS[code]
         )
 
-    return CODE_PATTERN.sub(name, text)
+    return _fit(CODE_PATTERN.sub(name, text), limit)
+
+
+def _fit(text: str, limit: int) -> str:
+    if len(text) <= limit:
+        return text
+    head = text[:limit]
+    ends = list(SENTENCE_END.finditer(head))
+    if ends:
+        return head[: ends[-1].end()]
+    return head[: limit - 1].rsplit(" ", 1)[0] + "…"

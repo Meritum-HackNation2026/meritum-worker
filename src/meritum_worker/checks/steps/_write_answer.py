@@ -23,7 +23,10 @@ from meritum_worker import evidence
 from meritum_worker.checks.answers import AnswerDraft, plain_text
 from meritum_worker.checks.constants import (
     ANSWER_INSTRUCTIONS,
+    EXPLANATION_MAX_CHARS,
+    LIMITATION_MAX_CHARS,
     STANCE_LABELS,
+    UNRESOLVED_MAX_CHARS,
     VERDICT_LABELS,
 )
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
@@ -89,7 +92,10 @@ def _result_from_draft(
         check_id=state.check_id,
         status="done",
         claims=[*answered, *unverifiable],
-        limitations=[*map(plain_text, draft.limitations), *state.limitations],
+        limitations=[
+            *(plain_text(text, LIMITATION_MAX_CHARS) for text in draft.limitations),
+            *state.limitations,
+        ],
         corpus_version=state.corpus_version,
         ai_marker=ai_marker_for(usage, datetime.now(UTC)),
     )
@@ -137,8 +143,9 @@ def _answered(
             "claim_date": fact.claim_date,
             "claim_date_source": fact.claim_date_source,
             **judged.model_dump(),
-            "explanation": plain_text(written.explanation),
-            "unresolved": written.unresolved and plain_text(written.unresolved),
+            "explanation": plain_text(written.explanation, EXPLANATION_MAX_CHARS),
+            "unresolved": written.unresolved
+            and plain_text(written.unresolved, UNRESOLVED_MAX_CHARS),
             "would_change_verdict": changes,
         }
     )
