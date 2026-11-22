@@ -14,6 +14,7 @@ from meritum_core.observability import AppRepositories
 from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
+    from meritum_worker.corpus import CorpusRetentionPort
     from meritum_worker.security.ports import (
         BlobCleaner,
         RemovedCaseChecks,
@@ -46,15 +47,17 @@ class RetentionDeps:
         workflows: the DBOS workflow data.
         blobs: the uploaded files.
         removed_checks: the ids of checks dropped from moderator cases.
+        corpus: the catalogue documents, whose full texts expire.
 
     Features:
-        US-BEZ-05, US-POW-04, F-20, ADR-13
+        US-BEZ-05, US-POW-04, US-KOR-05, F-10, F-20, ADR-13
     """
 
     app: AppRepositories
     workflows: WorkflowStore
     blobs: BlobCleaner
     removed_checks: RemovedCaseChecks
+    corpus: CorpusRetentionPort
 
 
 class RetentionReport(BaseModel):
@@ -66,9 +69,10 @@ class RetentionReport(BaseModel):
         workflows: DBOS workflows found and deleted.
         blobs: uploaded files.
         removed_case_checks: forgotten ids of checks dropped from cases.
+        full_texts: corpus documents whose full text was cleared.
 
     Features:
-        US-BEZ-05, US-POW-04, F-20, ADR-13
+        US-BEZ-05, US-POW-04, US-KOR-05, F-10, F-20, ADR-13
     """
 
     model_config = ConfigDict(frozen=True)
@@ -78,3 +82,4 @@ class RetentionReport(BaseModel):
     workflows: Annotated[int, Field(ge=0)]
     blobs: Annotated[int, Field(ge=0)]
     removed_case_checks: Annotated[int, Field(ge=0)]
+    full_texts: Annotated[int, Field(ge=0)]

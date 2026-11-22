@@ -1,7 +1,9 @@
 """The retention run, started hourly: deletes user data older than 30 days.
 
+It also clears corpus full texts 90 days after their fetch.
+
 Features:
-    US-BEZ-05, US-POW-04, F-20, ADR-13
+    US-BEZ-05, US-POW-04, US-KOR-05, F-10, F-20, ADR-13
 """
 
 from datetime import datetime
@@ -11,6 +13,7 @@ from meritum_core.jobs.contracts import DELETE_SUBJECT, ESCALATE_CLAIM
 from meritum_worker.security.constants import (
     DATA_RETENTION,
     ERASURE_RESULT_KEPT,
+    FULL_TEXT_RETENTION,
     RETENTION_BATCH,
 )
 from meritum_worker.security.models import RetentionDeps, RetentionReport
@@ -26,6 +29,8 @@ async def run_retention(deps: RetentionDeps, now: datetime) -> RetentionReport:
     Then expired notifications, DBOS workflows started more than 30 days ago
     (stuck ones too), finished ``delete_subject`` runs, files older than 30
     days (orphan audio included) and old ids of checks dropped from cases.
+    Last, corpus documents fetched more than 90 days ago lose their full text;
+    their metadata and the passages records cite stay.
 
     Args:
         deps: the ports.
@@ -35,7 +40,7 @@ async def run_retention(deps: RetentionDeps, now: datetime) -> RetentionReport:
         How many items of each kind were deleted.
 
     Features:
-        US-BEZ-05, US-POW-04, F-20, ADR-13
+        US-BEZ-05, US-POW-04, US-KOR-05, F-10, F-20, ADR-13
     """
     cutoff = now - DATA_RETENTION
     expired = await _delete_expired_records(deps, now)
@@ -60,7 +65,17 @@ async def run_retention(deps: RetentionDeps, now: datetime) -> RetentionReport:
         workflows=len(escalations) + old + erasures,
         blobs=await deps.blobs.delete_older_than(cutoff),
         removed_case_checks=await deps.removed_checks.purge(cutoff),
+        full_texts=await _clear_full_texts(deps, now - FULL_TEXT_RETENTION),
     )
+
+
+async def _clear_full_texts(deps: RetentionDeps, fetched_before: datetime) -> int:
+    cleared = 0
+    while count := await deps.corpus.clear_full_texts(
+        fetched_before=fetched_before, limit=RETENTION_BATCH
+    ):
+        cleared += count
+    return cleared
 
 
 async def _delete_expired_records(deps: RetentionDeps, now: datetime) -> set[str]:

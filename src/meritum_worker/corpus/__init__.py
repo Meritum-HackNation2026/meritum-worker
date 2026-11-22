@@ -35,6 +35,7 @@ from meritum_worker.corpus.documents import (
 )
 from meritum_worker.corpus.errors import EuvsDisinfoUnavailableError, MissingTokenError
 from meritum_worker.corpus.factory import (
+    build_corpus_retention,
     build_corpus_writer,
     build_document_discovery,
     build_euvsdisinfo_client,
@@ -79,6 +80,11 @@ from meritum_worker.corpus.ports import (
     EuvsDisinfoPort,
     IngestDeps,
 )
+from meritum_worker.corpus.removals import (
+    CorpusRetentionPort,
+    PublisherRemoval,
+    PublisherRemovalRequest,
+)
 from meritum_worker.corpus.reranking import Reranking, rerank_passages
 from meritum_worker.corpus.settings import RerankerProvider, RerankerSettings
 from meritum_worker.corpus.sync import catalog_entry, missing_env, sync_euvsdisinfo
@@ -98,6 +104,7 @@ __all__ = [
     "TOKEN_ENV",
     "WEB_SEARCH_MARGIN",
     "WEB_SEARCH_TIMEOUT",
+    "CorpusRetentionPort",
     "CorpusSnapshot",
     "CorpusWriterPort",
     "Document",
@@ -119,11 +126,14 @@ __all__ = [
     "LiveSearchResult",
     "ManifestEntry",
     "MissingTokenError",
+    "PublisherRemoval",
+    "PublisherRemovalRequest",
     "RerankerProvider",
     "RerankerSettings",
     "Reranking",
     "StoredEntry",
     "SyncReport",
+    "build_corpus_retention",
     "build_corpus_writer",
     "build_document_discovery",
     "build_euvsdisinfo_client",

@@ -13,6 +13,8 @@ from ._openrouter_ranking import OpenRouterReranker
 from ._organiser_file import OrganiserFile
 from ._postgres import PostgresEuvsCopy
 from ._postgres_corpus import PostgresCorpusWriter
+from ._postgres_retention import PostgresCorpusRetention
+from ._retention_factory import build_corpus_retention
 from ._vertex_ranking import VertexReranker
 from ._workers_ai_ranking import WorkersAiReranker
 
@@ -23,9 +25,11 @@ __all__ = [
     "MemoryEuvsCopy",
     "OpenRouterReranker",
     "OrganiserFile",
+    "PostgresCorpusRetention",
     "PostgresCorpusWriter",
     "PostgresEuvsCopy",
     "VertexReranker",
     "WorkersAiReranker",
     "apply_corpus_migrations",
+    "build_corpus_retention",
 ]

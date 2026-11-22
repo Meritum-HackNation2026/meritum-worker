@@ -27,6 +27,9 @@ from meritum_worker.corpus.adapters import (
     VertexReranker,
     WorkersAiReranker,
 )
+from meritum_worker.corpus.adapters import (
+    build_corpus_retention as build_corpus_retention,  # ruff: ignore[useless-import-alias]  # explicit re-export for the corpus package
+)
 from meritum_worker.corpus.constants import (
     EUVSDISINFO_MCP_URL,
     REQUEST_TIMEOUT_SECONDS,
