@@ -26,6 +26,7 @@ from meritum_worker.corpus.adapters import (
     PostgresEuvsCopy,
     VertexReranker,
     WorkersAiReranker,
+    build_api_fetcher,
 )
 from meritum_worker.corpus.adapters import (
     build_corpus_retention as build_corpus_retention,  # ruff: ignore[useless-import-alias]  # explicit re-export for the corpus package
@@ -153,7 +154,7 @@ def build_ingest_deps(
 
     Returns:
         Entry-page discovery, core's SSRF-safe fetcher, the embeddings, the
-        writer and the detector.
+        writer, the detector and the fetcher of public APIs.
 
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
@@ -164,6 +165,7 @@ def build_ingest_deps(
         embeddings=embeddings,
         store=build_corpus_writer(settings),
         injection=injection,
+        api_fetcher=build_api_fetcher(),
     )
 
 

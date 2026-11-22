@@ -1,0 +1,46 @@
+[
+ {
+  "table": "A",
+  "no": "225/A/NBP/2026",
+  "effectiveDate": "2026-11-19",
+  "rates": [
+   {
+    "currency": "dolar amerykański",
+    "code": "USD",
+    "mid": 4.0176
+   },
+   {
+    "currency": "euro",
+    "code": "EUR",
+    "mid": 4.4165
+   },
+   {
+    "currency": "frank szwajcarski",
+    "code": "CHF",
+    "mid": 4.7684
+   }
+  ]
+ },
+ {
+  "table": "A",
+  "no": "226/A/NBP/2026",
+  "effectiveDate": "2026-11-20",
+  "rates": [
+   {
+    "currency": "dolar amerykański",
+    "code": "USD",
+    "mid": 4.0613
+   },
+   {
+    "currency": "euro",
+    "code": "EUR",
+    "mid": 4.4559
+   },
+   {
+    "currency": "frank szwajcarski",
+    "code": "CHF",
+    "mid": 4.8282
+   }
+  ]
+ }
+]

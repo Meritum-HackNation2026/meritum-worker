@@ -913,6 +913,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "dbos" },
+    { name = "httpx" },
     { name = "httpx2" },
     { name = "meritum-core" },
     { name = "psycopg", extra = ["binary"] },
@@ -934,6 +935,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "dbos", specifier = ">=3.6.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx2", specifier = ">=2.16.2" },
     { name = "meritum-core", git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git?rev=4af2fc9db4d2c75f75959efec10dfcb252fb26da" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3" },

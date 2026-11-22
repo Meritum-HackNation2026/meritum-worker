@@ -228,6 +228,8 @@ class IngestDeps:
         embeddings: Multilingual embeddings for passages.
         store: The corpus writer.
         injection: The detector every page is scanned with before it is stored.
+        api_fetcher: Core's fetcher over a transport that passes JSON on as
+            text, for ``ingest: api`` entries; None leaves them unsupported.
 
     Features:
         US-KOR-02, US-KOR-05, US-BEZ-01, F-10, F-12, F-19, ADR-32
@@ -238,3 +240,4 @@ class IngestDeps:
     embeddings: EmbeddingsPort
     store: CorpusWriterPort
     injection: InjectionDetectorPort
+    api_fetcher: PageFetcherPort | None = None
