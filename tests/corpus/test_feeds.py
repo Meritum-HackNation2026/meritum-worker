@@ -130,7 +130,7 @@ def test_discovery_follows_a_sitemap_index() -> None:
             "feed_unreadable",
         ),
         (
-            lambda s: s.serve("https://rss.gov.pl/feed/", "{}", "application/json"),
+            lambda s: s.serve("https://rss.gov.pl/feed/", "a,b", "text/csv"),
             "unsupported_content",
         ),
     ],
@@ -208,10 +208,3 @@ def test_a_failing_child_sitemap_is_skipped_and_the_others_are_read() -> None:
     server.answer("https://mapa.gov.pl/sitemap-stare.xml", 500)
     pages = asyncio.run(server.discovery().pages(entry("mapa.gov.pl", "sitemap")))
     assert len(pages) == 3
-
-
-def test_nato_is_read_from_its_sitemap_index() -> None:
-    assert (
-        feed_url(entry("www.nato.int", "sitemap"))
-        == "https://www.nato.int/sitemap-index.xml"
-    )

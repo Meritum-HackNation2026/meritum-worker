@@ -31,6 +31,7 @@ from meritum_worker.corpus.documents import (
 )
 from meritum_worker.corpus.errors import DiscoveryError
 from meritum_worker.corpus.feeds import FEED_METHODS, canonical_url
+from meritum_worker.corpus.ingest_constants import INGEST_SKIPPED
 from meritum_worker.corpus.pages import failed_page, source_id_for, store_page
 from meritum_worker.corpus.ports import CorpusWriterPort, IngestDeps
 
@@ -61,7 +62,8 @@ def ingestible(entries: Iterable[CatalogEntry]) -> list[CatalogEntry]:
 
     Returns:
         Evidence entries fetched as static pages, RSS, sitemaps or public APIs
-        that are neither excluded nor reserved for text and data mining.
+        that are neither excluded nor reserved for text and data mining, less
+        those in ``INGEST_SKIPPED`` (live search still cites them).
 
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
@@ -72,7 +74,7 @@ def ingestible(entries: Iterable[CatalogEntry]) -> list[CatalogEntry]:
 def _is_ingestible(entry: CatalogEntry) -> bool:
     is_evidence = entry.role == EVIDENCE_ROLE and entry.ingest in INGESTED_METHODS
     may_mine = not entry.excluded and entry.tdm_reservation != TDM_RESERVED_ENTRY
-    return is_evidence and may_mine
+    return is_evidence and may_mine and entry.domain not in INGEST_SKIPPED
 
 
 def is_due(entry: CatalogEntry, last_attempt: datetime | None, now: datetime) -> bool:

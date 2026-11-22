@@ -5,7 +5,9 @@ Features:
 """
 
 import logging
+import re
 from collections.abc import Iterable
+from urllib.parse import urlsplit
 
 from meritum_core.checks.contracts import CatalogEntry
 from meritum_core.corpus.fetching import FetchPurpose, PageFetcherPort, PageFetchError
@@ -23,6 +25,7 @@ from meritum_worker.corpus.feeds import (
     parse_feed,
     parse_govpl_listing,
 )
+from meritum_worker.corpus.ingest_constants import SKIPPED_PAGES
 
 _log = logging.getLogger(__name__)
 
@@ -53,9 +56,10 @@ class FeedDiscovery:
             entry: The catalogue entry.
 
         Returns:
-            The listed pages of the entry's own site, newest first; a sitemap
-            index adds its children's. A static entry gives its entry page,
-            followed by the articles of a gov.pl section's news listing.
+            The listed pages of the entry's own site, newest first, less those
+            in ``SKIPPED_PAGES``; a sitemap index adds its children's. A static
+            entry gives its entry page, followed by the articles of a gov.pl
+            section's news listing.
 
         Raises:
             DiscoveryError: The feed, sitemap or news listing failed; a failed
@@ -107,8 +111,10 @@ class FeedDiscovery:
 def _on_entry_site(
     entry: CatalogEntry, pages: Iterable[DiscoveredPage]
 ) -> list[DiscoveredPage]:
+    skipped = SKIPPED_PAGES.get(entry.domain, r"(?!)")  # (?!) matches nothing
     return [
         page.model_copy(update={"url": url})
         for page in pages
         if (url := on_entry_site(entry, page.url)) is not None
+        and re.search(skipped, urlsplit(url).path) is None
     ]
