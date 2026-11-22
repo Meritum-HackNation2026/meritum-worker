@@ -64,6 +64,8 @@ Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architectu
 
 ## Gotowość przy starcie
 
+W lokalnym Docker Compose worker uruchamia migracje tabel aplikacji przed startem DBOS, gdy `MERITUM_ENV=local` i `MERITUM_DATABASE_PROVIDER=postgres`. Lokalny test dymny działa bez tokenu EUvsDisinfo. Worker uruchamia tę sondę lokalnie po ustawieniu tokenu.
+
 Przy starcie worker sprawdza, czy ma wymagane zmienne i czy dostawcy odpowiadają, i zapisuje wynik w logu: same nazwy zmiennych i dostawców, nigdy wartości. API (`GET /api/v1/health`) zleca workflow `readiness`, który robi to samo sprawdzenie, zwraca `ReadinessReport` z meritum-core i ustawia go jako zdarzenie `readiness`. Brak zmiennej albo niedostępny dostawca nie zatrzymuje workera, tylko trafia do raportu.
 
 Wymagane zmienne (lista w `src/meritum_worker/observability/constants.py`):
