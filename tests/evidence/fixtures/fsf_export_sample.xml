@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Shortened real export: xmlFullSanctionsList_1_1 of 2026-11-20, five of 6303 entities, some aliases and addresses removed. Source: European Commission, Financial Sanctions Files (data.europa.eu), CC BY 4.0. -->
+<export xmlns="http://eu.europa.ec/fpi/fsd/export" generationDate="2026-11-20T16:51:00.798+01:00" globalFileId="186069">
+  <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.27.28" logicalId="13">
+    <remark>UNSC RESOLUTION 1483</remark>
+    <regulation regulationType="regulation" organisationType="commission" publicationDate="2003-07-08" entryIntoForceDate="2003-07-07" numberTitle="1210/2003 (OJ L169)" programme="IRQ" logicalId="348">
+      <publicationUrl>http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2003:169:0006:0023:EN:PDF</publicationUrl>
+    </regulation>
+    <subjectType code="person" classificationCode="P" />
+    <nameAlias firstName="Saddam" middleName="" lastName="Hussein Al-Tikriti" wholeName="Saddam Hussein Al-Tikriti" function="" gender="M" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="17">
+      <regulationSummary regulationType="regulation" publicationDate="2003-07-08" numberTitle="1210/2003 (OJ L169)" publicationUrl="http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2003:169:0006:0023:EN:PDF" />
+    </nameAlias>
+    <nameAlias firstName="" middleName="" lastName="" wholeName="Abu Ali" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="19">
+      <regulationSummary regulationType="regulation" publicationDate="2003-07-08" numberTitle="1210/2003 (OJ L169)" publicationUrl="http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2003:169:0006:0023:EN:PDF" />
+    </nameAlias>
+    <citizenship region="" countryIso2Code="IQ" countryDescription="IRAQ" regulationLanguage="en" logicalId="1">
+      <regulationSummary regulationType="regulation" publicationDate="2003-07-08" numberTitle="1210/2003 (OJ L169)" publicationUrl="http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2003:169:0006:0023:EN:PDF" />
+    </citizenship>
+    <birthdate circa="false" calendarType="GREGORIAN" city="al-Awja, near Tikrit" zipCode="" birthdate="1937-04-28" dayOfMonth="28" monthOfYear="4" year="1937" region="" place="" countryIso2Code="IQ" countryDescription="IRAQ" regulationLanguage="en" logicalId="14">
+      <regulationSummary regulationType="regulation" publicationDate="2003-07-08" numberTitle="1210/2003 (OJ L169)" publicationUrl="http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2003:169:0006:0023:EN:PDF" />
+    </birthdate>
+  </sanctionEntity>
+  <sanctionEntity designationDate="2008-06-23" designationDetails="UN designation:24/03/2007 (no longer valid)" unitedNationId="" euReferenceNumber="EU.3953.70" logicalId="3822">
+    <regulation regulationType="amendment" organisationType="council" publicationDate="2024-07-29" entryIntoForceDate="2024-07-30" numberTitle="2024/2074 (OJ L29072024)" programme="IRN" logicalId="200116">
+      <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202402074</publicationUrl>
+    </regulation>
+    <subjectType code="enterprise" classificationCode="E" />
+    <nameAlias firstName="" middleName="" lastName="" wholeName="Parchin Chemical Industries (PCI)" function="Parchin Chemical Industries (PCI) produces ammunition, explosives and solid propellants for rockets and missiles" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="5202">
+      <remark>Cooperative Company Registration No 892.
+Part of the Chemical Industries and Development of Material Group (CIDMG), which is a branch of Iran’s Defense 
+Industries Organization (DIO), which falls under Ministry of Defense and Armed Forces Logistics (MODAFL).
+Associated entities: 
+Ministry of Defense and Armed Forces Logistics (MODAFL);
+Defense Industries Organization (DIO); 
+Aerospace Industries Organization (AIO); 
+Iran Electronics Industries (IEI);
+P.B. Sadr;
+Zhejiang Qingji Ind. Co., Ltd in China;
+Lingoe Process Engineering Limited (Lingoe) in Hong Kong;
+Blue Calm Marine Services Company (Blue Calm) in Iran;
+The Parchin Military Complex (PMC);
+Zeinoddin Chemical Industries;
+Chemical Industries and Development of Material Group (CIDMG);
+Associated individuals: 
+Davoud Damghani (Iran’s Defence Attaché in Beijing);
+Li Zeming (Li) (an employee of Zhejiang Qingji);
+Shen Weisheng (director and general manager of Zhejiang Qingji)</remark>
+      <regulationSummary regulationType="amendment" publicationDate="2024-07-29" numberTitle="2024/2074 (OJ L29072024)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202402074" />
+    </nameAlias>
+    <nameAlias firstName="" middleName="" lastName="" wholeName="Parcsini Vegyipari Vállalat" function="" title="" nameLanguage="HU" strong="true" regulationLanguage="en" logicalId="169661">
+      <regulationSummary regulationType="amendment" publicationDate="2024-07-29" numberTitle="2024/2074 (OJ L29072024)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202402074" />
+    </nameAlias>
+    <address city="Varamin, Parchin" street="Khavaran  Road Km 30-35, Parchin Special Road" poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="IR" countryDescription="IRAN (ISLAMIC REPUBLIC OF)" regulationLanguage="en" logicalId="158922">
+      <regulationSummary regulationType="amendment" publicationDate="2023-10-17" numberTitle="2023/2196 (OJ L17102023)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202302196" />
+      <contactInfo key="WEB" value="http://icig.ir/" />
+      <contactInfo key="PHONE" value="+98 21 2258929; +98 21 35243153; +98 21 3130626" />
+    </address>
+    <address city="Tehran" street="2nd Floor, Sanam  Bldg., Nobonyad Sq." poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="IR" countryDescription="IRAN (ISLAMIC REPUBLIC OF)" regulationLanguage="en" logicalId="158919">
+      <remark>Head Office.
+Cooperative Company Registration No 892.</remark>
+      <regulationSummary regulationType="amendment" publicationDate="2023-10-17" numberTitle="2023/2196 (OJ L17102023)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202302196" />
+      <contactInfo key="WEB" value="http://icig.ir/" />
+      <contactInfo key="PHONE" value="+98 21 2258929; +98 21 35243153; +98 21 3130626" />
+    </address>
+    <identification diplomatic="false" knownExpired="false" knownFalse="false" reportedLost="false" revokedByIssuer="false" issuedBy="" latinNumber="" nameOnDocument="" number="892" region="" identificationTypeCode="regnumber" identificationTypeDescription="Registration Number" countryIso2Code="00" countryDescription="UNKNOWN" regulationLanguage="en" logicalId="169764">
+      <remark>Registration no.: Cooperative Company 
+Registration No 892</remark>
+      <regulationSummary regulationType="amendment" publicationDate="2024-07-29" numberTitle="2024/2074 (OJ L29072024)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202402074" />
+    </identification>
+  </sanctionEntity>
+  <sanctionEntity designationDate="2023-10-17" designationDetails="UN designation 03/03/2008 (no longer valid)" unitedNationId="" euReferenceNumber="EU.1759.25" logicalId="4288">
+    <regulation regulationType="amendment" organisationType="council" publicationDate="2024-07-29" entryIntoForceDate="2024-07-30" numberTitle="2024/2074 (OJ L29072024)" programme="IRN" logicalId="200116">
+      <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202402074</publicationUrl>
+    </regulation>
+    <subjectType code="enterprise" classificationCode="E" />
+    <nameAlias firstName="" middleName="" lastName="" wholeName="Niru Battery Manufacturing (Batrisazi-ye Niru)" function="" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="159417">
+      <regulationSummary regulationType="amendment" publicationDate="2023-10-17" numberTitle="2023/2196 (OJ L17102023)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202302196" />
+    </nameAlias>
+    <nameAlias firstName="" middleName="" lastName="" wholeName="Sherkate Batri-e Niru" function="" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="159420">
+      <regulationSummary regulationType="amendment" publicationDate="2023-10-17" numberTitle="2023/2196 (OJ L17102023)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202302196" />
+    </nameAlias>
+    <address city="Tehran" street="Nobonyad Blvd., Pasdaran Avenue," poBox="19575/361" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="IR" countryDescription="IRAN (ISLAMIC REPUBLIC OF)" regulationLanguage="en" logicalId="159421">
+      <regulationSummary regulationType="amendment" publicationDate="2023-10-17" numberTitle="2023/2196 (OJ L17102023)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202302196" />
+      <contactInfo key="WEB" value=" www.nirubattery.com; www.niruco.com" />
+      <contactInfo key="PHONE" value="+98 21 251 0523/ 254 7093; +98 21 22547094; +98 21 22567608-9; +98 21 2545084" />
+      <contactInfo key="EMAIL" value="info@nirubattery.com; export@niruco.com; niru@isiran.com" />
+    </address>
+  </sanctionEntity>
+  <sanctionEntity designationDate="2015-02-16" designationDetails="" unitedNationId="" euReferenceNumber="EU.3576.10" logicalId="7575">
+    <regulation regulationType="amendment" organisationType="council" publicationDate="2020-09-11" entryIntoForceDate="2020-09-12" numberTitle="2020/1267 (OJ L298)" programme="UKR" logicalId="129327">
+      <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2020.298.01.0001.01.ENG&amp;toc=OJ:L:2020:298:TOC</publicationUrl>
+    </regulation>
+    <subjectType code="enterprise" classificationCode="E" />
+    <nameAlias firstName="" middleName="" lastName="" wholeName="Oplot battalion" function="Armed  separatist group which has  actively supported actions which undermine the territorial integrity, sovereignty and independence &#10;of Ukraine and further destabilise Ukraine. Also  referred  to  as  the  5th  Separate Motor Rifle  Brigade,  which  since  October  2018  is named after  Alexander Zakharchenko.  Reportedly  part  of  the  so-called ‘1st  Army Corps’ of the ‘Donetsk People's &#10;Republic’." title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18567">
+      <regulationSummary regulationType="amendment" publicationDate="2019-09-13" numberTitle="2019/1403 (OJ L236)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L:2019:236:FULL&amp;from=EN" />
+    </nameAlias>
+    <nameAlias firstName="" middleName="" lastName="" wholeName="Батальон ‘Оплот’" function="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="18568">
+      <regulationSummary regulationType="amendment" publicationDate="2015-02-09" numberTitle="2015/240 (OJ L40)" publicationUrl="http://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:JOL_2015_040_R_0003&amp;from=EN" />
+    </nameAlias>
+    <address city="" street="" poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="00" countryDescription="UNKNOWN" regulationLanguage="en" logicalId="120954">
+      <remark>Social media:</remark>
+      <regulationSummary regulationType="amendment" publicationDate="2020-09-11" numberTitle="2020/1267 (OJ L298)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.L_.2020.298.01.0001.01.ENG&amp;toc=OJ:L:2020:298:TOC" />
+      <contactInfo key="WEB" value=" http://vk.com/oplot_info; https://vk.com/5ombroplot" />
+    </address>
+  </sanctionEntity>
+  <sanctionEntity designationDate="2026-07-23" designationDetails="" unitedNationId="" euReferenceNumber="EU.14754.84" logicalId="184314">
+    <regulation regulationType="amendment" organisationType="council" publicationDate="2026-07-23" entryIntoForceDate="2026-07-23" numberTitle="2026/1845 (OJ L202601845)" programme="UKR" logicalId="223678">
+      <publicationUrl>https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202601845</publicationUrl>
+    </regulation>
+    <subjectType code="enterprise" classificationCode="E" />
+    <nameAlias firstName="" middleName="" lastName="" wholeName="“Beget” LLC" function="" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="184315">
+      <remark>“Beget” LLC is a well-known Russian 
+cloud and web hosting provider. Since 
+2014, “Beget” LLC has knowingly 
+provided services, such as hosting 
+domains, to Russian backed illegal 
+authorities, militarized organizations and 
+propagandist projects, in illegally annexed Crimea, Donetsk and Luhansk, 
+as well as to a significant number of 
+Russian defence companies, including 
+some listed entities under EU restrictive 
+measures, relevant for Russia’s efforts in 
+continuing the war of aggression against 
+Ukraine.
+
+Date of 
+registration:
+22.10.2007 
+
+Associated 
+individuals
+ Aleksei 
+Yuryevich 
+MANIKIN; 
+Aleksandr 
+Yuryevich ILJIN; 
+Aleksandr 
+KLUKOV</remark>
+      <regulationSummary regulationType="amendment" publicationDate="2026-07-23" numberTitle="2026/1845 (OJ L202601845)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202601845" />
+    </nameAlias>
+    <address city="St.  Petersburg" street="Pl. Karla  Faberge, 8B,  office 726A" poBox="" zipCode="" region="" place="" asAtListingTime="false" countryIso2Code="RU" countryDescription="RUSSIAN FEDERATION" regulationLanguage="en" logicalId="184316">
+      <regulationSummary regulationType="amendment" publicationDate="2026-07-23" numberTitle="2026/1845 (OJ L202601845)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202601845" />
+      <contactInfo key="WEB" value="  https://beget.com;   beget.ru;  beget.pro; beget kz.com; бегет.рф;  beserver.ru;  beget.tech;  beget.hosting;  beget.de" />
+    </address>
+    <identification diplomatic="false" knownExpired="false" knownFalse="false" reportedLost="false" revokedByIssuer="false" issuedBy="" latinNumber="" nameOnDocument="" number="1077847645590" region="" identificationTypeCode="regnumber" identificationTypeDescription="Registration Number" countryIso2Code="00" countryDescription="UNKNOWN" regulationLanguage="en" logicalId="184317">
+      <regulationSummary regulationType="amendment" publicationDate="2026-07-23" numberTitle="2026/1845 (OJ L202601845)" publicationUrl="https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202601845" />
+    </identification>
+  </sanctionEntity>
+</export>

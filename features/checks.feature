@@ -109,6 +109,7 @@ Funkcja: Smoke test workera
     Zakładając zdjęcie z tekstem "Od 1 grudnia zakaz wjazdu aut spalinowych do Warszawy. Opublikowano 12.11.2026."
     Gdy workflow sprawdza obraz
     Wtedy twierdzenie z OCR dostaje werdykt
+    Oraz wynik zawiera tekst odczytany z obrazu
     Oraz odpowiedź mówi, że nie szukano wcześniejszych wystąpień obrazu
     Oraz odpowiedź mówi, że data na obrazie nie potwierdza daty publikacji
 
@@ -132,6 +133,12 @@ Funkcja: Smoke test workera
     Zakładając agent główny strumieniuje wstępną odpowiedź
     Gdy cytaty nie przeszły jeszcze weryfikacji
     Wtedy wersja wstępna nie zawiera werdyktu
+
+  Scenariusz: zamaskowany szkic podczas pisania odpowiedzi
+    Zakładając stub zwraca długie wyjaśnienie z adresem e-mail
+    Gdy workflow buduje CheckResult
+    Wtedy krok write_answer pokazuje zamaskowany szkic do 4000 znaków
+    Oraz końcowy wynik zastępuje szkic
 
   Scenariusz: tekst dla obywatela nie zawiera kodów
     Zakładając model zwraca wyjaśnienie z nazwą kodu werdyktu albo ograniczenia

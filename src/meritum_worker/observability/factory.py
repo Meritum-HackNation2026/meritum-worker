@@ -9,6 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from httpx2 import AsyncClient
+from meritum_core.corpus import CorpusSettings
 from meritum_core.observability import build_app_repositories
 from meritum_core.shared.blobs import (
     BlobProvider,
@@ -28,6 +29,7 @@ from meritum_worker.corpus.fact_check_constants import (
     FACT_CHECK_LANGUAGE,
 )
 from meritum_worker.observability.adapters import (
+    ApiChecks,
     BlobCaseSets,
     CassetteCorpus,
     CassetteInjection,
@@ -37,12 +39,15 @@ from meritum_worker.observability.adapters import (
     CassetteReranker,
     CassetteWebSearch,
     PostgresEvalRuns,
+    PostgresSnapshotCorpus,
 )
 from meritum_worker.observability.cassette import Cassette
 from meritum_worker.observability.constants import (
+    ENV_NAME_VAR,
     EUVSDISINFO_PROBE,
     FACT_CHECK_PROBE,
     FACT_CHECK_PROBE_QUERY,
+    LOCAL_ENV,
 )
 from meritum_worker.observability.eval_run import EvalRunDeps
 from meritum_worker.observability.fakes import InMemoryEvalRuns
@@ -50,6 +55,7 @@ from meritum_worker.observability.models import GoldenCase
 from meritum_worker.observability.ports import EvalCaseSets, EvalRunRepository
 from meritum_worker.observability.readiness import Probe
 from meritum_worker.observability.runner import DepsFor
+from meritum_worker.observability.snapshot import SnapshotCorpusPort
 
 
 def build_eval_deps(
@@ -101,11 +107,10 @@ def build_replay_deps(cassette: Cassette) -> DepsFor:
 
 
 def _base(settings: LlmSettings) -> CheckDeps:
-    # An evaluation opens no moderator cases: it reads no DBOS history either.
     deps = build_check_deps(
         settings, DatabaseSettings(provider=DatabaseProvider.MEMORY)
     )
-    return replace(deps, moderation=None)
+    return replace(deps, moderation=None)  # no moderator cases, no DBOS history
 
 
 def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckDeps:
@@ -120,6 +125,22 @@ def _on_cassette(deps: CheckDeps, cassette: Cassette, *, record: bool) -> CheckD
         reranker=CassetteReranker(cassette, deps.reranker if record else None),
         corpus_version=cassette.corpus_version,
     )
+
+
+def build_api_checks(base_url: str, *, fresh: bool = False) -> ApiChecks:
+    """Checks through a deployed API, e.g. dev with its real providers.
+
+    Args:
+        base_url: The API's origin.
+        fresh: Make the API's result cache miss with an invisible tag.
+
+    Returns:
+        The adapter whose ``check`` runs one case; close it with ``aclose``.
+
+    Features:
+        US-OBS-04, US-OBS-05, F-27, ADR-28
+    """
+    return ApiChecks(base_url, fresh=fresh)
 
 
 def build_case_sets(golden: Path, blobs: BlobStore) -> EvalCaseSets:
@@ -173,6 +194,22 @@ def build_eval_run_deps(
     )
 
 
+def build_snapshot_corpus(settings: CorpusSettings) -> SnapshotCorpusPort | None:
+    """The snapshots an embeddings comparison searches, read from the corpus store.
+
+    Args:
+        settings: Usually ``CorpusSettings()`` from ``MERITUM_CORPUS_*``.
+
+    Returns:
+        The reader of the database; None without ``database_url``.
+
+    Features:
+        US-OBS-04, US-WDR-02, F-27, ADR-19
+    """
+    url = settings.database_url
+    return None if url is None else PostgresSnapshotCorpus(url.get_secret_value())
+
+
 def _with_faults(deps: CheckDeps) -> DepsFor:
     broken = replace(deps, llm=build_llm(_no_answers()))
 
@@ -188,17 +225,16 @@ def build_readiness_probes(
     """Probes of the optional providers; a free call each.
 
     The Fact Check API is probed with one search when ``MERITUM_FACT_CHECK_PROVIDER``
-    is ``google``; web search and transcription get probes with their ports
-    (later); the model is checked by its variables only, since
-    every call to it is paid.
+    is ``google``; web search and transcription get probes with their ports later;
+    the model is checked by its variables only, since every call to it is paid.
 
     Args:
         env: The worker's environment, usually ``os.environ``.
         http_client: HTTP client of the probes; the caller closes it.
 
     Returns:
-        Provider name to probe; without a token the EUvsDisinfo probe fails,
-        so the optional provider is reported unavailable.
+        Provider name to probe. Without a token, EUvsDisinfo is skipped locally
+        and reported unavailable in deployed environments.
 
     Features:
         US-WDR-08, US-BEZ-03, F-30
@@ -210,7 +246,10 @@ def build_readiness_probes(
         await client.cases(limit=1, offset=0)
         return True
 
-    probes: dict[str, Probe] = {EUVSDISINFO_PROBE: euvsdisinfo}
+    probes: dict[str, Probe] = {}
+    is_local = (env.get(ENV_NAME_VAR) or LOCAL_ENV) == LOCAL_ENV
+    if not is_local or env.get(corpus.TOKEN_ENV, ""):
+        probes[EUVSDISINFO_PROBE] = euvsdisinfo
     prefix = FACT_CHECK_ENV_PREFIX
     if env.get(f"{prefix}PROVIDER", "").lower() == corpus.FactCheckProvider.GOOGLE:
 

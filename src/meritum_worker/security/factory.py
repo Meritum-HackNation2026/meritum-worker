@@ -19,7 +19,12 @@ from meritum_core.shared.blobs import BlobProvider, BlobSettings, build_blob_sto
 from meritum_core.shared.database import DatabaseProvider, DatabaseSettings
 from meritum_core.shared.llm import LlmPort
 
-from meritum_worker.corpus import CorpusRetentionPort, build_corpus_retention
+from meritum_worker.corpus import (
+    ArchiveDeps,
+    CorpusRetentionPort,
+    build_corpus_retention,
+)
+from meritum_worker.corpus.adapters import build_archive_deps
 from meritum_worker.security.adapters import (
     DbosWorkflowStore,
     ModelArmorGate,
@@ -103,7 +108,9 @@ def build_retention_deps(  # ruff: ignore[too-many-arguments]  # keyword-only te
     workflows: WorkflowStore | None = None,
     corpus: CorpusSettings | None = None,
     corpus_store: CorpusRetentionPort | None = None,
+    archives: ArchiveDeps | None = None,
     check_workflows: tuple[str, ...] = (CHECK.name,),
+    recheck_workflows: tuple[str, ...] = (),
 ) -> RetentionDeps:
     """Build the ports of the retention and ``delete_subject`` workflows.
 
@@ -115,13 +122,17 @@ def build_retention_deps(  # ruff: ignore[too-many-arguments]  # keyword-only te
         corpus: corpus settings, usually ``CorpusSettings()`` when the worker
             ingests the catalogue; None: an empty in-memory corpus.
         corpus_store: the corpus retention itself (tests); wins over ``corpus``.
+        archives: the page archive ports (tests); built from ``database`` and
+            ``blobs`` when None.
         check_workflows: the names of workflows whose input is a ``CheckInput``.
+        recheck_workflows: the names of workflows whose input names a check
+            (``check_id``) and the earlier one it repeats (``old_check_id``).
 
     Returns:
         The ports.
 
     Features:
-        US-BEZ-05, US-POW-04, US-KOR-05, F-10, F-20, ADR-13
+        US-BEZ-05, US-POW-03, US-POW-04, US-KOR-05, F-10, F-20, F-39, ADR-13
     """
     return RetentionDeps(
         app=build_app_repositories(database),
@@ -129,7 +140,9 @@ def build_retention_deps(  # ruff: ignore[too-many-arguments]  # keyword-only te
         blobs=_blob_cleaner(blobs),
         removed_checks=_removed_checks(database),
         corpus=build_corpus_retention(corpus) if corpus_store is None else corpus_store,
+        archives=build_archive_deps(database, blobs) if archives is None else archives,
         check_workflows=check_workflows,
+        recheck_workflows=recheck_workflows,
     )
 
 

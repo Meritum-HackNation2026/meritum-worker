@@ -1,0 +1,613 @@
+{
+  "models": [],
+  "corpus_versions": [
+    "none"
+  ],
+  "cases": 64,
+  "macro_f1": 0.539,
+  "accuracy": 0.5781,
+  "abstention_rate": 0.4286,
+  "citation_recall": 0.2093,
+  "fact_check_hit_rate": 0.875,
+  "citation_precision": 0.4265,
+  "citation_coverage": 0.9286,
+  "citation_correctness": 0.0893,
+  "abstention": 1.0,
+  "robustness": null,
+  "median_seconds": 47.328,
+  "p95_seconds": 67.1806,
+  "max_seconds": 68.9273,
+  "input_tokens_per_check": 0.0,
+  "output_tokens_per_check": 0.0,
+  "output_tokens_per_second": 0.0,
+  "cost_per_check_usd": 0.0,
+  "cost_100_checks_usd": 0.0,
+  "channel_consistency": null,
+  "information_loop": 1.0,
+  "scenarios": [
+    {
+      "scenario": "A",
+      "cases": 64,
+      "correct": 37,
+      "accuracy": 0.5781
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "A-fc-stolica-warszawa",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 15.896077124998556,
+      "check_id": "01a2015e-07a2-75fd-9263-dba2084f8b7b"
+    },
+    {
+      "id": "A-fc-sejm-460",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 15.858102375001181,
+      "check_id": "01a2015e-077b-73cd-80a2-536d4f2755c3"
+    },
+    {
+      "id": "A-fc-senat-100",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 15.907070290995762,
+      "check_id": "01a2015e-07a3-71d2-baab-43bf4310878b"
+    },
+    {
+      "id": "A-fc-kadencja-prezydenta",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 15.86341883300338,
+      "check_id": "01a2015e-0784-7058-bf60-4a1e9f31ec7d"
+    },
+    {
+      "id": "A-fc-placa-2025",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 0.037979833999997936,
+      "check_id": ""
+    },
+    {
+      "id": "A-fc-placa-2026",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 0.06156175000069197,
+      "check_id": ""
+    },
+    {
+      "id": "A-fc-vat-23",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 68.9272514579934,
+      "check_id": "01a2015e-452a-76e5-bcf5-f0dda72168d4"
+    },
+    {
+      "id": "A-fc-ue-2004",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 65.39346591600042,
+      "check_id": "01a2015e-4545-73d5-8d3f-2ee064d8836f"
+    },
+    {
+      "id": "A-fc-nato-1999",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 65.3812815840065,
+      "check_id": "01a2015e-4536-71d1-8039-ecbf5c5289fc"
+    },
+    {
+      "id": "A-fc-konstytucja-1997",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 51.20959637500346,
+      "check_id": "01a2015e-4508-757a-9116-39b83766ad8d"
+    },
+    {
+      "id": "A-fc-ue-2007",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 46.520006416001706,
+      "check_id": "01a2015f-0813-755c-ae7b-7131b0600451"
+    },
+    {
+      "id": "A-fc-sejm-560",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 64.1140226659918,
+      "check_id": "01a2015f-3f55-76e9-ab4d-dd4129192823"
+    },
+    {
+      "id": "A-fc-trzy-kadencje",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 53.76899075000256,
+      "check_id": "01a2015f-3f64-70df-b464-d3f98f2796f9"
+    },
+    {
+      "id": "A-fc-placa-2025-5000",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 53.57295120799972,
+      "check_id": "01a2015f-4d0b-7380-ad47-c74d626815e3"
+    },
+    {
+      "id": "A-fc-vat-25",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 47.291910916988854,
+      "check_id": "01a2015f-c1b9-7639-b53d-4f4e2023476f"
+    },
+    {
+      "id": "A-fc-senat-200",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 42.91101633300423,
+      "check_id": "01a20160-116b-742a-9a0a-18c828a3a3b8"
+    },
+    {
+      "id": "A-fc-plaska-ziemia",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 39.569594792003045,
+      "check_id": "01a20160-1e49-755b-bc2c-69bc796e073a"
+    },
+    {
+      "id": "A-fc-cytryna-rak",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 32.744626790998154,
+      "check_id": "01a20160-39d1-77fe-83b3-68d66cf3e4dd"
+    },
+    {
+      "id": "A-fc-stolica-krakow",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 39.30754354198871,
+      "check_id": "01a20160-7674-72be-bc03-767b997f50e2"
+    },
+    {
+      "id": "A-fc-placa-2026-na-reke",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 54.37604195899621,
+      "check_id": "01a20160-bd39-7342-9de1-b34362b1c338"
+    },
+    {
+      "id": "A-fc-placa-2026-bez-brutto",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 0.04632599999604281,
+      "check_id": ""
+    },
+    {
+      "id": "A-fc-stawka-godzinowa-etat",
+      "scenario": "A",
+      "expected": "misleading",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 54.32883945899084,
+      "check_id": "01a20160-bd38-76d6-ba1b-7b78195a45b5"
+    },
+    {
+      "id": "A-fc-prog-podatkowy",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "technical_failure",
+      "outcome": "non_verdict",
+      "seconds": 44.12027012500039,
+      "check_id": "01a20160-bdc0-7171-86e5-04f3aa673118"
+    },
+    {
+      "id": "A-fc-vat-wszystko-23",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 60.3995105829963,
+      "check_id": "01a20161-1010-7780-85dc-838e605caaac"
+    },
+    {
+      "id": "A-fc-emerytura-netto",
+      "scenario": "A",
+      "expected": "misleading",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 65.30562929200823,
+      "check_id": "01a20161-6a00-74f1-9d08-8fe535e7769f"
+    },
+    {
+      "id": "A-fc-wroclaw-65",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 67.50716712498979,
+      "check_id": "01a20161-8d67-711d-9f60-52916459299e"
+    },
+    {
+      "id": "A-fc-inflacja-najwyzsza",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 60.38857049999933,
+      "check_id": "01a20161-8d5d-7293-ac3b-a82f939ac627"
+    },
+    {
+      "id": "A-fc-wiatraki-ptaki",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 49.787861040997086,
+      "check_id": "01a20161-fbf7-74ae-9fc9-bb83c96f88e6"
+    },
+    {
+      "id": "A-fc-deficyt-2026-rekord",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 46.39929845900042,
+      "check_id": "01a20162-6534-7013-946f-0681260d0174"
+    },
+    {
+      "id": "A-fc-trzaskowski-wygral",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 67.49602137500187,
+      "check_id": "01a20162-7944-75c0-b367-6b83fd1bb3a3"
+    },
+    {
+      "id": "A-fc-deficyt-2025",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 50.05041120800888,
+      "check_id": "01a20162-958f-75c6-b11a-e6c76aecd6b7"
+    },
+    {
+      "id": "A-fc-deficyt-2026",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 64.0644845420029,
+      "check_id": "01a20162-be82-70f5-bcb0-7c83f6c1d781"
+    },
+    {
+      "id": "A-fc-deficyt-2026-350",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 47.36417229200015,
+      "check_id": "01a20163-1e5c-7716-afc3-77c7afd004b1"
+    },
+    {
+      "id": "A-fc-stawka-godzinowa-2026",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 53.367673250002554,
+      "check_id": "01a20163-588e-7793-9c33-44de5d2fcd61"
+    },
+    {
+      "id": "A-fc-stawka-godzinowa-2025",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 53.252251165991765,
+      "check_id": "01a20163-80d6-7545-8b4c-f46c6ccd889e"
+    },
+    {
+      "id": "A-fc-prog-120",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 46.200135999999475,
+      "check_id": "01a20163-b8c4-7640-b781-787e5f1bd1af"
+    },
+    {
+      "id": "A-fc-kwota-zmniejszajaca",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 42.64997858299466,
+      "check_id": "01a20163-d371-7015-8e13-6b13f6f21637"
+    },
+    {
+      "id": "A-fc-pit-17",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 50.00534745800542,
+      "check_id": "01a20164-2910-7397-8c95-0ec404d05acc"
+    },
+    {
+      "id": "A-fc-inflacja-2024",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 60.39797624999483,
+      "check_id": "01a20164-50fd-74cb-9643-511cf93b166e"
+    },
+    {
+      "id": "A-fc-inflacja-2024-10",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 53.28932066699781,
+      "check_id": "01a20164-6d24-7682-858e-190d8d199b63"
+    },
+    {
+      "id": "A-fc-nawrocki-wygral",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 60.560859542005346,
+      "check_id": "01a20164-79d4-72f5-9e06-48cec3b8db3c"
+    },
+    {
+      "id": "A-fc-trzaskowski-ponad-50",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 58.00336858299852,
+      "check_id": "01a20164-f087-75db-88e8-fe21d418b59e"
+    },
+    {
+      "id": "A-fc-frekwencja-2025",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 49.8383850419923,
+      "check_id": "01a20165-3ce5-70f3-95ef-272f9b3dc911"
+    },
+    {
+      "id": "A-fc-tusk-ue",
+      "scenario": "A",
+      "expected": "insufficient_evidence",
+      "predicted": "insufficient_evidence",
+      "outcome": "correct",
+      "seconds": 39.177600500013796,
+      "check_id": "01a20165-3d34-7746-811c-50b2a141e2a6"
+    },
+    {
+      "id": "A-fc-duda-trzy-kadencje",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 49.77448366599856,
+      "check_id": "01a20165-669e-718a-9693-8b803a71a9a3"
+    },
+    {
+      "id": "A-fc-tusk-premier-2023",
+      "scenario": "A",
+      "expected": "confirmed",
+      "predicted": "confirmed",
+      "outcome": "correct",
+      "seconds": 42.722236542002065,
+      "check_id": "01a20165-cef8-72ee-bd39-3852c0ec0fc9"
+    },
+    {
+      "id": "A-fc-pizza",
+      "scenario": "A",
+      "expected": "not_verifiable",
+      "predicted": "not_verifiable",
+      "outcome": "correct",
+      "seconds": 21.402170624991413,
+      "check_id": "01a20165-d62a-72fb-a434-df5e0938809e"
+    },
+    {
+      "id": "A-fc-euro-2030",
+      "scenario": "A",
+      "expected": "not_verifiable",
+      "predicted": "not_verifiable",
+      "outcome": "correct",
+      "seconds": 21.4781082910049,
+      "check_id": "01a20165-ff9d-73fa-8334-a6904d1a0363"
+    },
+    {
+      "id": "A-fc-najgorszy-rzad",
+      "scenario": "A",
+      "expected": "not_verifiable",
+      "predicted": "not_verifiable",
+      "outcome": "correct",
+      "seconds": 21.477318124991143,
+      "check_id": "01a20166-2910-7429-95e6-a814725e3aea"
+    },
+    {
+      "id": "A-fc-ceny-mieszkan",
+      "scenario": "A",
+      "expected": "not_verifiable",
+      "predicted": "not_verifiable",
+      "outcome": "correct",
+      "seconds": 21.42549500000314,
+      "check_id": "01a20166-29c9-764c-81cc-3475b9149815"
+    },
+    {
+      "id": "A-fc-mundial",
+      "scenario": "A",
+      "expected": "not_verifiable",
+      "predicted": "not_verifiable",
+      "outcome": "correct",
+      "seconds": 21.425853958004154,
+      "check_id": "01a20166-537d-70a5-b27a-492df9e6d253"
+    },
+    {
+      "id": "A-fc-najpiekniejsze-miasto",
+      "scenario": "A",
+      "expected": "not_verifiable",
+      "predicted": "not_verifiable",
+      "outcome": "correct",
+      "seconds": 22.471258208999643,
+      "check_id": "01a20166-79cb-76cc-a5ee-ae22496d30ea"
+    },
+    {
+      "id": "A-fc-5g-koronawirus",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 53.4697377919947,
+      "check_id": "01a20166-7cb9-773d-9df5-c3733800b2f9"
+    },
+    {
+      "id": "A-fc-szczepionki-autyzm",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 56.88520375000371,
+      "check_id": "01a20166-7d84-7147-b3e8-d3639d5af2bb"
+    },
+    {
+      "id": "A-fc-mrna-dna",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 56.88404629200522,
+      "check_id": "01a20166-a718-7178-a712-bcbbedb31ba3"
+    },
+    {
+      "id": "A-fc-likwidacja-gotowki",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 53.51693908299785,
+      "check_id": "01a20166-cdb1-7656-8b68-c29b8544efad"
+    },
+    {
+      "id": "A-fc-od-stycznia-gotowka",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "not_verifiable",
+      "outcome": "wrong_abstention",
+      "seconds": 17.990766207993147,
+      "check_id": "01a20167-4df0-72a4-9bb3-bcf750e9b817"
+    },
+    {
+      "id": "A-fc-szwecja-gotowka",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 46.16809329100943,
+      "check_id": "01a20167-5bd2-775f-b378-782dc0aa29a0"
+    },
+    {
+      "id": "A-fc-pap-depesza",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "insufficient_evidence",
+      "outcome": "wrong_abstention",
+      "seconds": 42.62997691700002,
+      "check_id": "01a20167-8553-75fa-bf6c-466717e28e8c"
+    },
+    {
+      "id": "A-fc-mrna-terapia-genowa",
+      "scenario": "A",
+      "expected": "false",
+      "predicted": "false",
+      "outcome": "correct",
+      "seconds": 67.59621537500061,
+      "check_id": "01a20167-93dd-703c-8420-daa6d318f716"
+    },
+    {
+      "id": "A-fc-wiersz",
+      "scenario": "A",
+      "expected": "out_of_scope",
+      "predicted": "out_of_scope",
+      "outcome": "correct",
+      "seconds": 10.818734374988708,
+      "check_id": "01a20167-9e83-752c-bff8-7f2802d2eacd"
+    },
+    {
+      "id": "A-fc-tlumaczenie",
+      "scenario": "A",
+      "expected": "out_of_scope",
+      "predicted": "out_of_scope",
+      "outcome": "correct",
+      "seconds": 10.89471212499484,
+      "check_id": "01a20167-c901-778b-92e9-6a6521a1c7c0"
+    },
+    {
+      "id": "A-fc-matematyka",
+      "scenario": "A",
+      "expected": "out_of_scope",
+      "predicted": "needs_clarification",
+      "outcome": "non_verdict",
+      "seconds": 10.884383499986143,
+      "check_id": "01a20167-f3b0-71e5-b614-f328dd604058"
+    },
+    {
+      "id": "A-fc-przepis",
+      "scenario": "A",
+      "expected": "out_of_scope",
+      "predicted": "needs_clarification",
+      "outcome": "non_verdict",
+      "seconds": 10.85290637500293,
+      "check_id": "01a20168-1047-723a-8a9e-34414861a12b"
+    }
+  ]
+}

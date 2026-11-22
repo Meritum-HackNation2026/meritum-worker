@@ -28,6 +28,8 @@ class CaseRun(BaseModel):
         output_tokens: Answer tokens of every model call.
         cost_usd: Cost of every model call.
         models: ``provider/model`` of every model called.
+        check_id: The check's id in a deployed API; None for in-process runs,
+            whose ids are random.
 
     Features:
         US-OBS-04, US-OBS-05, F-27
@@ -42,6 +44,7 @@ class CaseRun(BaseModel):
     output_tokens: Annotated[int, Field(ge=0)] = 0
     cost_usd: Annotated[float, Field(ge=0)] = 0.0
     models: tuple[str, ...] = ()
+    check_id: str | None = None
 
 
 class CaseScore(BaseModel):
@@ -54,6 +57,7 @@ class CaseScore(BaseModel):
         predicted: The main claim's verdict, or the state when it is not done.
         outcome: Where the prediction falls in the fixed order.
         seconds: Time from the CheckRecord.
+        check_id: The check's id, to trace a failure in the workflow's state.
 
     Features:
         US-OBS-04, US-OBS-05, F-27
@@ -67,6 +71,7 @@ class CaseScore(BaseModel):
     predicted: str
     outcome: Outcome
     seconds: float
+    check_id: str | None = None
 
 
 class ScenarioScore(BaseModel):
@@ -101,7 +106,16 @@ class EvalReport(BaseModel):
         corpus_versions: Snapshots the checks were pinned to; ``none`` for
             checks that ended before any corpus.
         cases: How many cases ran.
-        macro_f1: Verdict macro-F1, every non-verdict state one error class.
+        macro_f1: Verdict macro-F1, every non-verdict state one error class;
+            an acceptable alternative counts as the expected verdict.
+        macro_f1_strict: The same over the labels the pipeline gave, so a class
+            it never answers scores 0; None in reports from before worker#247.
+        accuracy: Cases with the correct outcome.
+        abstention_rate: Done checks whose claims all got no decision.
+        citation_recall: Mean share of a case's source hosts cited or rated.
+        fact_check_hit_rate: ``fact_checked`` cases whose answer shows a rating.
+        citation_precision: Citations whose stance a judge model confirms;
+            only runs with ``--judge`` have it.
         citation_coverage: Decisive claims with at least one citation.
         citation_correctness: Citations whose host is among the case's sources.
         abstention: Abstaining cases answered with the expected abstention.
@@ -132,6 +146,12 @@ class EvalReport(BaseModel):
     corpus_versions: tuple[str, ...] = ()
     cases: int
     macro_f1: float
+    macro_f1_strict: Ratio = None
+    accuracy: Ratio = None
+    abstention_rate: Ratio = None
+    citation_recall: Ratio = None
+    fact_check_hit_rate: Ratio = None
+    citation_precision: Ratio = None
     citation_coverage: Ratio
     citation_correctness: Ratio
     abstention: Ratio

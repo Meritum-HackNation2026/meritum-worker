@@ -48,7 +48,11 @@ def test_check_publishes_each_step_active_then_done_and_ends_with_result(
     payload: Payload, make_deps: Callable[..., CheckDeps]
 ) -> None:
     output, runtime = _run(payload, make_deps())
-    statuses = runtime.published
+    # The draft adds an update between the start of writing and the next stage.
+    statuses = [runtime.published[0]]
+    for status in runtime.published[1:]:
+        if status.steps != statuses[-1].steps:
+            statuses.append(status)
     stages = [[code for code, _ in stage] for stage in pipeline()]
     assert len(statuses) == len(stages) + 1
     for index, status in enumerate(statuses[:-1]):
@@ -99,6 +103,7 @@ def test_check_marks_the_step_that_failed_technically_as_failed(
     assert failed == ["write_answer"]
     assert final.result is not None
     assert final.result.status == "technical_failure"
+    assert all(status.draft is None for status in runtime.published)
 
 
 def test_check_closes_progress_stream_after_the_status_with_the_result(

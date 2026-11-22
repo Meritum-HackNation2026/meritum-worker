@@ -36,9 +36,9 @@ from meritum_core.security.pii import PiiGatePort, mask_personal_data
 from meritum_core.shared.llm import ProviderUnavailableError
 from pydantic import BaseModel, ConfigDict
 
+from meritum_worker.corpus._passages import closest_passages
 from meritum_worker.corpus.constants import (
     INJECTION_EXCERPT_MAX_CHARS,
-    MAX_PAGE_TEXT_CHARS,
     MAX_PARALLEL_CLAIMS,
     WEB_QUERIES_PER_CHECK,
     WEB_RESULTS_PER_QUERY,
@@ -106,7 +106,8 @@ async def search_live(
     scans. Our catalogue filter checks every address before the fetch and the
     final one after redirects. A page that cannot be fetched (robots.txt,
     Content-Signal, network), is empty, could not be scanned or is not scanned
-    by the deadline is left out with a log line; the check goes on.
+    by the deadline is left out with a log line; the check goes on. A page longer
+    than ``MAX_PAGE_TEXT_CHARS`` keeps the passages closest to the queries.
 
     Args:
         queries: the checked facts, as extracted from the masked input.
@@ -127,7 +128,7 @@ async def search_live(
         slots = asyncio.Semaphore(MAX_PARALLEL_CLAIMS)
         found = await asyncio.gather(*(_ask(query, ports, slots) for query in asked))
     urls = [c.url for candidates in found for c in candidates]
-    return await _admitted(urls, ports, deadline, calls=len(asked))
+    return await _admitted(urls, ports, deadline, calls=len(asked), facts=asked)
 
 
 async def admit_pages(urls: Sequence[str], ports: LiveSearchPorts) -> LiveSearchResult:
@@ -153,9 +154,14 @@ async def admit_pages(urls: Sequence[str], ports: LiveSearchPorts) -> LiveSearch
 
 
 async def _admitted(
-    urls: Sequence[str], ports: LiveSearchPorts, deadline: float, *, calls: int
+    urls: Sequence[str],
+    ports: LiveSearchPorts,
+    deadline: float,
+    *,
+    calls: int,
+    facts: Sequence[str] = (),
 ) -> LiveSearchResult:
-    quarantine = _Quarantine(ports, deadline)
+    quarantine = _Quarantine(ports, deadline, facts)
     scanned = await asyncio.gather(*map(quarantine.admit, dict.fromkeys(urls)))
     # Two results may redirect to one page: it is one document, kept once.
     documents = {s.source.id: s for s in scanned if isinstance(s, SourceDocument)}
@@ -179,6 +185,7 @@ async def _ask(
 class _Quarantine:
     ports: LiveSearchPorts
     deadline: float
+    facts: Sequence[str]
     passed: dict[str, FetchedPage] = field(default_factory=dict)
 
     async def admit(self, url: str) -> SourceDocument | InjectionEvent | None:
@@ -197,7 +204,8 @@ class _Quarantine:
         page = await self.ports.pages.fetch(url, purpose=FetchPurpose.SOURCE)
         # A redirect may leave the catalogue: the final address is checked again.
         entry = catalog_entry_for(page.url, self.ports.catalog)
-        text = page.untrusted_text[:MAX_PAGE_TEXT_CHARS]
+        # The scanned text is the evidence text, so every quote stays verbatim.
+        text = closest_passages(page.untrusted_text, self.facts)
         if entry is None or not text.strip():
             return None
         scan = await self.ports.injection.scan(text)

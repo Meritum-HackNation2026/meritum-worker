@@ -5,6 +5,7 @@ Features:
 """
 
 from datetime import datetime
+from typing import LiteralString
 
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
@@ -12,7 +13,9 @@ from psycopg.rows import dict_row
 from meritum_worker.corpus.archive_constants import (
     COUNT_ARCHIVES_SQL,
     DELETE_ARCHIVE_SQL,
+    EXPIRED_ARCHIVES_SQL,
     INSERT_ARCHIVE_SQL,
+    OWNED_ARCHIVES_SQL,
     SELECT_ARCHIVE_SQL,
 )
 from meritum_worker.corpus.archive_models import ArchiveCopy
@@ -78,6 +81,39 @@ class PostgresArchiveRegistry:
         """
         async with await AsyncConnection.connect(self._conninfo) as conn:
             await conn.execute(DELETE_ARCHIVE_SQL, (archive_id,))
+
+    async def _select(
+        self, sql: LiteralString, params: tuple[object, ...]
+    ) -> list[ArchiveCopy]:
+        async with await AsyncConnection.connect(self._conninfo) as conn:
+            cursor = conn.cursor(row_factory=dict_row)
+            await cursor.execute(sql, params)
+            rows = await cursor.fetchall()
+        return [ArchiveCopy.model_validate(row) for row in rows]
+
+    async def expired(self, now: datetime, limit: int) -> list[ArchiveCopy]:
+        """Select the copies past their term (see ``ArchiveRegistry``).
+
+        Args:
+            now: the retention run's time.
+            limit: the most copies to return.
+
+        Returns:
+            The copies, oldest first.
+        """
+        return await self._select(EXPIRED_ARCHIVES_SQL, (now, limit))
+
+    async def owned_by(self, owner_id: str, limit: int) -> list[ArchiveCopy]:
+        """Select one person's copies (see ``ArchiveRegistry``).
+
+        Args:
+            owner_id: who asked.
+            limit: the most copies to return.
+
+        Returns:
+            Their copies.
+        """
+        return await self._select(OWNED_ARCHIVES_SQL, (owner_id, limit))
 
     async def count_since(self, owner_id: str, since: datetime) -> int:
         """Count a person's copies in the window (see ``ArchiveRegistry``).

@@ -224,12 +224,27 @@ def sanctions_refresh_step() -> int:
         return 0
 
     async def download() -> bytes:
-        async with httpx2.AsyncClient(follow_redirects=True) as http:
+        # The official export is about 26 MB from a slow server.
+        async with httpx2.AsyncClient(follow_redirects=True, timeout=120) as http:
             reply = await http.get(url)
             reply.raise_for_status()
             return reply.content
 
     return asyncio.run(evidence.refresh_sanctions(download, Path(path)))
+
+
+@DBOS.workflow(name=f"{evidence.SANCTIONS_WORKFLOW}_scheduled")
+def sanctions_schedule_workflow(_scheduled_at: datetime, _context: object) -> None:
+    """Refresh the sanctions list copy; started by the SANCTIONS_SCHEDULE schedule.
+
+    Args:
+        _scheduled_at: the schedule's time, unused.
+        _context: the schedule's context, unused.
+
+    Features:
+        US-ZRD-07, F-34
+    """
+    DBOS.logger.info("sanctions list copy refreshed: %s", sanctions_refresh_step())
 
 
 @DBOS.workflow(
@@ -458,7 +473,8 @@ def _retention_deps() -> security.RetentionDeps:
         DatabaseSettings(),
         blobs,
         corpus=documents,
-        check_workflows=(CHECK.name, notifications.RECHECK_CLAIM_WORKFLOW),
+        check_workflows=(CHECK.name,),
+        recheck_workflows=(notifications.RECHECK_CLAIM_WORKFLOW,),
     )
 
 
@@ -562,9 +578,9 @@ async def _plan(now: datetime) -> list[str]:
     return [entry.model_dump_json() for entry in due]
 
 
-async def _ingest(entry: CatalogEntry, now: datetime) -> str:
+async def _ingest(entry: CatalogEntry, now: datetime) -> dict[str, Any]:
     report = await corpus.ingest_pages(entry, _ingest_deps(), now=now)
-    return report.model_dump_json()  # failed pages with reasons: the run's record
+    return report.model_dump(mode="json")  # failed pages with reasons: the run's record
 
 
 @DBOS.workflow(name=corpus.INGEST_WORKFLOW)
@@ -573,6 +589,9 @@ async def corpus_ingest_workflow(scheduled: datetime, _context: object) -> None:
 
     The plan is a step too, so a recovered run fetches the same entries, and a
     retried entry fetches all of its pages again (unchanged ones cost nothing).
+    Each entry's report (counts and failed pages with reasons) is also an event
+    named like its step, in portable JSON: step outputs are always pickled, and a
+    scheduled run ignores the workflow's ``serialization_type`` (dbos 3.6).
 
     Args:
         scheduled: When the schedule fired; every document's ``fetched_at``.
@@ -584,8 +603,13 @@ async def corpus_ingest_workflow(scheduled: datetime, _context: object) -> None:
     for data in await DBOS.run_step_async({"name": corpus.PLAN_STEP}, _plan, scheduled):
         entry = CatalogEntry.model_validate_json(data)
         name = f"{corpus.INGEST_STEP_PREFIX}{entry.domain}"
-        await DBOS.run_step_async(
+        report = await DBOS.run_step_async(
             {"name": name, "retries_allowed": True}, _ingest, entry, scheduled
+        )
+        await DBOS.set_event_async(
+            name,
+            report,
+            serialization_type=WorkflowSerializationFormat.PORTABLE,
         )
 
 
@@ -642,23 +666,39 @@ async def _announce_recheck(plan: dict[str, Any], output: dict[str, Any]) -> boo
     )
 
 
+async def _recheck_input(plan: dict[str, Any]) -> dict[str, Any] | None:
+    job = await notifications.recheck_input(
+        notifications.Recheck.model_validate(plan),
+        check_deps().records,
+        datetime.now(UTC),
+    )
+    return None if job is None else job.model_dump(mode="json")
+
+
 @DBOS.workflow(name=notifications.RECHECK_CLAIM_WORKFLOW)
-async def recheck_claim_workflow(
-    payload: dict[str, Any], corpus_version: str
-) -> dict[str, Any]:
+async def recheck_claim_workflow(plan: dict[str, Any]) -> dict[str, Any] | None:
     """Check one unanswered claim again on the new snapshot; its own CheckRecord.
 
+    The input names no asker; a step reads it from the earlier record, so the
+    workflow leaves DBOS with the person on ``delete_subject`` (US-BEZ-05).
+
     Args:
-        payload: the `CheckInput` JSON object of the new check.
-        corpus_version: the new snapshot, searched instead of the pinned one.
+        plan: the `Recheck` JSON object.
 
     Returns:
-        The `CheckOutput` JSON object.
+        The `CheckOutput` JSON object, or None when the asker was erased.
 
     Features:
-        US-POW-03, F-39, ADR-29
+        US-POW-03, US-BEZ-05, F-20, F-39, ADR-29
     """
-    deps = replace(check_deps(), corpus_version=corpus_version)
+    input_step: StepOptions = {
+        "name": notifications.RECHECK_INPUT_STEP,
+        "retries_allowed": True,
+    }
+    payload = await DBOS.run_step_async(input_step, _recheck_input, plan)
+    if payload is None:
+        return None
+    deps = replace(check_deps(), corpus_version=plan["corpus_version"])
     output = await checks.run_check(
         payload, DBOS.workflow_id or "", deps, build_check_runtime()
     )
@@ -692,10 +732,10 @@ async def recheck_workflow(scheduled: datetime) -> int:
     sent = 0
     for plan in await DBOS.run_step_async(plan_step, _plan_rechecks, scheduled):
         with SetWorkflowID(plan["check_id"]):
-            handle = await DBOS.start_workflow_async(
-                recheck_claim_workflow, plan["job"], plan["corpus_version"]
-            )
+            handle = await DBOS.start_workflow_async(recheck_claim_workflow, plan)
         output = await handle.get_result()
+        if output is None:
+            continue
         sent += await DBOS.run_step_async(
             announce_step, _announce_recheck, plan, output
         )
@@ -728,6 +768,9 @@ def main() -> None:
     Features:
         ADR-03
     """
+    # Compose starts with an empty app database. Deploys run migrations separately.
+    if env() == "local" and DatabaseSettings().provider is DatabaseProvider.POSTGRES:
+        migrate([])
     DBOS(config=config())
     DBOS.launch()
     DBOS.register_queue(DEFAULT_QUEUE)
@@ -749,6 +792,18 @@ def main() -> None:
             }
         ]
     )
+    if os.environ.get("MERITUM_SANCTIONS_LIST_URL", "") and os.environ.get(
+        "MERITUM_SANCTIONS_LIST_PATH", ""
+    ):
+        DBOS.apply_schedules(
+            [
+                {
+                    "schedule_name": evidence.SANCTIONS_WORKFLOW,
+                    "workflow_fn": sanctions_schedule_workflow,
+                    "schedule": evidence.SANCTIONS_SCHEDULE,
+                }
+            ]
+        )
     report = asyncio.run(readiness_report())
     observability.log_readiness(READINESS.output.model_validate(report), DBOS.logger)
     if corpus.ingestion_enabled(os.environ):

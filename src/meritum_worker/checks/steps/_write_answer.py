@@ -5,6 +5,7 @@ Features:
     F-07, F-15, F-22
 """
 
+import logging
 from collections.abc import Mapping
 from datetime import UTC, date, datetime
 
@@ -18,22 +19,23 @@ from meritum_core.checks.contracts import (
     ai_marker_for,
 )
 from meritum_core.evidence import compute_verdict_changes, rate_review
-from meritum_core.shared.llm import Prompt
+from meritum_core.security.pii import mask_personal_data
 from pydantic import ValidationError
 
 from meritum_worker import evidence
-from meritum_worker.checks.answers import AnswerDraft, plain_text
+from meritum_worker.checks.answers import AnswerDraft, answer_prompt, plain_text
 from meritum_worker.checks.constants import (
+    ANSWER_ATTEMPTS,
+    DRAFT_MAX_CHARS,
     EXPLANATION_MAX_CHARS,
     LIMITATION_MAX_CHARS,
-    STANCE_LABELS,
     UNRESOLVED_MAX_CHARS,
-    VERDICT_LABELS,
 )
 from meritum_worker.checks.fact_check_constants import FACT_CHECK_UNAVAILABLE_NOTE
 from meritum_worker.checks.models import CheckDeps, CheckState, ExtractedClaim
-from meritum_worker.checks.prompts import ANSWER_INSTRUCTIONS
 from meritum_worker.checks.usage import model_usage
+
+_log = logging.getLogger(__name__)
 
 
 async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
@@ -47,7 +49,7 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
 
     Args:
         state: the check so far; a state that already has a result passes on.
-        deps: the ports; only the model is called.
+        deps: the model and the personal-data masking gate.
 
     Returns:
         The state with the result: done with the AI marker of the answering call,
@@ -64,16 +66,33 @@ async def write_answer(state: CheckState, deps: CheckDeps) -> CheckState:
     facts = [claim for claim in state.claims if claim.is_fact]
     catalog = {entry.domain: entry for entry in deps.catalog}
     judged = [_judge(state, catalog, i, fact) for i, fact in enumerate(facts)]
-    data = (state.question, *map(_described, facts, judged, strict=True))
-    prompt = Prompt(instructions=ANSWER_INSTRUCTIONS, data=data)
-    answer = await deps.llm.complete(prompt, AnswerDraft)
-    usage = model_usage(answer.usage)
-    models = [*state.models, usage]
-    try:
-        result = _result_from_draft(state, facts, judged, answer.output, usage)
-    except ValidationError:
-        result = state.technical_failure()
-    return state.model_copy(update={"result": result, "models": models})
+    prompt = answer_prompt(state.question, facts, judged)
+    models = list(state.models)
+    result = state.technical_failure()
+    for attempt in range(1, ANSWER_ATTEMPTS + 1):
+        # A model answer breaking the contract is random: one more call (worker#194).
+        answer = await deps.llm.complete(prompt, AnswerDraft)
+        usage = model_usage(answer.usage)
+        models.append(usage)
+        broken = _broken_rule(facts, answer.output)
+        try:
+            if broken is None:
+                result = _result_from_draft(state, facts, judged, answer.output, usage)
+                break
+        except ValidationError as error:
+            broken = _error_types(error)
+        _log.warning("write_answer attempt %d broke the contract: %s", attempt, broken)
+    preview = None
+    if result.status == "done":
+        explanations = (
+            [claim.explanation for claim in answer.output.claims] if facts else []
+        )
+        text = "\n\n".join([*explanations, *answer.output.limitations]).strip()
+        masked = await mask_personal_data(text, deps.pii)
+        preview = masked.text[:DRAFT_MAX_CHARS].strip() or None
+    return state.model_copy(
+        update={"result": result, "models": models, "draft": preview}
+    )
 
 
 def _result_from_draft(
@@ -86,34 +105,43 @@ def _result_from_draft(
     if not facts:
         # Only opinions: nothing for the model to judge, whatever it answered.
         draft = draft.model_copy(update={"claims": []})
-    if len(draft.claims) != len(facts):
-        # One result per fact, or the answer cannot be tied to its claims.
-        return state.technical_failure()
-    # Skipped claims and dropped sources: what the check could not cover.
-    skipped: list[LimitationCode] = [_code(text) for text in state.limitations]
     answered = [
         _answered(fact, judgement, written, state.incidents.get(fact.claim))
         for fact, judgement, written in zip(facts, judged, draft.claims, strict=True)
     ]
     unverifiable = [_not_verifiable(c) for c in state.claims if not c.is_fact]
-    notes = state.image_notes
+    draft_code = _draft_code(state, facts)
+    notes = dict.fromkeys(
+        [
+            (draft_code, plain_text(text, LIMITATION_MAX_CHARS))
+            for text in draft.limitations
+        ]
+        + [(_code(text), text) for text in state.limitations]
+        + state.image_notes
+    )
     return CheckResult(
         check_id=state.check_id,
         status="done",
         claims=[*answered, *unverifiable],
-        limitations=[
-            *(plain_text(text, LIMITATION_MAX_CHARS) for text in draft.limitations),
-            *state.limitations,
-            *[text for _, text in notes],
-        ],
-        limitation_codes=[
-            *[_draft_code(state, facts)] * len(draft.limitations),
-            *skipped,
-            *[code for code, _ in notes],
-        ],
+        limitations=[text for _, text in notes],
+        limitation_codes=[code for code, _ in notes],
         corpus_version=state.corpus_version,
         ai_marker=ai_marker_for(usage, datetime.now(UTC)),
     )
+
+
+def _broken_rule(facts: list[ExtractedClaim], draft: AnswerDraft) -> str | None:
+    # One explanation per fact, or the answer cannot be tied to its claims;
+    # with no fact the explanations are dropped, whatever the model wrote.
+    if facts and len(draft.claims) != len(facts):
+        return f"{len(draft.claims)} explanations for {len(facts)} facts"
+    return None
+
+
+def _error_types(error: ValidationError) -> str:
+    # Locations and messages only: the input is the model's text, never logged.
+    errors = error.errors(include_input=False, include_url=False)
+    return "; ".join(f"{'.'.join(map(str, e['loc']))}: {e['msg']}" for e in errors)
 
 
 def _code(text: str) -> LimitationCode:
@@ -152,21 +180,6 @@ def _judge(
         claim_date=fact.claim_date or date.min,
         reviews=premises,
         review_context=context,
-    )
-
-
-def _described(fact: ExtractedClaim, judged: evidence.Judgement) -> str:
-    # Source fragments go to the model as data, so it can explain them.
-    quotes = [
-        f"- {STANCE_LABELS[c.stance]}, {c.source.publisher}: {c.fragment}"
-        for c in judged.citations
-    ]
-    ratings = (
-        f"- {STANCE_LABELS[r.stance]}, {r.publisher}: ocena {r.rating}, {r.title}"
-        for r in judged.claim_review_premises
-    )
-    return "\n".join(
-        (fact.claim, f"verdict: {VERDICT_LABELS[judged.verdict]}", *quotes, *ratings)
     )
 
 

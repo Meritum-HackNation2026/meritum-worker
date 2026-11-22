@@ -5,8 +5,13 @@ Features:
 """
 
 from meritum_worker.observability.bundle import Manifest, meritum_eval_bundle
+from meritum_worker.observability.case_parts import CaseSource, Injection
 from meritum_worker.observability.cases import load_eval_cases
 from meritum_worker.observability.cassette import Cassette, EvalMode, LlmTake, PageTake
+from meritum_worker.observability.citation_judge import (
+    CitationJudgement,
+    judge_citations,
+)
 from meritum_worker.observability.cli import meritum_eval
 from meritum_worker.observability.comparison import (
     ComparedModel,
@@ -36,12 +41,7 @@ from meritum_worker.observability.factory import (
     build_readiness_probes,
 )
 from meritum_worker.observability.golden import load_golden_set
-from meritum_worker.observability.models import (
-    CaseSource,
-    GoldenCase,
-    GoldenSet,
-    Injection,
-)
+from meritum_worker.observability.models import GoldenCase, GoldenSet
 from meritum_worker.observability.outcomes import case_outcome, macro_f1
 from meritum_worker.observability.ports import EvalCaseSets, EvalRunRepository
 from meritum_worker.observability.readiness import (
@@ -70,6 +70,11 @@ from meritum_worker.observability.run_comparison import (
 )
 from meritum_worker.observability.runner import run_eval
 from meritum_worker.observability.scoring import score_runs
+from meritum_worker.observability.snapshot import (
+    SnapshotCorpus,
+    SnapshotCorpusPort,
+    load_snapshot_file,
+)
 
 __all__ = [
     "DEFAULT_CASES_FILE",
@@ -79,6 +84,7 @@ __all__ = [
     "Cassette",
     "CassetteMissError",
     "ChangedCase",
+    "CitationJudgement",
     "ComparedModel",
     "CostLine",
     "CostSummary",
@@ -101,6 +107,8 @@ __all__ = [
     "RetrievalScore",
     "RunComparison",
     "ScenarioScore",
+    "SnapshotCorpus",
+    "SnapshotCorpusPort",
     "TooFewCasesError",
     "build_case_sets",
     "build_eval_run_deps",
@@ -112,10 +120,12 @@ __all__ = [
     "compare_runs",
     "evaluate_eval_run",
     "finish_eval_run",
+    "judge_citations",
     "load_embeddings_config",
     "load_eval_cases",
     "load_golden_set",
     "load_model_config",
+    "load_snapshot_file",
     "log_readiness",
     "macro_f1",
     "meritum_cost",

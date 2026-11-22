@@ -6,12 +6,14 @@ Features:
 
 from meritum_worker.checks.prompts.constants import (
     ANSWER_INSTRUCTIONS,
+    ANSWER_VERDICTS,
     EXTRACTION_INSTRUCTIONS,
     PUBLISHED_ON_INSTRUCTIONS,
 )
 
 __all__ = [
     "ANSWER_INSTRUCTIONS",
+    "ANSWER_VERDICTS",
     "EXTRACTION_INSTRUCTIONS",
     "PUBLISHED_ON_INSTRUCTIONS",
 ]

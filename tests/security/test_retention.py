@@ -6,7 +6,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
-from meritum_core.checks.contracts import CheckRecord
+from meritum_core.checks.contracts import CheckRecord, Notification
 from meritum_core.shared.blobs import BlobSettings
 from meritum_core.shared.database import DatabaseSettings
 
@@ -113,6 +113,7 @@ def test_retention_without_blob_store_or_database_deletes_nothing_else() -> None
         "blobs": 0,
         "removed_case_checks": 0,
         "full_texts": 0,
+        "archives": 0,
     }
 
 
@@ -177,16 +178,70 @@ def test_erasure_by_channel_user_hash_drops_their_checks_and_audio(
     assert not audio.exists()
 
 
-def test_erasure_drops_every_named_check_workflow_of_the_person() -> None:
-    store = InMemoryWorkflowStore()
-    store.add("chk_1", "check", {"channel_user_hash": HASH}, created_at=NOW)
-    store.add("chk_2", "recheck_claim", {"channel_user_hash": HASH}, created_at=NOW)
-    deps = build_retention_deps(
+def _recheck(check_id: str, old_check_id: str) -> dict[str, object]:
+    return {
+        "old_check_id": old_check_id,
+        "check_id": check_id,
+        "corpus_version": "2026-11-21T02:00Z",
+        "claim": "Płaca minimalna wynosi 4806 zł",
+    }
+
+
+def _erasure_deps(store: InMemoryWorkflowStore) -> RetentionDeps:
+    return build_retention_deps(
         DatabaseSettings(provider="memory"),
         None,
         workflows=store,
-        check_workflows=("check", "recheck_claim"),
+        recheck_workflows=("recheck_claim",),
     )
+
+
+def test_erasure_drops_the_rechecks_of_the_persons_checks() -> None:
+    store = InMemoryWorkflowStore()
+    store.add("chk_1", "check", {"channel_user_hash": HASH}, created_at=NOW)
+    store.add("re_1", "recheck_claim", _recheck("re_1", "chk_1"), created_at=NOW)
+    store.add("re_2", "recheck_claim", _recheck("re_2", "chk_9"), created_at=NOW)
+    payload = {"kind": "channel_user_hash", "value": HASH}
+    asyncio.run(erase_subject(payload, _erasure_deps(store)))
+    assert store.ids() == {"re_2"}
+
+
+def test_erasure_drops_a_recheck_whose_own_record_names_the_person() -> None:
+    # The earlier check already left by retention; the recheck saved a record.
+    store = InMemoryWorkflowStore()
+    store.add("re_1", "recheck_claim", _recheck("re_1", "chk_gone"), created_at=NOW)
+    deps = _erasure_deps(store)
+    asyncio.run(deps.app.records.save(_record("re_1", HASH)))
     payload = {"kind": "channel_user_hash", "value": HASH}
     asyncio.run(erase_subject(payload, deps))
     assert store.ids() == set()
+
+
+USER = "usr_" + "e" * 12
+
+
+def _note(note_id: str, **fields: object) -> Notification:
+    return Notification.model_validate(
+        {
+            "id": note_id,
+            "user_id": USER,
+            "link": "/",
+            "created_at": NOW,
+            "retention_until": NOW + timedelta(days=30),
+            **fields,
+        }
+    )
+
+
+def test_erasure_keeps_the_persons_case_assignments_and_system_messages() -> None:
+    deps = _deps(InMemoryWorkflowStore())
+    notes = (
+        _note("n_done", kind="check_done", check_id="chk_1"),
+        _note("n_case", kind="case_assigned", case_id="#S-1"),
+        _note("n_sys", kind="system", message_code="maintenance_planned"),
+    )
+    for note in notes:
+        asyncio.run(deps.app.notifications.save(note))
+    asyncio.run(erase_subject({"kind": "user_id", "value": USER}, deps))
+    kept = asyncio.run(deps.app.notifications.list_for("user_id", USER))
+    assert {n.kind for n in kept} == {"case_assigned", "system"}

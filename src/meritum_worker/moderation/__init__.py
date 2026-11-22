@@ -9,6 +9,7 @@ from meritum_worker.moderation.constants import (
     ANSWER_NOTICE_CRON,
     ANSWER_NOTICE_WORKFLOW,
     PANEL_LINK,
+    RECHECK_CLAIM_WORKFLOW,
     SIMILARITY_WINDOW,
     UNANSWERED_VERDICT,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "ANSWER_NOTICE_CRON",
     "ANSWER_NOTICE_WORKFLOW",
     "PANEL_LINK",
+    "RECHECK_CLAIM_WORKFLOW",
     "SIMILARITY_WINDOW",
     "UNANSWERED_VERDICT",
     "CheckResults",

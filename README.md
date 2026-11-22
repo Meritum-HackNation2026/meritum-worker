@@ -49,6 +49,8 @@ Workflow `check` bierze model, repozytorium zapisów, fetcher stron (ochrona SSR
 
 Przy `technical_failure` wynik zawiera `failure_code` z kontraktu meritum-core. Pole `message` w wynikach bez werdyktu zawiera tekst diagnostyczny do użytku wewnętrznego.
 
+W kroku `write_answer` worker publikuje zamaskowany szkic odpowiedzi do 4000 znaków w `AnalysisStatus.draft`. Szkic jest widoczny do chwili opublikowania końcowego wyniku.
+
 Tabele schematu aplikacji tworzy `meritum-migrate-app` z meritum-core, uruchamiany przez deploy (worker#32). Lokalny test z prawdziwym DBOS i PostgreSQL, także z restartem workera, potrzebuje dwóch adresów; `MERITUM_TEST_DATABASE_URL` wskazuje bazę, w której test tworzy i usuwa schemat `app_integration`:
 
 ```bash
@@ -61,6 +63,8 @@ Scenariusze Gherkin ze zgłoszeń trafiają do `features/<domena>.feature`, krok
 Zasady architektury i to, co je sprawdza: [docs/architecture.md](docs/architecture.md).
 
 ## Gotowość przy starcie
+
+W lokalnym Docker Compose worker uruchamia migracje tabel aplikacji przed startem DBOS, gdy `MERITUM_ENV=local` i `MERITUM_DATABASE_PROVIDER=postgres`. Lokalny test dymny działa bez tokenu EUvsDisinfo. Worker uruchamia tę sondę lokalnie po ustawieniu tokenu.
 
 Przy starcie worker sprawdza, czy ma wymagane zmienne i czy dostawcy odpowiadają, i zapisuje wynik w logu: same nazwy zmiennych i dostawców, nigdy wartości. API (`GET /api/v1/health`) zleca workflow `readiness`, który robi to samo sprawdzenie, zwraca `ReadinessReport` z meritum-core i ustawia go jako zdarzenie `readiness`. Brak zmiennej albo niedostępny dostawca nie zatrzymuje workera, tylko trafia do raportu.
 
@@ -88,13 +92,28 @@ uv run meritum-eval                                  # golden set, raport JSON n
 uv run meritum-eval --cases jury.csv --output raport.json --max-concurrency 4
 ```
 
+Z `--api https://meritum-dev.gburek.app` przypadki idą przez API wdrożonego środowiska jako sprawdzenia z kanału web, z prawdziwą wyszukiwarką, Fact Check API i modelem tego środowiska; czas to zegar od wysłania do wyniku. `--judge` dodaje `citation_precision`: model z `MERITUM_LLM_*` ocenia każdy cytat. `--fresh` dopisuje do tekstów niewidoczny znacznik przebiegu (znaki o zerowej szerokości), żeby pamięć podręczna wyników API (2 h, klucz z tekstu) nie oddała odpowiedzi sprzed wdrożenia. Taki przebieg uruchamiamy ręcznie, nigdy w CI:
+
+```bash
+set -a; source ../.env; set +a                       # OPENROUTER_API_KEY dla sędziego, nigdy w repozytorium
+MERITUM_LLM_PROVIDER=openrouter MERITUM_LLM_MODEL=anthropic/claude-haiku-5.5 \
+  uv run meritum-eval --cases evals/golden/fact-checks.json --api https://meritum-dev.gburek.app \
+  --judge --fresh --max-concurrency 4 --output evals/reports/fact-checks-$(date +%F)-n.json
+```
+
 Model wybiera konfiguracja `MERITUM_LLM_*` (tabela wyżej), więc jeden przebieg na model daje porównywalny raport. Na stubie (`MERITUM_LLM_PROVIDER=stub`) wystarczy `MERITUM_LLM_STUB_FIXTURES`; Vertex AI potrzebuje `MERITUM_LLM_MODEL`, `MERITUM_LLM_REGION` (region UE) i poświadczeń ADC (`gcloud auth application-default login`). Zapisy przebiegu zostają w pamięci procesu, więc ewaluacja nic nie pisze do bazy aplikacji. Pełny przebieg woła model, dlatego nie jest krokiem CI (ADR-28); w CI biegną tylko testy mierników i scenariusze behave na stubie.
 
 Raport podaje modele z zapisów przebiegu i mierniki z US-OBS-04:
 
 | Pole | Co liczy |
 | --- | --- |
-| `macro_f1` | werdykt głównego twierdzenia; każdy stan niebędący werdyktem to jedna osobna klasa błędu |
+| `macro_f1` | werdykt głównego twierdzenia; każdy stan niebędący werdyktem to jedna osobna klasa błędu; werdykt z `acceptable_verdicts` liczy się jak oczekiwany |
+| `macro_f1_strict` | to samo z etykiet, które potok naprawdę zwrócił: werdykt z `acceptable_verdicts` zalicza przypadek, ale nie klasę, więc klasa, której potok nigdy nie zwraca, ma F1 = 0 |
+| `accuracy` | przypadki z poprawnym wynikiem |
+| `citation_precision` | cytaty, których wymowę potwierdza model-sędzia (tylko z `--judge`); sędzia widzi fragment oraz tytuł, datę i adres źródła, czyli to, co czytelnik pod cytatem; dosłowność fragmentu sprawdza już samo sprawdzenie |
+| `citation_recall` | średni udział hostów z `sources` przypadku, które odpowiedź cytuje albo podaje jako ocenę fact-checkera |
+| `abstention_rate` | sprawdzenia `done`, w których żadne twierdzenie nie dostało werdyktu rozstrzygającego |
+| `fact_check_hit_rate` | przypadki `category: fact_checked`, w których odpowiedź pokazuje ocenę fact-checkera |
 | `citation_coverage`, `citation_correctness` | twierdzenia z werdyktem rozstrzygającym, które mają cytat; cytaty, których host jest wśród `sources` przypadku |
 | `abstention` | przypadki z oczekiwanym `insufficient_evidence` albo `not_verifiable`, które dostały ten werdykt |
 | `robustness` | przypadki z `injection` z poprawnym wynikiem |
@@ -137,6 +156,8 @@ Jak dodać kandydata: skopiuj plik z katalogu, zmień `name` (nazwa pliku bez `.
 ### Ręczna ocena cytatów
 
 Wymowę każdego cytatu ocenia osobne wywołanie modelu, które widzi tylko parę twierdzenie i źródło (`meritum_worker.evidence`), a werdykt i siłę liczą reguły z meritum-core. Mierniki ewaluacji nie sprawdzają, czy model dobrze ocenił wymowę, dlatego po każdym przebiegu ewaluacji osoba z zespołu ocenia ręcznie losową próbę cytatów: co najmniej 20 cytatów z różnych przypadków, wylosowanych z wyników przebiegu. Przy każdym cytacie zapisuje, czy fragment rzeczywiście wspiera, obala albo daje kontekst twierdzeniu i czy różne miary tego samego zjawiska (szacunek a pozycja budżetu, inny rok) nie zostały uznane za sprzeczność. Wynik (liczba ocenionych cytatów, liczba błędnych wymów, przykłady) trafia do raportu w `evals/reports/` obok raportu przebiegu.
+
+Źródła tej oceny to strony z wyszukiwania w sieci i fragmenty z przypiętej migawki korpusu, które przeszły reranker w kroku `search_corpus`. Fragmenty jednego dokumentu tworzą jedno źródło. Link i domenę bierzemy z `corpus.documents`, a wydawcę, rodzaj i poziom z wpisu katalogu. Fragment, którego dokumentu nie ma w korpusie albo którego domeny nie ma w katalogu, nie jest dowodem. Strony pobranej już przez wyszukiwanie w sieci nie oceniamy drugi raz z korpusu.
 
 ## Wyszukiwanie na żywo
 
@@ -218,7 +239,7 @@ Wynik: jeszcze nie uruchomiony, bo wymaga poświadczeń GCP. Przebieg i wpisanie
 
 ## Obrazy i zrzuty ekranu
 
-Krok `read_image` (część kroku `receive`) czyta obraz z `BlobStore` portem OCR z meritum-core (`MERITUM_OCR_*`; domyślnie `stub`, który zwraca tekst z pliku `MERITUM_OCR_STUB_TEXT`; `vision` to Google Cloud Vision, `DOCUMENT_TEXT_DETECTION`, endpoint UE `eu-vision.googleapis.com`, wymaga `MERITUM_OCR_PROJECT` i poświadczeń ADC). Odczytany tekst jest maskowany jak wklejony i sprawdzany jak tekst; data zapisana na obrazie datuje twierdzenia (`claim_date_source = text`).
+Krok `read_image` (część kroku `receive`) czyta obraz z `BlobStore` portem OCR z meritum-core (`MERITUM_OCR_*`; domyślnie `stub`, który zwraca tekst z pliku `MERITUM_OCR_STUB_TEXT`; `vision` to Google Cloud Vision, `DOCUMENT_TEXT_DETECTION`, endpoint UE `eu-vision.googleapis.com`, wymaga `MERITUM_OCR_PROJECT` i poświadczeń ADC). Odczytany tekst jest maskowany jak wklejony i sprawdzany jak tekst; data zapisana na obrazie datuje twierdzenia (`claim_date_source = text`). Zamaskowany tekst trafia do pola `image_text` w wyniku sprawdzenia.
 
 | | |
 |---|---|
@@ -280,12 +301,22 @@ MERITUM_TEST_DATABASE_URL=postgresql://... uv run pytest -m integration tests/co
 
 Dwa zaplanowane workflowy DBOS z `src/meritum_worker/corpus/` budują korpus z katalogu źródeł z meritum-core (`load_catalog()`, `catalog.yaml`):
 
-- `corpus_ingest` co 15 minut bierze pozycje z `role: evidence` i `ingest` równym `static`, `rss` albo `sitemap`, pomija wykluczone (`excluded`) i z `tdm_reservation: reserved`, a z pozostałych tylko te, którym od ostatniej próby (`corpus.ingest_attempts`, także nieudanej) minęło `refresh_minutes` (domyślnie raz na dobę). Pozycje `live`, `web_search`, `mcp` i `source_status` nie trafiają do korpusu. Pozycje `api` czekają na własne adaptery ([worker#82](https://github.com/Meritum-HackNation2026/meritum-worker/issues/82)), bo API odpowiadają JSON-em, którego fetcher z core nie przyjmuje. Wybór pozycji to pierwszy krok DBOS, a każda pozycja to osobny krok z ponowieniami, więc ponowiony krok pobiera wszystkie strony pozycji od nowa. Strony pobiera fetcher z core z celem `SOURCE` (ochrona SSRF, `robots.txt`, Content-Signal, znaczniki TDM w stronie), dzieli je na fragmenty do 1200 znaków (`chunk_text`), wektoryzuje portem embeddingów i zapisuje. Błąd jednej strony (także niedostępne embeddingi) trafia do raportu kroku z adresem i powodem, a przebieg idzie dalej. Raport kroku zostaje w historii workflowu DBOS.
+- `corpus_ingest` co 15 minut bierze pozycje z `role: evidence` i `ingest` równym `static`, `rss` albo `sitemap`, pomija wykluczone (`excluded`) i z `tdm_reservation: reserved`, a z pozostałych tylko te, którym od ostatniej próby (`corpus.ingest_attempts`, także nieudanej) minęło `refresh_minutes` (domyślnie raz na dobę). Pozycje `live`, `web_search`, `mcp` i `source_status` nie trafiają do korpusu. Pozycje `api` czekają na własne adaptery ([worker#82](https://github.com/Meritum-HackNation2026/meritum-worker/issues/82)), bo API odpowiadają JSON-em, którego fetcher z core nie przyjmuje. Wybór pozycji to pierwszy krok DBOS, a każda pozycja to osobny krok z ponowieniami, więc ponowiony krok pobiera wszystkie strony pozycji od nowa. Strony pobiera fetcher z core z celem `SOURCE` (ochrona SSRF, `robots.txt`, Content-Signal, znaczniki TDM w stronie), dzieli je na fragmenty do 1200 znaków (`chunk_text`), wektoryzuje portem embeddingów i zapisuje. Błąd jednej strony (także niedostępne embeddingi) trafia do raportu kroku z adresem i powodem, a przebieg idzie dalej. Raport pozycji (liczby dokumentów i strony, które się nie udały, z powodem) workflow zapisuje też jako zdarzenie DBOS o nazwie kroku, w przenośnym JSON-ie, więc da się go odczytać zwykłym zapytaniem, dopóki DBOS trzyma historię przebiegu (wyjścia kroków są w pickle, a uruchomienie z harmonogramu pomija `serialization_type` workflowu):
+
+```sql
+SELECT e.key, e.value::jsonb
+FROM <schemat_dbos>.workflow_events e
+JOIN <schemat_dbos>.workflow_status s ON s.workflow_uuid = e.workflow_uuid
+WHERE s.name = 'corpus_ingest' AND e.key LIKE 'ingest %'
+ORDER BY s.created_at DESC;
+```
 - `corpus_snapshot` co godzinę zapisuje `corpus_version` nazwaną od godziny (`2026-11-20T10:00Z`) z manifestem: identyfikatory dokumentów, sumy kontrolne i `fetched_at`. Strona zapisana między migawkami, także strona z wyszukiwania na żywo po skanie (`corpus.store_page`), wchodzi do następnej. `store_page` odrzuca strony pozycji wykluczonych i zastrzeżonych dla TDM także na tej drodze.
 
-Po każdej migawce `corpus_snapshot` uruchamia `recheck_unanswered` (`src/meritum_worker/notifications/`). Workflow bierze twierdzenia z werdyktem `insufficient_evidence` z ostatnich 30 dni, których zapis jeszcze istnieje. Szuka ich w nowej migawce (5 fragmentów) i sprawdza ponownie tylko te, dla których wyszukiwanie trafia w dokument nowy względem poprzedniej migawki i pobrany po pytaniu. Po jednej migawce rusza najwyżej 20 ponownych sprawdzeń. Każde z nich to podrzędny workflow `recheck_claim`: ciało `check` na nowej migawce, z tym samym pytającym i własnym `CheckRecord`. Id podrzędnego workflowu wynika z dawnego sprawdzenia, twierdzenia i migawki, więc wznowiony przebieg nie zaczyna go drugi raz. Pytający dostaje `new_evidence` z identyfikatorem i linkiem dawnego sprawdzenia tylko wtedy, gdy werdykt się zmienił. Klucz powiadomienia jest ten sam co w kroku `notify_new_evidence`, więc oba nie dodają drugiego wpisu. `delete_subject` usuwa też workflowy `recheck_claim` danej osoby.
+Po każdej migawce `corpus_snapshot` uruchamia `recheck_unanswered` (`src/meritum_worker/notifications/`). Workflow bierze twierdzenia z werdyktem `insufficient_evidence` z ostatnich 30 dni, których zapis jeszcze istnieje. Szuka ich w nowej migawce (5 fragmentów) i sprawdza ponownie tylko te, dla których wyszukiwanie trafia w dokument nowy względem poprzedniej migawki i pobrany po pytaniu. Po jednej migawce rusza najwyżej 20 ponownych sprawdzeń. Każde z nich to podrzędny workflow `recheck_claim`: ciało `check` na nowej migawce, z tym samym pytającym i własnym `CheckRecord`. Plan i wejście `recheck_claim` nie zawierają identyfikatorów pytającego. Krok `recheck input` czyta je z dawnego zapisu dopiero przy starcie sprawdzenia, a gdy zapisu już nie ma, sprawdzenie się nie odbywa. Id podrzędnego workflowu wynika z dawnego sprawdzenia, twierdzenia i migawki, więc wznowiony przebieg nie zaczyna go drugi raz. Pytający dostaje `new_evidence` z identyfikatorem i linkiem dawnego sprawdzenia tylko wtedy, gdy werdykt się zmienił. Klucz powiadomienia jest ten sam co w kroku `notify_new_evidence`, więc oba nie dodają drugiego wpisu. `delete_subject` usuwa też workflowy `recheck_claim`, których `check_id` albo `old_check_id` należy do sprawdzeń tej osoby. Moderacja czyta wyniki `recheck_claim` tak samo jak wyniki `check`: twierdzenie z ponownego sprawdzenia można przekazać moderatorom i liczy się ono do grupowania podobnych pytań bez odpowiedzi.
 
-Na razie każda pozycja ma jedną stronę: adres `https://<domena>` (`EntryPageDiscovery`). Wpisy z kanałów RSS i map stron dołoży [worker#22](https://github.com/Meritum-HackNation2026/meritum-worker/issues/22) jako kolejną implementację `DocumentDiscoveryPort`, więc dopiero wtedy prawdziwy korpus przekroczy 100 dokumentów.
+Pozycja `static` ma jedną stronę: adres `https://<domena>` albo adres wejścia z `ENTRY_URLS`, gdy pod samą domeną nie ma treści (`stat.gov.pl` przekierowuje na stronę logowania). Sekcja gov.pl (`www.gov.pl/web/<sekcja>`, bez dalszej ścieżki) ma oprócz strony wejściowej artykuły z listy „Aktualności” sekcji (`/aktualnosci`, dla MON `/aktualnosci5` z `GOVPL_LISTING_URLS`): 10 najnowszych, z datą z kafelka. gov.pl nie ma RSS ani mapy strony. Gdy lista się nie wczyta, pozycja dostaje porażkę z adresem listy, jak przy kanale. Podstrony sekcji (`www.gov.pl/web/gov/ostrzezenia`) zostają przy jednej stronie ([worker#232](https://github.com/Meritum-HackNation2026/meritum-worker/issues/232)). Pozycje `rss` i `sitemap` czyta `FeedDiscovery` z adresu w `FEED_URLS`. Z kanału zostają tylko strony tej samej witryny i ścieżki co pozycja, bo inne trafiłyby do korpusu pod jej wydawcą. Host, który wydawca podaje w mapie przez pomyłkę, poprawia `FEED_HOST_FIXES` (mapa PKW wskazuje wewnętrzny `baza57-loc.pl`). Mapa podrzędna z indeksu, która się nie wczyta, jest pomijana, a pozostałe idą dalej. Mapa NATO ma 10 MB przy limicie 5 MB w core, a jej mniejsza część zawiera tylko strony po francusku. Dlatego NATO czytamy z JSON, z którego jego angielska strona wiadomości bierze listę artykułów. Pozycje z `INGEST_SKIPPED` ingest pomija, ale wyszukiwanie na żywo dalej je cytuje: `ulc.gov.pl` i `www.sar.gov.pl` (Imperva Incapsula), `eur-lex.europa.eu` (antybot AWS) i `odyseusz.gov.pl` (wymaga JS, ta sama treść jest na `www.gov.pl/web/dyplomacja`). Flaga `excluded` z core wyłączyłaby je także z wyszukiwania na żywo. Z mapy PKW `SKIPPED_PAGES` odrzuca strony wyników wyborów (`wyniki-glosowania`, `wyniki-wyborow`, `wizualizacja-wynikow`). To aplikacja JS, w której HTML jest tylko menu strony, a wyniki cytujemy z obwieszczeń PKW w Dzienniku Ustaw. Komunikaty i uchwały PKW zostają. Strony `detail` Komisji Europejskiej (Press Corner) renderują się w przeglądarce, więc `PresscornerFetcher` bierze tytuł i treść z JSON API tej strony, a w korpusie zostaje link do `detail`. Strona, której detektor wstrzyknięć nie przeskanował, bo jego dostawca nie odpowiedział, jest porażką `injection_unavailable` i nie trafia do korpusu. Stan źródeł katalogu i przyczyny porażek: [worker#220](https://github.com/Meritum-HackNation2026/meritum-worker/issues/220).
+
+Pozycja `api.sejm.gov.pl` czyta API ELI Sejmu. Akty z bieżącego roku (`/eli/acts/DU/{rok}`, około 1500) trafiają do korpusu jako tytuł i metadane. Akty z `MERITUM_CORPUS_LEGAL_ACTS` oraz najnowsze teksty jednolite w mocy z wyszukiwania ELI (`MERITUM_CORPUS_LEGAL_SEARCH_LIMIT`) trafiają z pełnym tekstem. Domyślna lista (`LEGAL_ACTS` w `corpus/catalog_api/constants.py`) to Konstytucja, obwieszczenie PKW o wyniku wyborów prezydenta z 2025 r., rozporządzenia o płacy minimalnej na lata 2024–2027, teksty jednolite ustaw o PIT, CIT, VAT, Ordynacji podatkowej, Kodeksu pracy, Kodeksu wyborczego, ustaw o minimalnym wynagrodzeniu, o emeryturach z FUS i o 800 plus oraz akty o waloryzacji emerytur w 2026 r. Tekst jednolity ma własne ELI, więc gdy Marszałek Sejmu ogłosi nowszy, listę trzeba zaktualizować. Tekst pochodzi z PDF-u: z tekstu ujednoliconego (`U`), gdy ELI go podaje, a w innym przypadku z `text.pdf`. HTML-a nie bierzemy. Od 2025 r. ELI go nie publikuje, a ekstraktor z core zostawia z niego tylko część tekstu. PDF czyta `PdfAsTextTransport` (PDFium przez `pypdfium2`), który działa pod ochroną SSRF i `robots.txt` fetchera z core. Każdy artykuł, paragraf i rozdział zaczyna nowy akapit, a nagłówki stron są usuwane. Akt dłuższy niż 60 000 znaków dzielimy na kilka dokumentów (`#czesc-2`, `#czesc-3`…), z tytułem i metadanymi w każdym, żeby klasyfikator wstrzyknięć czytał każdą część w całości. Gdy akt nie ma żadnego tekstu w ELI, zostaje sam tytuł, a raport dostaje porażkę `act_text_unavailable`. PDF bez warstwy tekstowej (skan) daje porażkę `act_text_empty`. Gdy pobranie się nie uda, nic nie zapisujemy, więc w korpusie zostaje wcześniejszy pełny tekst.
 
 Dokumenty leżą w `corpus.documents` (adres, domena, `publisher_id` i licencja z katalogu, `fetched_at`, suma kontrolna, pełny tekst), fragmenty w `corpus.passages`, manifesty w `corpus.snapshot_manifest` (migracje corpus 0001 i 0003 z meritum-core; 0003 dodaje też `corpus.ingest_attempts`). Pełny tekst czyta tylko system; wyszukiwanie zwraca fragmenty. Zmieniona strona dostaje nowe fragmenty, a stare dostają `retired_at`, więc sprawdzenie z poprzednią wersją widzi to samo co wcześniej. Retencję pełnych tekstów buduje [worker#77](https://github.com/Meritum-HackNation2026/meritum-worker/issues/77) na tym modelu: wyczyści `full_text` po 90 dniach od `fetched_at` (`FULL_TEXT_RETENTION_DAYS` w core) i zostawi wiersz.
 
@@ -293,6 +324,8 @@ Dokumenty leżą w `corpus.documents` (adres, domena, `publisher_id` i licencja 
 |---|---|---|
 | `MERITUM_CORPUS_INGEST` | brak | `enabled` tworzy oba harmonogramy przy starcie workera. Ustawiamy ją tylko tam, gdzie rola może pisać do schematu `corpus` (prd); bez niej harmonogramów nie ma, a uruchomiony ręcznie workflow nic nie robi |
 | `MERITUM_CORPUS_PROVIDER`, `MERITUM_CORPUS_DATABASE_URL` | `memory` | gdzie zapisywać dokumenty i migawki (te same ustawienia co kopia EUvsDisinfo) |
+| `MERITUM_CORPUS_LEGAL_ACTS` | `LEGAL_ACTS` | lista JSON z ELI aktów (`DU/1997/483`, `MP/2026/202`), które pozycja `api.sejm.gov.pl` zapisuje z pełnym tekstem |
+| `MERITUM_CORPUS_LEGAL_SEARCH_LIMIT` | `25` | liczba najnowszych tekstów jednolitych w mocy z wyszukiwania ELI, czytanych w pełni; `0` wyłącza wyszukiwanie |
 | `MERITUM_EMBEDDINGS_*` | `stub` | model embeddingów z meritum-core; korpus i wyszukiwanie muszą używać tego samego |
 
 Testy na prawdziwym PostgreSQL i DBOS, poza CI (baza z `MERITUM_TEST_DATABASE_URL` bez dokumentów i migawek; test ją potem czyści):

@@ -186,3 +186,20 @@ class IngestReport(BaseModel):
             unchanged=self.unchanged + other.unchanged,
             failures=self.failures + other.failures,
         )
+
+
+class LegalActs(BaseModel):
+    """Legal acts the ``api.sejm.gov.pl`` entry reads with their full text.
+
+    Attributes:
+        acts: ELIs always read (``DU/1997/483``).
+        search_limit: Consolidated texts in force read from the ELI search.
+
+    Features:
+        US-KOR-02, US-ZRD-05, F-10, F-12
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    acts: tuple[str, ...] = ()
+    search_limit: int = 0

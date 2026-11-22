@@ -14,12 +14,14 @@ from meritum_core.jobs.contracts import (
     DeleteSubjectOutput,
 )
 
+from meritum_worker.corpus import purge_archives_of
 from meritum_worker.security.models import RetentionDeps, StoredWorkflow
 from meritum_worker.security.selection import (
     about_checks,
     audio_id,
     find_workflows,
     names_subject,
+    repeats_checks,
 )
 
 
@@ -31,9 +33,10 @@ async def erase_subject(
     The person's check workflows (running ones are cancelled first; DBOS stops
     them at their next step, so a step already saving may still finish;
     ``delete_subject`` runs this twice, ``ERASURE_SETTLE`` apart, to catch that
-    record) and the escalations of their checks
+    record), the rechecks of those checks and the escalations of all of them
     leave DBOS; then the eraser deletes their records, notifications and case
-    checks, and their uploaded audio goes. Running it again deletes nothing more.
+    checks, and their uploaded audio and archived pages go. Running it again
+    deletes nothing more.
 
     Args:
         payload: the ``DeleteSubjectInput`` JSON object the backend enqueued.
@@ -46,7 +49,7 @@ async def erase_subject(
         ValueError: the payload has an unsupported contract version.
 
     Features:
-        US-BEZ-05, F-20, ADR-13
+        US-BEZ-05, US-POW-03, F-20, F-39, ADR-13
     """
     subject = DELETE_SUBJECT.input.model_validate(payload, extra="ignore")
     if subject.contract_version != CONTRACT_VERSION:
@@ -56,10 +59,12 @@ async def erase_subject(
     records = await deps.app.records.list_for(kind, value)
     checks = await _checks_of(deps, kind, value)
     check_ids = {r.check_id for r in records} | {w.workflow_id for w in checks}
+    rechecks = await _rechecks_of(deps, check_ids)
+    check_ids |= {w.workflow_id for w in rechecks}
     escalations = await find_workflows(
         deps.workflows, ESCALATE_CLAIM.name, lambda p: about_checks(p, check_ids)
     )
-    workflow_ids = [w.workflow_id for w in (*checks, *escalations)]
+    workflow_ids = [w.workflow_id for w in (*checks, *rechecks, *escalations)]
     await deps.workflows.delete(workflow_ids)
     deleted = len(workflow_ids) + await deps.app.eraser.erase(kind, value)
     # A check stopped before saving its record may still sit in cases or inboxes.
@@ -69,6 +74,7 @@ async def erase_subject(
         deleted += await deps.app.notifications.delete_for_checks(unsaved)
     audio = [found for w in checks if (found := audio_id(w.payload)) is not None]
     deleted += await deps.blobs.delete(audio)
+    deleted += await purge_archives_of(deps.archives, value)
     return DeleteSubjectOutput(deleted=deleted)
 
 
@@ -79,5 +85,16 @@ async def _checks_of(
     for name in deps.check_workflows:
         found += await find_workflows(
             deps.workflows, name, lambda p: names_subject(p, kind, value)
+        )
+    return found
+
+
+async def _rechecks_of(
+    deps: RetentionDeps, check_ids: set[str]
+) -> list[StoredWorkflow]:
+    found: list[StoredWorkflow] = []
+    for name in deps.recheck_workflows:
+        found += await find_workflows(
+            deps.workflows, name, lambda p: repeats_checks(p, check_ids)
         )
     return found

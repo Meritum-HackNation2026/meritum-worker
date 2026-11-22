@@ -25,6 +25,7 @@ from meritum_worker.corpus.adapters import (
     OrganiserFile,
     PostgresCorpusWriter,
     PostgresEuvsCopy,
+    PresscornerFetcher,
     VertexReranker,
     WorkersAiReranker,
     build_api_fetcher,
@@ -32,6 +33,7 @@ from meritum_worker.corpus.adapters import (
 from meritum_worker.corpus.adapters import (
     build_corpus_retention as build_corpus_retention,  # ruff: ignore[useless-import-alias]  # explicit re-export for the corpus package
 )
+from meritum_worker.corpus.catalog_api import LegalActsSettings
 from meritum_worker.corpus.constants import (
     EUVSDISINFO_MCP_URL,
     REQUEST_TIMEOUT_SECONDS,
@@ -154,19 +156,21 @@ def build_ingest_deps(
         injection: The detector pages are scanned with before they are stored.
 
     Returns:
-        Feed discovery, core's SSRF-safe fetcher, the embeddings, the
-        writer, the detector and the fetcher of public APIs.
+        Feed discovery, core's fetcher (Press Corner through its JSON API), the
+        embeddings, the writer, the detector and the fetcher of public APIs.
 
     Features:
         US-KOR-02, US-KOR-05, F-10, F-12, ADR-32
     """
+    api_fetcher = build_api_fetcher()
     return IngestDeps(
         discovery=build_document_discovery(),
-        fetcher=build_page_fetcher(),
+        fetcher=PresscornerFetcher(build_page_fetcher(), api_fetcher),
         embeddings=embeddings,
         store=build_corpus_writer(settings),
         injection=injection,
-        api_fetcher=build_api_fetcher(),
+        api_fetcher=api_fetcher,
+        legal=LegalActsSettings().legal_acts(),
     )
 
 

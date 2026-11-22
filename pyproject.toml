@@ -14,6 +14,7 @@ dependencies = [
     "psycopg[binary]>=3.3",
     "pydantic>=2.14.4",
     "pydantic-evals>=2.71.0",
+    "pypdfium2>=5",
 ]
 
 [project.scripts]
@@ -122,9 +123,13 @@ max-lines = 250
 "src/meritum_worker/corpus/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check search keeps its own"
 "src/meritum_worker/corpus/archive_constants.py" = "constants.py is at the 250-line limit; the page archive keeps its own"
 "src/meritum_worker/checks/fact_check_constants.py" = "constants.py is at the 250-line limit; the fact-check step keeps its own"
+"src/meritum_worker/corpus/passage_constants.py" = "constants.py is at the 250-line limit; matching live page passages keeps its own"
+"src/meritum_worker/corpus/ingest_constants.py" = "constants.py is at the 250-line limit; the catalogue ingestion keeps its own"
 
 [tool.meritum-conventions.line-limit-exceptions]
 "src/meritum_worker/main.py" = "registers every DBOS workflow; split into a main/ package in its own PR, so parallel PRs do not conflict on a move"
+"src/meritum_worker/corpus/factory.py" = "wires every port of the corpus slice; split into a factory/ package in its own PR, so parallel PRs do not conflict on a move"
+"src/meritum_worker/observability/factory.py" = "builds every port of meritum-eval, the only wiring module observability has; split into a factory/ package in its own PR"
 
 # --------------------------------------------------------------------------- #
 # Dead code (vulture) and security (bandit)
@@ -133,7 +138,7 @@ max-lines = 250
 paths = ["src", "scripts", "tests", "features"]
 # DBOS and behave register functions through their decorators.
 ignore_decorators = ["@DBOS.*", "@given", "@when", "@then", "@model_validator", "@field_validator", "@pytest.fixture"]
-ignore_names = ["before_scenario", "model_config", "__call__", "mask", "pytestmark"]  # behave hook; pytest module marks; Pydantic settings; Protocol call signatures; PiiGatePort.mask, called by core
+ignore_names = ["before_scenario", "model_config", "__call__", "mask", "pytestmark", "handle_starttag", "handle_endtag", "handle_data"]  # behave hook; pytest module marks; Pydantic settings; Protocol call signatures; PiiGatePort.mask, called by core; HTMLParser callbacks
 min_confidence = 60
 
 # bandit is a security linter, not a dead-code tool. Ruff's S rules already run
@@ -155,4 +160,4 @@ addopts = ["-ra", "--import-mode=importlib", "-m", "not integration"]
 filterwarnings = ["error"]
 
 [tool.uv.sources]
-meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "93263aecf944dda66eba81feae68e205a6e86403" }
+meritum-core = { git = "ssh://git@github.com/Meritum-HackNation2026/meritum-core.git", rev = "b95f1cadf874f5a8d6ed65c33062bc096a4102f9" }

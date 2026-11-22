@@ -17,6 +17,7 @@ from meritum_worker.checks.steps import (
 from meritum_worker.corpus import FactCheckUnavailableError, FakeFactCheck
 from meritum_worker.corpus.adapters import GoogleFactCheck
 from meritum_worker.evidence import ClaimExplanation, RecordedLlm, ReviewMatch
+from meritum_worker.evidence.constants import NO_CLAIM_DATE, REVIEW_MATCH_INSTRUCTIONS
 
 FIXTURES = Path(__file__).resolve().parents[2] / "features" / "fixtures"
 EXPLAINED = ClaimExplanation(
@@ -37,7 +38,7 @@ def _api(fixture: str) -> GoogleFactCheck:
     return GoogleFactCheck("k-recorded", client)
 
 
-def _run(*, same_claim: bool, api: object) -> CheckState:
+def _run(*, same_claim: bool, api: object, repeat_search: bool = False) -> CheckState:
     llm = RecordedLlm(
         {},
         ReviewMatch(same_claim=same_claim),
@@ -48,10 +49,11 @@ def _run(*, same_claim: bool, api: object) -> CheckState:
     )
 
     async def go() -> CheckState:
-        state = state_with(CLAIM, [])
-        for step in (search_fact_checks, assess_evidence, write_answer):
-            state = await step(state, ports)
-        return state
+        state = await search_fact_checks(state_with(CLAIM, []), ports)
+        if repeat_search:
+            state = await search_fact_checks(state, ports)
+        state = await assess_evidence(state, ports)
+        return await write_answer(state, ports)
 
     return asyncio.run(go())
 
@@ -76,6 +78,19 @@ def test_a_rating_of_another_claim_stays_context() -> None:
     assert claim.claim_review_premises == []
     assert claim.verdict == "insufficient_evidence"
     assert [r.rating for r in claim.claim_reviews] == ["Fałsz"]
+
+
+@pytest.mark.parametrize("same_claim", [True, False])
+def test_repeated_review_is_written_once(*, same_claim: bool) -> None:
+    done = _run(
+        same_claim=same_claim,
+        api=_api("fact_check_demagog.json"),
+        repeat_search=True,
+    )
+    assert done.result is not None
+    [claim] = done.result.claims
+    [review] = [*claim.claim_review_premises, *claim.claim_reviews]
+    assert (review.publisher, review.rating) == ("Stowarzyszenie Demagog", "Fałsz")
 
 
 def test_an_empty_answer_is_no_rating_and_no_failure() -> None:
@@ -105,3 +120,26 @@ def test_no_key_fails_the_same_way() -> None:
         api=FakeFactCheck(failure=FactCheckUnavailableError("no_api_key")),
     )
     assert done.failed_steps == ["search_fact_checks"]
+
+
+def test_an_older_rating_matches_a_claim_that_states_no_date() -> None:
+    llm = RecordedLlm({}, ReviewMatch(same_claim=True))
+    ports: CheckDeps = dataclasses.replace(
+        deps(llm), catalog=load_catalog(), fact_check=_api("fact_check_demagog.json")
+    )
+    undated = state_with(CLAIM, [], claim_date_source="today")
+
+    async def go() -> CheckState:
+        return await assess_evidence(await search_fact_checks(undated, ports), ports)
+
+    asyncio.run(go())
+
+    [match] = [p for p in llm.prompts if p.instructions == REVIEW_MATCH_INSTRUCTIONS]
+    assert match.data[1] == NO_CLAIM_DATE
+    assert "even if it is older" in REVIEW_MATCH_INSTRUCTIONS
+
+
+def test_a_rating_of_a_broader_or_more_detailed_claim_is_about_ours() -> None:
+    # worker#227: without the rule the model matched such pairs in 1 of 3 calls.
+    assert "more generally" in REVIEW_MATCH_INSTRUCTIONS
+    assert "with an added detail" in REVIEW_MATCH_INSTRUCTIONS

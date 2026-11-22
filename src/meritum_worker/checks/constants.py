@@ -56,6 +56,13 @@ PARTIAL_SUPPORT_NOTE: Final = (
 EXPLANATION_MAX_CHARS: Final = 800
 """Longest ClaimResult.explanation; a longer model text is cut to fit."""
 
+DRAFT_MAX_CHARS: Final = 4000
+"""Longest AnalysisStatus.draft."""
+
+ANSWER_ATTEMPTS: Final = 2
+"""Model calls write_answer makes before an answer breaking the contract is a
+technical failure (worker#194)."""
+
 UNRESOLVED_MAX_CHARS: Final = 500
 """Longest ClaimResult.unresolved; a longer model text is cut to fit."""
 
@@ -202,3 +209,9 @@ WEB_SEARCH_PRICES: Final = MappingProxyType(
 
 Vertex AI Search Standard: USD 1.50 per 1,000 queries (2026-11-22); stub is free.
 """
+
+SOURCE_DROPPED_NOTE: Final = (
+    "Pominęliśmy stronę {host}, bo zawierała polecenia dla modelu."
+)
+"""Limitation for a page the injection detector dropped; the full address stays in
+the InjectionEvent for moderators, the citizen gets the host only."""

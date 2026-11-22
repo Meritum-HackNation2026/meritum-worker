@@ -1,0 +1,63 @@
+{
+ "check_id": "01a20122-2f37-77e9-8cf3-ee2ff7dab43c",
+ "steps": [
+  {
+   "code": "receive",
+   "status": "done"
+  },
+  {
+   "code": "fetch_url",
+   "status": "skipped"
+  }
+ ],
+ "result": {
+  "check_id": "01a20122-2f37-77e9-8cf3-ee2ff7dab43c",
+  "status": "done",
+  "claims": [
+   {
+    "claim": "W 2025 roku Sejm uchwalił ustawę o asystencji osobistej osób z niepełnosprawnościami",
+    "claim_date": "2025-01-01",
+    "claim_date_source": "text",
+    "verdict": "insufficient_evidence",
+    "strength": null,
+    "citations": [],
+    "claim_review_premises": [],
+    "explanation": "Nie znaleziono żadnego źródła, które potwierdzałoby lub obalałoby, że Sejm w 2025 roku uchwalił ustawę o asystencji osobistej osób z niepełnosprawnościami, więc ocena to „Brak wystarczających dowodów”.",
+    "unresolved": "Nie ustalono, czy ustawa o asystencji osobistej osób z niepełnosprawnościami została w 2025 roku uchwalona przez Sejm i w którym dniu. Rozstrzygnąć to mogą komunikat lub protokół z posiedzenia Sejmu na stronie sejm.gov.pl albo wpis ustawy w Dzienniku Ustaw.",
+    "would_change_verdict": [
+     "needs_named_source"
+    ],
+    "archival": false,
+    "technique": null,
+    "incident": null,
+    "claim_reviews": []
+   }
+  ],
+  "message": null,
+  "failure_code": null,
+  "out_of_scope_code": null,
+  "limitations": [
+   "Nie przytoczono żadnego źródła dla tego twierdzenia, więc nie wiadomo, czy ustawa rzeczywiście przeszła przez Sejm w 2025 roku.",
+   "Nawet potwierdzone uchwalenie nie oznacza, że ustawa weszła w życie; ta kwestia nie była w tej weryfikacji badana."
+  ],
+  "limitation_codes": [
+   "corpus_scope",
+   "corpus_scope"
+  ],
+  "transcript": null,
+  "image_text": null,
+  "source_warning": null,
+  "escalation": {
+   "state": "recommended",
+   "case_id": null
+  },
+  "corpus_version": "none",
+  "ai_disclosure": true,
+  "ai_marker": {
+   "ai_generated": true,
+   "provider": "openrouter",
+   "model": "anthropic/claude-haiku-5.5",
+   "generated_at": "2026-11-22T02:43:10.114459Z"
+  }
+ }
+}

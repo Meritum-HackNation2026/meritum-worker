@@ -7,7 +7,7 @@ Features:
 """
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
@@ -22,6 +22,7 @@ from meritum_worker.corpus.documents import (
     Document,
     DocumentMeta,
     DocumentPassage,
+    LegalActs,
 )
 from meritum_worker.corpus.models import EuvsArticle, EuvsCase, StoredEntry
 
@@ -234,6 +235,7 @@ class IngestDeps:
         injection: The detector every page is scanned with before it is stored.
         api_fetcher: Core's fetcher over a transport that passes JSON on as
             text, for ``ingest: api`` entries; None leaves them unsupported.
+        legal: The acts the Sejm's entry reads in full; none by default.
 
     Features:
         US-KOR-02, US-KOR-05, US-BEZ-01, F-10, F-12, F-19, ADR-32
@@ -245,3 +247,4 @@ class IngestDeps:
     store: CorpusWriterPort
     injection: InjectionDetectorPort
     api_fetcher: PageFetcherPort | None = None
+    legal: LegalActs = field(default_factory=LegalActs)

@@ -17,10 +17,12 @@ from ._memory_corpus import MemoryCorpusWriter
 from ._migrations import apply_corpus_migrations
 from ._openrouter_ranking import OpenRouterReranker
 from ._organiser_file import OrganiserFile
+from ._pdf_transport import PdfAsTextTransport
 from ._postgres import PostgresEuvsCopy
 from ._postgres_archive import PostgresArchiveRegistry
 from ._postgres_corpus import PostgresCorpusWriter
 from ._postgres_retention import PostgresCorpusRetention
+from ._presscorner import PresscornerFetcher
 from ._retention_factory import build_corpus_retention
 from ._vertex_ranking import VertexReranker
 from ._workers_ai_ranking import WorkersAiReranker
@@ -37,10 +39,12 @@ __all__ = [
     "MemoryEuvsCopy",
     "OpenRouterReranker",
     "OrganiserFile",
+    "PdfAsTextTransport",
     "PostgresArchiveRegistry",
     "PostgresCorpusRetention",
     "PostgresCorpusWriter",
     "PostgresEuvsCopy",
+    "PresscornerFetcher",
     "VertexReranker",
     "WorkersAiReranker",
     "apply_corpus_migrations",

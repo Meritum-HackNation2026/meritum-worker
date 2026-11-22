@@ -18,6 +18,10 @@ from meritum_worker.corpus.archive_models import (
     ArchiveRequest,
 )
 from meritum_worker.corpus.archive_ports import ArchiveDeps, ArchiveRegistry
+from meritum_worker.corpus.archive_retention import (
+    purge_archives_of,
+    purge_expired_archives,
+)
 from meritum_worker.corpus.chunking import chunk_text
 from meritum_worker.corpus.constants import (
     INGEST_SCHEDULE,
@@ -43,6 +47,7 @@ from meritum_worker.corpus.documents import (
     DocumentPassage,
     IngestFailure,
     IngestReport,
+    LegalActs,
     ManifestEntry,
 )
 from meritum_worker.corpus.errors import (
@@ -102,6 +107,8 @@ from meritum_worker.corpus.organiser import (
     import_organiser_file,
 )
 from meritum_worker.corpus.pages import store_page
+from meritum_worker.corpus.passage_ports import CorpusDocumentsPort
+from meritum_worker.corpus.passage_sources import passage_documents
 from meritum_worker.corpus.ports import (
     CorpusWriterPort,
     DocumentDiscoveryPort,
@@ -148,6 +155,7 @@ __all__ = [
     "ArchiveRegistry",
     "ArchiveRequest",
     "ClaimReviewFinding",
+    "CorpusDocumentsPort",
     "CorpusLivePages",
     "CorpusRetentionPort",
     "CorpusSnapshot",
@@ -178,6 +186,7 @@ __all__ = [
     "IngestDeps",
     "IngestFailure",
     "IngestReport",
+    "LegalActs",
     "LivePagesPort",
     "LiveSearchPorts",
     "LiveSearchResult",
@@ -212,6 +221,9 @@ __all__ = [
     "ingestion_enabled",
     "is_due",
     "missing_env",
+    "passage_documents",
+    "purge_archives_of",
+    "purge_expired_archives",
     "read_archive",
     "rerank_passages",
     "run_archive_page",

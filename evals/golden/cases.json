@@ -69,6 +69,686 @@
     ]
   },
   {
+    "id": "A-num-inflacja-2022",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy inflacja w Polsce w 2022 r. wyniosła 14,4%?",
+    "main_claim": "Średnioroczna inflacja CPI w Polsce w 2022 r. wyniosła 14,4%.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. Według GUS roczny wskaźnik cen towarów i usług konsumpcyjnych w 2022 r. wyniósł 114,4 (rok poprzedni = 100), czyli ceny wzrosły o 14,4%.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/wskazniki-cen-towarow-i-uslug-konsumpcyjnych-pot-inflacja-/roczne-wskazniki-cen-towarow-i-uslug-konsumpcyjnych/",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Roczne wskaźniki cen towarów i usług konsumpcyjnych od 1950 r.",
+        "quote": "2022 114,4"
+      }
+    ]
+  },
+  {
+    "id": "A-num-inflacja-2023-18",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Słyszałem, że inflacja w 2023 roku przekroczyła 18%. To prawda?",
+    "main_claim": "Średnioroczna inflacja CPI w Polsce w 2023 r. przekroczyła 18%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. Według GUS średnioroczny wskaźnik cen w 2023 r. wyniósł 111,4, czyli inflacja 11,4%, a nie ponad 18%.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/wskazniki-cen-towarow-i-uslug-konsumpcyjnych-pot-inflacja-/roczne-wskazniki-cen-towarow-i-uslug-konsumpcyjnych/",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Roczne wskaźniki cen towarów i usług konsumpcyjnych od 1950 r.",
+        "quote": "2023 111,4"
+      }
+    ]
+  },
+  {
+    "id": "A-num-inflacja-wrzesien-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy ceny we wrześniu 2026 r. były o 4,1% wyższe niż rok wcześniej?",
+    "main_claim": "We wrześniu 2026 r. ceny towarów i usług konsumpcyjnych były o 4,1% wyższe niż we wrześniu 2025 r.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. GUS podał 14 października 2026 r., że ceny we wrześniu 2026 r. wzrosły o 4,1% w porównaniu z analogicznym miesiącem roku poprzedniego.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/wskazniki-cen-towarow-i-uslug-konsumpcyjnych-we-wrzesniu-2026-r-,2,179.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Wskaźniki cen towarów i usług konsumpcyjnych we wrześniu 2026 r.",
+        "quote": "Ceny towarów i usług konsumpcyjnych we wrześniu 2026 r. wzrosły o 4,1% w porównaniu z analogicznym miesiącem ub. roku"
+      }
+    ]
+  },
+  {
+    "id": "A-num-wynagrodzenie-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wyniosło 8903,56 zł?",
+    "main_claim": "Przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wyniosło 8903,56 zł.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. Potwierdza to komunikat Prezesa GUS z 9 lutego 2026 r. Kwota jest brutto.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2025-r-,273,13.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie przeciętnego wynagrodzenia w gospodarce narodowej w 2025 r.",
+        "quote": "przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wyniosło 8 903,56 zł"
+      }
+    ]
+  },
+  {
+    "id": "A-num-pkb-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy PKB Polski w 2025 r. wzrósł realnie o 3,6%?",
+    "main_claim": "PKB Polski w 2025 r. wzrósł realnie o 3,6% w porównaniu z 2024 r.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak, według wstępnego szacunku GUS z 30 stycznia 2026 r. Odpowiedź zaznacza, że to szacunek wstępny, który może zostać zrewidowany.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/rachunki-narodowe/roczne-rachunki-narodowe/produkt-krajowy-brutto-w-2025-r-szacunek-wstepny,2,15.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Produkt krajowy brutto w 2025 r. - szacunek wstępny",
+        "quote": "produkt krajowy brutto (PKB) w 2025 r. był realnie wyższy o 3,6% w porównaniu z 2024 r."
+      }
+    ]
+  },
+  {
+    "id": "A-num-pkb-5-bln",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy wartość polskiego PKB w 2025 r. przekroczyła 5 bln zł?",
+    "main_claim": "Wartość PKB Polski w 2025 r. przekroczyła 5 bln zł.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. Według pierwszego szacunku GUS wartość PKB w 2025 r. wyniosła 3 912,7 mld zł, czyli około 3,9 bln zł.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/obwieszczenie-w-sprawie-pierwszego-szacunku-wartosci-produktu-krajowego-brutto-w-2025-r-,280,13.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Obwieszczenie w sprawie pierwszego szacunku wartości produktu krajowego brutto w 2025 r.",
+        "quote": "według pierwszego szacunku wartość produktu krajowego brutto w 2025 r. wyniosła 3 912,7 mld zł"
+      }
+    ]
+  },
+  {
+    "id": "A-num-bezrobocie-grudzien-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy stopa bezrobocia rejestrowanego na koniec 2025 r. wynosiła 5,7%?",
+    "main_claim": "Stopa bezrobocia rejestrowanego w Polsce w końcu grudnia 2025 r. wyniosła 5,7%.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. GUS podaje, że w końcu grudnia 2025 r. stopa bezrobocia rejestrowanego wyniosła 5,7%, a w urzędach pracy było zarejestrowanych 887,9 tys. bezrobotnych.",
+    "sources": [
+      {
+        "url": "https://ssgk.stat.gov.pl/01.2026/Rynek_pracy.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Sytuacja społeczno-gospodarcza kraju - Rynek pracy 30.01.2026 r.",
+        "quote": "Stopa bezrobocia rejestrowanego wyniosła 5,7%"
+      }
+    ]
+  },
+  {
+    "id": "A-num-bezrobocie-2024-8",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Podobno pod koniec 2024 r. bezrobocie rejestrowane w Polsce wynosiło 8,1%. Czy to się zgadza?",
+    "main_claim": "Stopa bezrobocia rejestrowanego w Polsce w końcu 2024 r. wynosiła 8,1%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. Według GUS stopa w końcu 2025 r. wyniosła 5,7% i była o 0,6 p.proc. wyższa niż w końcu 2024 r., czyli w grudniu 2024 r. wynosiła 5,1%.",
+    "sources": [
+      {
+        "url": "https://ssgk.stat.gov.pl/01.2026/Rynek_pracy.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Sytuacja społeczno-gospodarcza kraju - Rynek pracy 30.01.2026 r.",
+        "quote": "wyższa niż w końcu 2024 r. – o 0,6 p.proc."
+      }
+    ]
+  },
+  {
+    "id": "A-num-waloryzacja-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy emerytury i renty od 1 marca 2026 r. wzrosły o 5,3%?",
+    "main_claim": "Wskaźnik waloryzacji emerytur i rent od 1 marca 2026 r. wyniósł 105,3%.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. ZUS podaje, że wskaźnik waloryzacji emerytur i rent od marca 2026 r. wynosi 105,3 procent, a waloryzacja jest wyłącznie procentowa.",
+    "sources": [
+      {
+        "url": "https://www.zus.pl/-/od-marca-emerytury-i-renty-w-g%C3%B3r%C4%99",
+        "publisher": "ZUS",
+        "title": "Od marca emerytury i renty w górę",
+        "quote": "Wskaźnik waloryzacji emerytur i rent wyniesie 105,3 procent."
+      }
+    ]
+  },
+  {
+    "id": "A-num-deficyt-sektora-2025",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy deficyt sektora instytucji rządowych i samorządowych w 2025 r. wyniósł 7,2% PKB?",
+    "main_claim": "Deficyt sektora instytucji rządowych i samorządowych w 2025 r. wyniósł 7,2% PKB.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak, według notyfikacji fiskalnej GUS z 21 października 2026 r. (283 615 mln zł). Odpowiedź odróżnia ten deficyt (metodologia UE) od deficytu budżetu państwa.",
+    "sources": [
+      {
+        "url": "https://publikacje.new.stat.gov.pl/portal-publikacje/deficyt-i-dlug-sektora-instytucji-rzadowych-i-samorzadowych-w-latach-2022-2025-0",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Deficyt i dług sektora instytucji rządowych i samorządowych w latach 2022-2025",
+        "quote": "W 2025 r. deficyt sektora instytucji rządowych i samorządowych ukształtował się na poziomie 283 615 mln zł, co stanowi 7,2% PKB."
+      }
+    ]
+  },
+  {
+    "id": "A-num-dlug-sektora-60",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy dług sektora instytucji rządowych i samorządowych w 2025 r. przekroczył 60% PKB?",
+    "main_claim": "Dług sektora instytucji rządowych i samorządowych w 2025 r. przekroczył 60% PKB.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. Według GUS dług sektora na koniec 2025 r. wyniósł 2 335 137 mln zł, czyli 59,6% PKB, a więc tuż poniżej 60%.",
+    "sources": [
+      {
+        "url": "https://publikacje.new.stat.gov.pl/portal-publikacje/deficyt-i-dlug-sektora-instytucji-rzadowych-i-samorzadowych-w-latach-2022-2025-0",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Deficyt i dług sektora instytucji rządowych i samorządowych w latach 2022-2025",
+        "quote": "Dług sektora wyniósł 2 335 137 mln zł, tj. 59,6% PKB."
+      }
+    ]
+  },
+  {
+    "id": "A-num-kodeks-pracy-1974",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy Kodeks pracy uchwalono 26 czerwca 1974 r.?",
+    "main_claim": "Kodeks pracy to ustawa z dnia 26 czerwca 1974 r.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. Kodeks pracy to ustawa z dnia 26 czerwca 1974 r. (Dz.U. 1974 nr 24 poz. 141), obowiązująca od 1 stycznia 1975 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1974/141",
+        "publisher": "Kancelaria Sejmu (ELI API)",
+        "title": "Ustawa z dnia 26 czerwca 1974 r. Kodeks pracy.",
+        "quote": "\"title\":\"Ustawa z dnia 26 czerwca 1974 r. Kodeks pracy.\""
+      }
+    ]
+  },
+  {
+    "id": "A-num-800-plus-ustawa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy ustawę podnoszącą 500 plus do 800 zł uchwalono 7 lipca 2023 r.?",
+    "main_claim": "Ustawa podnosząca świadczenie wychowawcze z 500 zł do 800 zł nosi datę 7 lipca 2023 r.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. Ustawa z dnia 7 lipca 2023 r. zastąpiła w ustawie o pomocy państwa w wychowywaniu dzieci kwotę 500,00 zł kwotą 800,00 zł; nowa kwota obowiązuje od 1 stycznia 2024 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/1565/text.pdf",
+        "publisher": "Kancelaria Sejmu (ELI API)",
+        "title": "Ustawa z dnia 7 lipca 2023 r. o zmianie ustawy o pomocy państwa w wychowywaniu dzieci",
+        "quote": "wyrazy „500,00 zł” zastępuje się wyrazami „800,00 zł”"
+      }
+    ]
+  },
+  {
+    "id": "A-num-stopa-referencyjna-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy stopa referencyjna NBP od 5 marca 2026 r. wynosi 3,75%?",
+    "main_claim": "Stopa referencyjna NBP od 5 marca 2026 r. wynosi 3,75%.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. Według danych NBP stopa referencyjna wynosi 3,75% i obowiązuje od 5 marca 2026 r. Odpowiedź zaznacza, że to stan na dzień sprawdzenia.",
+    "sources": [
+      {
+        "url": "https://static.nbp.pl/dane/stopy/stopy_procentowe.xml",
+        "publisher": "Narodowy Bank Polski",
+        "title": "Podstawowe stopy procentowe NBP (plik XML)",
+        "quote": "obowiazuje_od=\"2026-03-05\""
+      }
+    ]
+  },
+  {
+    "id": "A-num-stopa-referencyjna-2022-8",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy w 2022 roku stopa referencyjna NBP doszła do 8%?",
+    "main_claim": "W 2022 r. stopa referencyjna NBP osiągnęła 8%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. Najwyższy poziom stopy referencyjnej w tym cyklu to 6,75%, obowiązujący od 8 września 2022 r. do 6 września 2023 r.",
+    "sources": [
+      {
+        "url": "https://static.nbp.pl/dane/stopy/stopy_procentowe_archiwum.xml",
+        "publisher": "Narodowy Bank Polski",
+        "title": "Podstawowe stopy procentowe NBP - archiwum (plik XML)",
+        "quote": "obowiazuje_od=\"2022-09-08\""
+      }
+    ]
+  },
+  {
+    "id": "A-num-kurs-euro-2025-01-02",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy średni kurs euro NBP 2 stycznia 2025 r. wynosił 4,2668 zł?",
+    "main_claim": "Średni kurs euro według tabeli A NBP z 2 stycznia 2025 r. wynosił 4,2668 zł.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "acceptable_verdicts": [],
+    "category": "numbers",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tak. Tabela A NBP nr 001/A/NBP/2025 z 2 stycznia 2025 r. podaje kurs średni euro 4,2668 zł.",
+    "sources": [
+      {
+        "url": "https://api.nbp.pl/api/exchangerates/rates/a/eur/2025-01-02/?format=json",
+        "publisher": "Narodowy Bank Polski",
+        "title": "Kurs średni euro z tabeli A NBP z 2 stycznia 2025 r. (API NBP)",
+        "quote": "\"mid\":4.2668"
+      }
+    ]
+  },
+  {
+    "id": "A-part-inflacja-111",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy to prawda, że ceny w Polsce w 2023 r. wzrosły o 111,4%?",
+    "main_claim": "Ceny towarów i usług konsumpcyjnych w Polsce w 2023 r. wzrosły o 111,4%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. Liczba 111,4 to wskaźnik GUS przy roku poprzednim równym 100, więc ceny wzrosły o 11,4%, a nie o 111,4%.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/wskazniki-cen-towarow-i-uslug-konsumpcyjnych-pot-inflacja-/roczne-wskazniki-cen-towarow-i-uslug-konsumpcyjnych/",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Roczne wskaźniki cen towarów i usług konsumpcyjnych od 1950 r.",
+        "quote": "2023 111,4"
+      }
+    ]
+  },
+  {
+    "id": "A-part-wynagrodzenie-netto",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy przeciętne wynagrodzenie netto w 2024 r. wyniosło 8181,72 zł?",
+    "main_claim": "Przeciętne wynagrodzenie netto w gospodarce narodowej w 2024 r. wyniosło 8181,72 zł.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. 8181,72 zł to przeciętne wynagrodzenie brutto. Nawet po odjęciu składek emerytalnej, rentowej i chorobowej GUS podaje 7140,52 zł, a kwota na rękę jest jeszcze niższa.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2024-r-,273,12.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie przeciętnego wynagrodzenia w gospodarce narodowej w 2024 r.",
+        "quote": "przeciętne wynagrodzenie w gospodarce narodowej w 2024 r. wyniosło 8181,72 zł"
+      },
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/obwieszczenie-w-sprawie-przecietnego-wynagrodzenia-miesiecznego-w-gospodarce-narodowej-w-2024-r-i-w-drugim-polroczu-2024-r-,276,12.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Obwieszczenie w sprawie przeciętnego wynagrodzenia miesięcznego w gospodarce narodowej w 2024 r. i w drugim półroczu 2024 r.",
+        "quote": "pomniejszone o potrącone od ubezpieczonych składki na ubezpieczenia emerytalne, rentowe oraz chorobowe, w 2024 r. wyniosło 7140,52 zł"
+      }
+    ]
+  },
+  {
+    "id": "A-part-wynagrodzenie-rok",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wyniosło 8181,72 zł?",
+    "main_claim": "Przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wyniosło 8181,72 zł.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. 8181,72 zł to przeciętne wynagrodzenie za 2024 r. Za 2025 r. GUS podał 8903,56 zł.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2024-r-,273,12.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie przeciętnego wynagrodzenia w gospodarce narodowej w 2024 r.",
+        "quote": "przeciętne wynagrodzenie w gospodarce narodowej w 2024 r. wyniosło 8181,72 zł"
+      },
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2025-r-,273,13.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie przeciętnego wynagrodzenia w gospodarce narodowej w 2025 r.",
+        "quote": "przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wyniosło 8 903,56 zł"
+      }
+    ]
+  },
+  {
+    "id": "A-part-wynagrodzenie-realnie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy przeciętne wynagrodzenie w 2025 r. wzrosło realnie o 8,8%?",
+    "main_claim": "Przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wzrosło realnie o 8,8%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. Wzrost o około 8,8% (z 8181,72 zł do 8903,56 zł) to wzrost nominalny. Realny wzrost, po uwzględnieniu cen, GUS ogłosił na 5,5%.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-realnego-wzrostu-przecietnego-wynagrodzenia-w-2025-r-w-stosunku-do-2024-r-,274,13.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie realnego wzrostu przeciętnego wynagrodzenia w 2025 r. w stosunku do 2024 r.",
+        "quote": "realny wzrost przeciętnego wynagrodzenia w 2025 r. w stosunku do 2024 r. wyniósł 5,5%"
+      },
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2024-r-,273,12.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie przeciętnego wynagrodzenia w gospodarce narodowej w 2024 r.",
+        "quote": "przeciętne wynagrodzenie w gospodarce narodowej w 2024 r. wyniosło 8181,72 zł"
+      },
+      {
+        "url": "https://stat.gov.pl/sygnalne/komunikaty-i-obwieszczenia/lista-komunikatow-i-obwieszczen/komunikat-w-sprawie-przecietnego-wynagrodzenia-w-gospodarce-narodowej-w-2025-r-,273,13.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Komunikat w sprawie przeciętnego wynagrodzenia w gospodarce narodowej w 2025 r.",
+        "quote": "przeciętne wynagrodzenie w gospodarce narodowej w 2025 r. wyniosło 8 903,56 zł"
+      }
+    ]
+  },
+  {
+    "id": "A-part-pkb-nominalnie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy PKB Polski w 2025 r. wzrósł nominalnie o 3,6%?",
+    "main_claim": "PKB Polski w 2025 r. wzrósł nominalnie o 3,6%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. 3,6% to według GUS realny wzrost PKB (w cenach stałych), a nie nominalny. Odpowiedź wyjaśnia różnicę i nie potwierdza samej liczby.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/rachunki-narodowe/roczne-rachunki-narodowe/produkt-krajowy-brutto-w-2025-r-szacunek-wstepny,2,15.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Produkt krajowy brutto w 2025 r. - szacunek wstępny",
+        "quote": "produkt krajowy brutto (PKB) w 2025 r. był realnie wyższy o 3,6% w porównaniu z 2024 r."
+      }
+    ]
+  },
+  {
+    "id": "A-part-emerytura-realnie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy emerytury od marca 2026 r. wzrosły realnie o 5,3%?",
+    "main_claim": "Emerytury i renty od 1 marca 2026 r. wzrosły realnie o 5,3%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. 5,3% to wzrost nominalny. Wskaźnik waloryzacji ZUS liczy się z inflacji dla gospodarstw emerytów i rencistów oraz co najmniej 20% realnego wzrostu płac, więc realny wzrost świadczeń jest dużo mniejszy.",
+    "sources": [
+      {
+        "url": "https://www.zus.pl/-/od-marca-emerytury-i-renty-w-g%C3%B3r%C4%99",
+        "publisher": "ZUS",
+        "title": "Od marca emerytury i renty w górę",
+        "quote": "Wskaźnik waloryzacji emerytur i rent wyniesie 105,3 procent."
+      },
+      {
+        "url": "https://www.zus.pl/-/od-marca-emerytury-i-renty-w-g%C3%B3r%C4%99",
+        "publisher": "ZUS",
+        "title": "Od marca emerytury i renty w górę",
+        "quote": "Obliczany jest on na podstawie średniorocznego wskaźnika cen towarów i usług konsumpcyjnych dla gospodarstw domowych emerytów i rencistów z poprzedniego roku kalendarzowego"
+      }
+    ]
+  },
+  {
+    "id": "A-part-800-plus-rok",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy 800 plus jest wypłacane od 1 stycznia 2023 r.?",
+    "main_claim": "Świadczenie wychowawcze w wysokości 800 zł obowiązuje od 1 stycznia 2023 r.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie, rok jest zły. Podwyżkę do 800 zł wprowadziła ustawa z 7 lipca 2023 r., która weszła w życie 1 stycznia 2024 r.; w 2023 r. świadczenie wynosiło 500 zł.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/1565/text.pdf",
+        "publisher": "Kancelaria Sejmu (ELI API)",
+        "title": "Ustawa z dnia 7 lipca 2023 r. o zmianie ustawy o pomocy państwa w wychowywaniu dzieci",
+        "quote": "wchodzi w życie z dniem 1 stycznia 2024 r."
+      }
+    ]
+  },
+  {
+    "id": "A-part-konstytucja-weszla",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy obecna Konstytucja RP weszła w życie 2 kwietnia 1997 r.?",
+    "main_claim": "Konstytucja Rzeczypospolitej Polskiej weszła w życie 2 kwietnia 1997 r.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. 2 kwietnia 1997 r. Zgromadzenie Narodowe uchwaliło Konstytucję, a weszła ona w życie 17 października 1997 r., trzy miesiące po ogłoszeniu.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483",
+        "publisher": "Kancelaria Sejmu (ELI API)",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "\"entryIntoForce\":\"1997-10-17\""
+      },
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/1997/483/text.pdf",
+        "publisher": "Kancelaria Sejmu (ELI API)",
+        "title": "Konstytucja Rzeczypospolitej Polskiej z dnia 2 kwietnia 1997 r.",
+        "quote": "Konstytucja Rzeczypospolitej Polskiej wchodzi w życie po upływie 3 miesięcy od dnia jej ogłoszenia."
+      }
+    ]
+  },
+  {
+    "id": "A-part-obnizka-stop-kwiecien",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy RPP obniżyła stopę referencyjną do 5,25% w kwietniu 2025 r.?",
+    "main_claim": "W kwietniu 2025 r. stopa referencyjna NBP została obniżona do 5,25%.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie, data jest zła. Stopa referencyjna 5,25% obowiązuje od 8 maja 2025 r.; wcześniej, od 5 października 2023 r., wynosiła 5,75%.",
+    "sources": [
+      {
+        "url": "https://static.nbp.pl/dane/stopy/stopy_procentowe_archiwum.xml",
+        "publisher": "Narodowy Bank Polski",
+        "title": "Podstawowe stopy procentowe NBP - archiwum (plik XML)",
+        "quote": "obowiazuje_od=\"2025-05-08\""
+      }
+    ]
+  },
+  {
+    "id": "A-part-placa-minimalna-2024",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy płaca minimalna w 2024 r. wynosiła 4300 zł?",
+    "main_claim": "Minimalne wynagrodzenie za pracę w 2024 r. wynosiło 4300 zł.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Tylko w części roku. Od 1 stycznia 2024 r. płaca minimalna wynosiła 4242 zł, a 4300 zł obowiązywało od 1 lipca 2024 r.",
+    "sources": [
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/1893/text.pdf",
+        "publisher": "Rada Ministrów",
+        "title": "Rozporządzenie Rady Ministrów z dnia 14 września 2023 r. w sprawie wysokości minimalnego wynagrodzenia za pracę oraz wysokości minimalnej stawki godzinowej w 2024 r.",
+        "quote": "Od dnia 1 stycznia 2024 r. ustala się minimalne wynagrodzenie za pracę w wysokości 4242 zł."
+      },
+      {
+        "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/1893/text.pdf",
+        "publisher": "Rada Ministrów",
+        "title": "Rozporządzenie Rady Ministrów z dnia 14 września 2023 r. w sprawie wysokości minimalnego wynagrodzenia za pracę oraz wysokości minimalnej stawki godzinowej w 2024 r.",
+        "quote": "Od dnia 1 lipca 2024 r. ustala się minimalne wynagrodzenie za pracę w wysokości 4300 zł."
+      }
+    ]
+  },
+  {
+    "id": "A-part-inflacja-miesiec-do-miesiaca",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy we wrześniu 2026 r. ceny wzrosły o 4,1% w porównaniu z sierpniem?",
+    "main_claim": "We wrześniu 2026 r. ceny towarów i usług konsumpcyjnych wzrosły o 4,1% w porównaniu z sierpniem 2026 r.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Nie. 4,1% to wzrost rok do roku. W porównaniu z sierpniem ceny wzrosły według GUS o 0,7%.",
+    "sources": [
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/wskazniki-cen-towarow-i-uslug-konsumpcyjnych-we-wrzesniu-2026-r-,2,179.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Wskaźniki cen towarów i usług konsumpcyjnych we wrześniu 2026 r.",
+        "quote": "W stosunku do poprzedniego miesiąca ceny towarów i usług wzrosły o 0,7%"
+      }
+    ]
+  },
+  {
+    "id": "A-part-bezrobocie-procent",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy stopa bezrobocia rejestrowanego wzrosła w 2025 r. o 0,6%?",
+    "main_claim": "Stopa bezrobocia rejestrowanego w Polsce wzrosła w 2025 r. o 0,6%.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "category": "partial",
+    "checked_at": "2026-11-22",
+    "expected_behavior": "Liczba jest dobra, ale jednostka nie. Stopa wzrosła z 5,1% do 5,7%, czyli o 0,6 punktu procentowego, co oznacza wzrost o około 12%, a nie o 0,6%.",
+    "sources": [
+      {
+        "url": "https://ssgk.stat.gov.pl/01.2026/Rynek_pracy.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Sytuacja społeczno-gospodarcza kraju - Rynek pracy 30.01.2026 r.",
+        "quote": "wyższa niż w końcu 2024 r. – o 0,6 p.proc."
+      }
+    ]
+  },
+  {
     "id": "B-org-nagranie-moskwa",
     "scenario": "B",
     "origin": "organizer",
@@ -742,5 +1422,929 @@
     "expected_status": "technical_failure",
     "expected_behavior": "Komunikat o problemie technicznym po wyczerpaniu ponowień, bez werdyktu.",
     "fault": "llm"
+  },
+  {
+    "id": "A-ctx-teheran-nie-tel-awiw",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Na Facebooku krąży zdjęcie płonącego miasta podpisane „Tel Awiw! Widok zza okna!”. Czy to naprawdę Tel Awiw po ataku Iranu?",
+    "main_claim": "Zdjęcie z podpisem „Tel Awiw! Widok zza okna!” pokazuje Tel Awiw po irańskim ataku.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Nie. Zdjęcie jest prawdziwe, ale pokazuje pożar składu paliw Shahran w Teheranie po izraelskim ataku w czerwcu 2025 r., a nie Tel Awiw. Odpowiedź przywraca miejsce i datę zdjęcia i podaje analizę Demagoga.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/kolejne-zdjecie-wyjete-z-kontekstu-to-teheran-a-nie-tel-awiw/",
+        "publisher": "Demagog",
+        "title": "Kolejne zdjęcie wyjęte z kontekstu. To Teheran, a nie Tel Awiw",
+        "quote": "Ta fotografia pochodzi z czerwca 2025 roku i przedstawia izraelski atak na bazy paliwowe w Teheranie"
+      },
+      {
+        "url": "https://www.brecorder.com/news/40367792/iran-says-shahran-oil-depot-targeted-in-israeli-attack",
+        "publisher": "Business Recorder",
+        "title": "Iran says Shahran oil depot targeted in Israeli attack",
+        "quote": "Iran said the Shahran oil depot in Tehran was targeted in an Israeli attack on Saturday"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-bukareszt-protest-2017",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Widziałem zdjęcie z Bukaresztu: tłum z latarkami, podobno Rumuni wyszli wczoraj protestować przeciw obostrzeniom covidowym. Prawda?",
+    "main_claim": "Zdjęcie tłumu w Bukareszcie pokazuje protest przeciw obostrzeniom covidowym z lutego 2021 r.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Zdjęcie jest autentyczne i pochodzi z Bukaresztu, ale zrobiono je 5 lutego 2017 r. podczas protestów przeciw korupcji, na długo przed pandemią. Odpowiedź przywraca datę i powód protestu i powołuje się na Demagoga, AFP Sprawdzam lub fakenews.pl.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/fotografia-z-protestow-przeciw-ograniczeniom-manipulacja/",
+        "publisher": "Demagog",
+        "title": "Fotografia z protestów przeciw ograniczeniom? Manipulacja!",
+        "quote": "Nie chodzi jednak o protest z 2021 roku, tylko z 2017."
+      },
+      {
+        "url": "https://sprawdzam.afp.com/zdjecie-nie-przedstawia-protestow-przeciwko-restrykcjom-w-czasie-pandemii-ale-manifestacje-przeciwko",
+        "publisher": "AFP Sprawdzam",
+        "title": "Zdjęcie nie przedstawia protestów przeciwko restrykcjom w czasie pandemii, ale manifestacje przeciwko korupcji w Rumunii w 2017 r.",
+        "quote": "Brak daty pod zdjęciem jest w tym przypadku manipulacją kontekstem."
+      },
+      {
+        "url": "https://fakenews.pl/spoleczenstwo/nie-zdjecia-z-madrytu-i-bukaresztu-nie-przedstawiaja-protestow-przeciw-obostrzeniom/",
+        "publisher": "Fakenews.pl",
+        "title": "Nie, zdjęcia z Madrytu i Bukaresztu nie przedstawiają protestów przeciw obostrzeniom",
+        "quote": "Manifestacje miały miejsce na początku lutego 2017 roku."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-paryz-zamieszki-2022",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "text": "Na Facebooku jest film z Paryża: przewrócone i płonące samochody, tłum na ulicy. Piszą, że to teraz, zamieszki Kurdów. Czy to aktualne?",
+    "main_claim": "Nagranie przewróconych i podpalonych samochodów pokazuje niedawne zamieszki w Paryżu.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Nie. Nagranie jest prawdziwe, ale pochodzi z 24 grudnia 2022 r., z zamieszek po zabójstwie trzech osób przy kurdyjskim ośrodku kultury w Paryżu, i wielokrotnie wracało jako rzekomo aktualne. Odpowiedź podaje datę i okoliczności nagrania.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/zamieszki-w-paryzu-kurdowie-i-bledny-kontekst-to-nagranie-z-2022-roku/",
+        "publisher": "Demagog",
+        "title": "Zamieszki w Paryżu, Kurdowie i błędny kontekst. To nagranie z 2022 roku",
+        "quote": "Nagranie pochodzi z 2022 roku i pokazuje zamieszki mniejszości kurdyjskiej w Paryżu."
+      },
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.34TK27P",
+        "publisher": "AFP Sprawdzam",
+        "title": "Wideo pokazuje protesty w Paryżu w 2022 roku, a nie protesty podczas obecnych przygotowań do igrzysk olimpijskich",
+        "quote": "To nagranie jest nieaktualne i wyrwane z kontekstu."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-orlen-759-stare-zdjecie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Kolega wysłał zdjęcie pylonu Orlenu: benzyna 7,59 zł, diesel 7,99 zł, i napisał „zaczęło się”, czyli podwyżki po wyborach. To prawda?",
+    "main_claim": "Zdjęcie pylonu Orlenu z ceną 7,59 zł za benzynę pokazuje podwyżki cen paliw tuż po wyborach z 15 października 2023 r.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Nie. Zdjęcie jest stare: krążyło już w lutym 2022 r., tuż po rosyjskiej inwazji na Ukrainę, a Orlen poinformował, że w tygodniu po wyborach takich cen nie odnotował na żadnej stacji. Odpowiedź przywraca datę zdjęcia i podaje analizę Konkret24.",
+    "sources": [
+      {
+        "url": "https://konkret24.tvn24.pl/polska/zaczelo-sie-paliwo-po-759-zl-nie-to-stare-zdjecie-st7394223",
+        "publisher": "Konkret24",
+        "title": "\"Zaczęło się\" paliwo po 7,59 zł? Nie, to stare zdjęcie",
+        "quote": "Zdjęcie rozsyłane przez internautów rzeczywiście nie jest nowe. W sieci pojawiło się w lutym 2022 roku"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-walbrzych-lampedusa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Na TikToku piszą, że to zdjęcie pokazuje migrantów przywiezionych przez niemiecką policję do Wałbrzycha. Czy to się zgadza?",
+    "main_claim": "Zdjęcie pokazuje migrantów przekazanych przez Niemcy do Wałbrzycha.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Nie. Zdjęcie zrobiono 1 marca 2011 r. na włoskiej wyspie Lampedusa; przedstawia imigrantów z Tunezji czekających na ewakuację i nie ma związku z Wałbrzychem ani z przekazywaniem migrantów z Niemiec. Odpowiedź przywraca miejsce i datę zdjęcia.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/migranci-w-walbrzychu-to-stare-zdjecie-z-lampedusy/",
+        "publisher": "Demagog",
+        "title": "Migranci w Wałbrzychu? To stare zdjęcie z Lampedusy",
+        "quote": "Pochodzi ona z 1 marca 2011 roku, a wykonano ją na włoskiej wyspie Lampedusa."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-macron-gwizdy-rugby",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Joanna Lichocka wrzuciła nagranie, na którym wygwizdują Macrona, i napisała, że to z ceremonii zamknięcia igrzysk w Paryżu. Czy to prawda?",
+    "main_claim": "Nagranie pokazuje Emmanuela Macrona wygwizdanego podczas ceremonii zamknięcia igrzysk olimpijskich w Paryżu w sierpniu 2024 r.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Nagranie jest prawdziwe, ale pochodzi z ceremonii otwarcia Pucharu Świata w Rugby we wrześniu 2023 r.; Macron nie przemawiał na zamknięciu igrzysk. Odpowiedź przywraca wydarzenie i datę nagrania i powołuje się na Demagoga, który ocenił wpis jako manipulację.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/macron-wygwizdany-podczas-olimpiady-to-nagranie-z-2023-roku/",
+        "publisher": "Demagog",
+        "title": "Macron wygwizdany podczas olimpiady? To nagranie z 2023 roku",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-czolgi-mannheim",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "mcp",
+    "text": "Węgierski portal pisze, że niemieckie czołgi jadące przez Polskę na Ukrainę mają na wagonie neonazistowskie oznaczenie 14/88. Czy to prawda?",
+    "main_claim": "Niemieckie czołgi wysyłane na Ukrainę przez Polskę jadą z neonazistowskim symbolem 14/88 na wagonie.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Nie. Kadr pochodzi z nagrania pociągu z czołgami w Mannheim opublikowanego w marcu 2022 r., na którym nie ma żadnych nazistowskich znaków; obraz wyjęto z kontekstu i zmanipulowano. Odpowiedź przywraca pochodzenie nagrania i wskazuje analizę EUvsDisinfo.",
+    "sources": [
+      {
+        "url": "https://euvsdisinfo.eu/report/german-tanks-arrive-in-ukraine-with-neo-nazi-symbols/",
+        "publisher": "EUvsDisinfo",
+        "title": "Disinfo: German tanks arrive in Ukraine with neo-Nazi symbols",
+        "quote": "The video shows a train loaded with tanks, but there is no Nazi or any other signs painted on them."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-tusk-polskosc-nienormalnosc",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Na TikToku jest grafika z cytatem Donalda Tuska „polskość to nienormalność”. Czyli Tusk gardzi Polską?",
+    "main_claim": "Donald Tusk napisał, że „polskość to nienormalność”, wyrażając w ten sposób niechęć do Polski i Polaków.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Słowa padły, ale to ucięty fragment eseju „Polak rozłamany” z miesięcznika „Znak” z 1987 r., napisanego w odpowiedzi na pytanie „Czym jest polskość?”. W dalszej części Tusk pisze, że utożsamia się z tą postawą i że polskość pozostaje wspólnym świadomym wyborem. Odpowiedź przywraca źródło, rok i dalszy ciąg tekstu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/tusk-uwaza-ze-polskosc-to-nienormalnosc-manipulacja/",
+        "publisher": "Demagog",
+        "title": "Tusk uważa, że „polskość to nienormalność”? Manipulacja",
+        "quote": "W dalszej części tekstu Donald Tusk napisał, że akceptuje taką postawę i utożsamia się z nią."
+      },
+      {
+        "url": "https://www.miesiecznik.znak.com.pl/polskie-spoleczenstwo/6792011donald-tusk-polak-rozlamany/",
+        "publisher": "Miesięcznik Znak",
+        "title": "Donald Tusk: Polak rozłamany",
+        "quote": "Polskość to nienormalność – takie skojarzenie narzuca mi się z bolesną uporczywością"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-tusk-krasc-procedury",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "text": "Krąży rolka, w której Tusk w Sejmie mówi: „Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać”. Czyli premier uważa, że można kraść zgodnie z procedurami?",
+    "main_claim": "Donald Tusk jest autorem słów „Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać” i tak wyraża własny pogląd.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "category": "fact_checked",
+    "expected_behavior": "Tusk wypowiedział te słowa w Sejmie 17 stycznia 2024 r., ale jako cytat: przytoczył wypowiedź Marcina Horały z TVN24 z listopada 2023 r., żeby ją wyśmiać. Odpowiedź przywraca, kto jest autorem słów, i wskazuje stenogram Sejmu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/fake_news/mozna-krasc-zgodnie-z-procedurami-slowa-donalda-tuska-wyrwane-z-kontekstu/",
+        "publisher": "Demagog",
+        "title": "Można kraść zgodnie z procedurami? Słowa Donalda Tuska wyrwane z kontekstu",
+        "quote": "Donald Tusk w swoim przemówieniu przytacza słowa innego polityka – Marcina Horały."
+      },
+      {
+        "url": "https://www.sejm.gov.pl/Sejm10.nsf/wypowiedz.xsp?posiedzenie=2&dzien=2&wyp=108",
+        "publisher": "Sejm RP",
+        "title": "Wypowiedzi na posiedzeniach Sejmu: Prezes Rady Ministrów Donald Tusk, posiedzenie nr 2 w dniu 17-01-2024",
+        "quote": "pan minister Horała powiedział, cytuję: Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać."
+      },
+      {
+        "url": "https://tvn24.pl/polska/marcin-horala-jezeli-ktos-cokolwiek-ukradl-niezgodnie-z-procedurami-to-oczywiscie-musi-oddac-donald-tusk-komentuje-st7426051",
+        "publisher": "TVN24",
+        "title": "Marcin Horała: jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami to oczywiście musi oddać. Donald Tusk komentuje",
+        "quote": "Jeżeli ktoś cokolwiek ukradł niezgodnie z procedurami, to oczywiście musi oddawać"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-tusk-rzecznik-izraela",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Berkowicz cytuje Tuska: „będę zawsze rzecznikiem interesów państwa Izrael”. Czy premier bezwarunkowo popiera Izrael?",
+    "main_claim": "Donald Tusk zadeklarował, że zawsze będzie rzecznikiem interesów Izraela, popierając w ten sposób działania Izraela w Gazie.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [],
+    "category": "fact_checked",
+    "expected_behavior": "Cytat jest ucięty. Tusk mówił w Sierakowicach 22 września 2025 r. o wspieraniu Izraela w konfrontacji z terroryzmem, a w tej samej wypowiedzi nazwał to, co dzieje się w Gazie, absolutnie nie do zaakceptowania. Odpowiedź przywraca dalszą część wypowiedzi.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/donald-tusk-okresla-sie-rzecznikiem-interesow-izraela-to-niepelny-cytat/",
+        "publisher": "Demagog",
+        "title": "Donald Tusk określa się rzecznikiem interesów Izraela? To niepełny cytat",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-inflacja-grudzien-2022",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Rzecznik rządu pisze: inflacja w grudniu 2025 r. 2,4 proc., w grudniu 2022 r. 16,6 proc. Czyli to obecny rząd zbił inflację z 16,6 do 2,4 proc.?",
+    "main_claim": "Obecny rząd obniżył inflację z 16,6 proc. do 2,4 proc.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [],
+    "category": "fact_checked",
+    "expected_behavior": "Obie liczby GUS są prawdziwe, ale porównanie jest wybiórcze: grudzień 2022 r. to jeden z najwyższych odczytów za poprzedniego rządu, a gdy obecny rząd zaczynał w grudniu 2023 r., inflacja wynosiła już 6,2 proc. Odpowiedź podaje punkt startowy z grudnia 2023 r. i przypomina, że inflacja spadała też w całej UE.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/inflacja-za-pis-i-obecnie-szlapka-manipuluje-danymi/",
+        "publisher": "Demagog",
+        "title": "Inflacja za PiS i obecnie. Szłapka manipuluje danymi",
+        "quote": "Manipulacja"
+      },
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/szybki-szacunek-wskaznika-cen-towarow-i-uslug-konsumpcyjnych-w-grudniu-2025-r-,21,38.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Szybki szacunek wskaźnika cen towarów i usług konsumpcyjnych w grudniu 2025 r.",
+        "quote": "wzrosły o 2,4% (wskaźnik cen 102,4)"
+      },
+      {
+        "url": "https://stat.gov.pl/obszary-tematyczne/ceny-handel/wskazniki-cen/szybki-szacunek-wskaznika-cen-towarow-i-uslug-konsumpcyjnych-w-grudniu-2022-roku,21,8.html",
+        "publisher": "Główny Urząd Statystyczny",
+        "title": "Szybki szacunek wskaźnika cen towarów i usług konsumpcyjnych w grudniu 2022 roku",
+        "quote": "wzrosły o 16,6% (wskaźnik cen 116,6)"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-ctx-zezwolenia-na-prace",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Nawrocki w debacie: w 2024 r. wydano cudzoziemcom o 3 tys. zezwoleń na pracę więcej niż w 2023 r., więc to rząd Tuska daje ich więcej niż PiS. Zgadza się?",
+    "main_claim": "Rząd Donalda Tuska wydaje cudzoziemcom więcej zezwoleń na pracę niż rządy PiS.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [],
+    "category": "fact_checked",
+    "expected_behavior": "Wzrost z 2023 na 2024 r. był niewielki (o ok. 2,3 tys., 0,72 proc.), a w każdym roku 2018–2022 za rządów PiS wydano więcej zezwoleń niż w 2024 r. Odpowiedź pokazuje dłuższy okres porównania, a nie tylko ostatni rok poprzedniego rządu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/pozwolenia-na-prace-dla-cudzoziemcow-ktory-rzad-wydawal-ich-wiecej/",
+        "publisher": "Demagog",
+        "title": "Pozwolenia na pracę dla cudzoziemców. Który rząd wydawał ich więcej?",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-inflacja-spadnie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "text": "Ekonomista w telewizji mówi, że inflacja w Polsce na pewno spadnie w przyszłym roku. Prawda czy fałsz?",
+    "main_claim": "Inflacja w Polsce spadnie w przyszłym roku.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "category": "opinion",
+    "expected_behavior": "To prognoza o przyszłości, której dziś nie da się zweryfikować. Odpowiedź tak ją nazywa i nie wydaje werdyktu; może wskazać, że oficjalne projekcje, np. NBP, podają przedział niepewności, a nie pewny wynik.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/metodologia/",
+        "publisher": "Demagog",
+        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
+        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-wybory-prezydenckie-2030",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "text": "Czy to prawda, że Karol Nawrocki wygra wybory prezydenckie w 2030 roku?",
+    "main_claim": "Karol Nawrocki wygra wybory prezydenckie w 2030 r.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "category": "opinion",
+    "expected_behavior": "To przewidywanie wyniku wyborów, które się jeszcze nie odbyły, więc nie da się go potwierdzić ani obalić. Odpowiedź mówi to wprost i nie traktuje sondaży jako dowodu na wynik.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/metodologia/",
+        "publisher": "Demagog",
+        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
+        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-ai-praca-polowa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "text": "Czytałem, że w ciągu 10 lat sztuczna inteligencja zabierze pracę połowie Polaków. Czy to prawda?",
+    "main_claim": "W ciągu 10 lat sztuczna inteligencja zabierze pracę połowie Polaków.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "category": "opinion",
+    "expected_behavior": "To prognoza na dekadę naprzód, więc dziś nie można jej potwierdzić ani nazwać fałszem. Odpowiedź mówi, że twierdzenie nie podlega weryfikacji, i nie przedstawia żadnej prognozy jako faktu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/metodologia/",
+        "publisher": "Demagog",
+        "title": "Metodologia fact-checkingu - jak weryfikujemy informacje",
+        "quote": "Treściami merytorycznymi nie są deklaracje na przyszłość oraz opinie."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-polska-powinna-wyjsc-z-ue",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "text": "Poseł napisał, że Polska powinna wystąpić z Unii Europejskiej. Sprawdzisz, czy ma rację?",
+    "main_claim": "Polska powinna wystąpić z Unii Europejskiej.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "category": "opinion",
+    "expected_behavior": "To postulat polityczny, czyli ocena, co należy zrobić, a nie twierdzenie o faktach. Odpowiedź nie wydaje werdyktu prawda/fałsz i może zaproponować sprawdzenie konkretnych faktów, którymi poseł uzasadnia swój postulat.",
+    "sources": [],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-op-lewandowski-najlepszy",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "mcp",
+    "text": "Czy Robert Lewandowski to najlepszy polski piłkarz w historii?",
+    "main_claim": "Robert Lewandowski to najlepszy polski piłkarz w historii.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [],
+    "category": "opinion",
+    "expected_behavior": "To ocena wartościująca: „najlepszy” zależy od przyjętych kryteriów, więc twierdzenie nie podlega weryfikacji. Odpowiedź mówi to krótko i może dodać, że sprawdzić da się tylko konkretne fakty, np. liczbę goli w reprezentacji.",
+    "sources": [],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-dlug-ponizej-sredniej-ue",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy to prawda, że dług publiczny Polski jest wciąż niższy od średniej w Unii Europejskiej?",
+    "main_claim": "Dług publiczny Polski jest niższy od średniej w Unii Europejskiej.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak. Demagog ocenił wypowiedź Andrzeja Domańskiego jako prawdę: według Eurostatu dług Polski w relacji do PKB jest niższy od średniej UE, która na koniec 2025 r. wynosiła 81,7% PKB. Odpowiedź dodaje, że polski dług szybko rośnie, i podaje link do oceny oraz do komunikatu Eurostatu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/dlug-publiczny-polski-nizszy-niz-srednia-ue-to-prawda/",
+        "publisher": "Demagog",
+        "title": "Dług publiczny Polski niższy niż średnia UE? To prawda",
+        "quote": "Prawda"
+      },
+      {
+        "url": "https://ec.europa.eu/eurostat/web/products-euro-indicators/w/2-22042026-bp",
+        "publisher": "Eurostat",
+        "title": "Government debt at 87.8% of GDP in euro area",
+        "quote": "and the EU (from 80.7% to 81.7%)"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-alkohol-100-mld",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Minister mówiła, że nadmierne picie alkoholu kosztuje państwo do 100 mld zł rocznie. Czy to się zgadza?",
+    "main_claim": "Nadmierne spożycie alkoholu kosztuje Polskę do 100 mld zł rocznie.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak. Demagog ocenił wypowiedź Katarzyny Pełczyńskiej-Nałęcz jako prawdę: raport PARPA szacował koszty społeczno-ekonomiczne nadmiernego spożycia alkoholu w 2020 r. na 93,3 mld zł. Odpowiedź zaznacza, że to szacunek kosztów społecznych, a nie same wydatki budżetu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/do-100-mld-zl-rocznie-czy-tyle-kosztuje-polske-nadmierne-spozycie-alkoholu/",
+        "publisher": "Demagog",
+        "title": "Do 100 mld zł rocznie? Koszty nadmiernego spożycia alkoholu",
+        "quote": "Prawda"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-prognoza-dlugu-2029",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy rząd prognozuje, że dług wyniesie 72,7% PKB w 2028 r. i około 75% PKB w 2029 r.?",
+    "main_claim": "Według rządowej prognozy dług sektora instytucji rządowych i samorządowych wyniesie 72,7% PKB w 2028 r. i około 75% PKB w 2029 r.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak. Demagog ocenił wpis Sławomira Mentzena jako prawdę: chodzi o dług liczony według metodologii UE (EDP) z rządowej strategii zarządzania długiem na lata 2026-2029, która przewiduje wzrost tej relacji do 75,3% PKB w 2029 r. Odpowiedź mówi, że to prognoza, a nie obecny stan długu.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/nowe-prognozy-zadluzenia-ile-wyniesie-dlug-publiczny-w-2028-roku/",
+        "publisher": "Demagog",
+        "title": "Ile wyniesie dług publiczny w 2028 roku?",
+        "quote": "Prawda"
+      },
+      {
+        "url": "https://www.gov.pl/web/finanse/strategia-zarzadzania-dlugiem-sektora-finansow-publicznych-w-latach-2026-2029",
+        "publisher": "Ministerstwo Finansów",
+        "title": "Strategia zarządzania długiem sektora finansów publicznych w latach 2026-2029",
+        "quote": "relacja ta wzrośnie do 75,3% w 2029 r."
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-seniorzy-na-mlodego",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "category": "fact_checked",
+    "text": "Czy w 2000 r. na jednego seniora 60+ przypadała jedna osoba w wieku 15-24 lata, a dziś jedna na trzech seniorów?",
+    "main_claim": "W 2000 r. na jednego seniora w wieku 60+ przypadała w Polsce jedna osoba w wieku 15-24 lata, a obecnie jedna na trzech seniorów.",
+    "expected_status": "done",
+    "expected_verdict": "confirmed",
+    "expected_behavior": "Tak, w zaokrągleniu. Demagog ocenił wypowiedź Katarzyny Pełczyńskiej-Nałęcz jako prawdę na podstawie danych GUS: w 2000 r. obie grupy liczyły po 6,4 mln osób, a w 2025 r. na jedną młodą osobę przypadało około 2,6 seniora. Odpowiedź podaje te liczby zamiast okrągłego „trzech”.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/wiecej-seniorow-niz-mlodych-polska-populacja-sie-zmienia/",
+        "publisher": "Demagog",
+        "title": "Więcej seniorów niż młodych. Polska populacja się zmienia",
+        "quote": "Prawda"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-hpv-zakazana-szczepionka",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Słyszałam, że szczepionka na HPV jest w wielu krajach zakazana z powodu powikłań. Czy to prawda?",
+    "main_claim": "Szczepionka przeciw HPV została zakazana w wielu krajach z powodu powikłań.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Ewy Zajączkowskiej-Hernik jako fałsz: szczepienie przeciw HPV nie jest zakazane w żadnym kraju, a Japonia tylko czasowo wstrzymała rekomendację i wycofała się z tego w 2021 r. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/szczepienia-na-hpv-nie-sa-eksperymentem-medycznym-wyjasniamy/",
+        "publisher": "Demagog",
+        "title": "Szczepienia przeciw HPV. Polityczka powiela mity",
+        "quote": "Fałsz"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-co2-sfalsyfikowane",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy nauka udowodniła już, że człowiek nie wpływa na zmiany klimatu?",
+    "main_claim": "Nauka obaliła twierdzenie, że człowiek wpływa na zmiany klimatu.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Jarosława Kaczyńskiego jako fałsz: naukowcy są zgodni, że działalność człowieka, przede wszystkim spalanie paliw kopalnych, jest główną przyczyną globalnego ocieplenia. Odpowiedź podaje link do oceny i do wniosku IPCC przytoczonego przez NASA.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/jaroslaw-kaczynski-powtarza-tezy-denialistow-klimatycznych/",
+        "publisher": "Demagog",
+        "title": "Denializm klimatyczny. Jarosław Kaczyński powtarza fałszywe tezy",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://science.nasa.gov/climate-change/causes/",
+        "publisher": "NASA",
+        "title": "Causes",
+        "quote": "the influence of human activity on the warming of the climate system has evolved from theory to established fact"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-etna-emisje",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "category": "fact_checked",
+    "text": "Czy jedna erupcja Etny przekreśliła unijne plany ograniczenia emisji CO2 na 10 lat?",
+    "main_claim": "Jedna erupcja Etny przekreśliła unijne plany zmniejszenia emisji CO2 na najbliższe 10 lat.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wpis Bartłomieja Pejo jako fałsz: główną przyczyną nadmiaru CO2 w atmosferze jest spalanie paliw kopalnych przez człowieka, które w 2025 r. dało ponad 38 mld ton tego gazu. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/wybuch-etny-przekreslil-wysilki-klimatyczne-ue-posel-pejo-sie-myli/",
+        "publisher": "Demagog",
+        "title": "Wybuch Etny przekreślił wysiłki klimatyczne UE?",
+        "quote": "Fałsz"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-urlop-macierzynski",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy Polska ma najdłuższy urlop macierzyński w Europie?",
+    "main_claim": "Polska ma najdłuższy urlop macierzyński w Europie.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Radosława Sikorskiego jako fałsz: podstawowy urlop macierzyński w Polsce trwa 20 tygodni, a dłuższy mają m.in. Bułgaria (prawie 59 tygodni), Chorwacja (około 30) i Czechy (28). Nawet z urlopem rodzicielskim Polska nie jest liderem w Europie.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/polska-ma-najdluzszy-urlop-macierzynski-w-europie-sprawdzamy-slowa-sikorskiego/",
+        "publisher": "Demagog",
+        "title": "Czy Polska ma najdłuższy urlop macierzyński w Europie?",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://www.gov.pl/web/rodzina/urlop-macierzynski",
+        "publisher": "Ministerstwo Rodziny, Pracy i Polityki Społecznej",
+        "title": "Urlop macierzyński",
+        "quote": "20 tygodni - w przypadku urodzenia jednego dziecka przy jednym porodzie"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-jsw-ukrainska-spolka",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy to prawda, że JSW zwalnia 4400 górników, bo ich pracę przejmuje ukraińska spółka?",
+    "main_claim": "JSW zwalnia 4400 górników, ponieważ ich pracę przejmuje ukraińska spółka.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie w tej formie. Demagog ocenił wpis Pawła Usiądka jako manipulację: JSW zwalnia górników w ramach programu naprawczego po 6,25 mld zł straty netto w 2025 r., a firma z ukraińskimi udziałowcami, wybrana w przetargu, wykonuje tylko wybrane roboty techniczne. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/4400-gornikow-bez-pracy-przez-ukrainska-spolke-przyczyna-zwolnien-jest-inna/",
+        "publisher": "Demagog",
+        "title": "Górnicy JSW bez pracy przez ukraińską spółkę?",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-wegiel-ostatni-w-europie",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy Polska jest ostatnim państwem w Europie, które w ogóle wydobywa węgiel?",
+    "main_claim": "Polska jest ostatnim państwem w Europie, które wydobywa węgiel.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie. Demagog ocenił wypowiedź Miłosza Motyki jako manipulację: po zamknięciu ostatniej czeskiej kopalni Polska jest ostatnim krajem Unii Europejskiej z kopalniami węgla kamiennego, ale wydobywają go też np. Ukraina, Rosja i Turcja, a węgiel brunatny wydobywa wiele państw, m.in. Niemcy. Odpowiedź rozróżnia Unię i Europę oraz rodzaje węgla.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/tylko-polska-wydobywa-w-europie-wegiel-sytuacja-wyglada-inaczej/",
+        "publisher": "Demagog",
+        "title": "Tylko Polska wydobywa w Europie węgiel? Fakty wyglądają inaczej",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-skladki-zus-2026",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Od stycznia 2026 r. składki ZUS dla przedsiębiorców rosną o 153 zł do 1926,76 zł. Czy to decyzja rządu?",
+    "main_claim": "Wzrost minimalnych składek ZUS przedsiębiorców w 2026 r. do 1926,76 zł to decyzja obecnego rządu.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "expected_behavior": "Kwota się zgadza, ale Demagog ocenił wpis Waldemara Budy jako manipulację: minimalne składki od 1999 r. liczy się od 60% prognozowanego przeciętnego wynagrodzenia, więc rosną razem z płacami, także za poprzednich rządów. Odpowiedź podaje kwotę z ZUS i tę zasadę.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/skladki-zus-w-2026-roku-ile-wyniosa-i-dlaczego-rosna/",
+        "publisher": "Demagog",
+        "title": "Składki ZUS w 2026 roku. Ile wyniosą i dlaczego rosną?",
+        "quote": "Manipulacja"
+      },
+      {
+        "url": "https://www.zus.pl/baza-wiedzy/skladki-wskazniki-odsetki/skladki/wysokosc-skladek-na-ubezpieczenia-spoleczne",
+        "publisher": "ZUS",
+        "title": "Wysokość składek na ubezpieczenia",
+        "quote": "Suma składek do zapłaty 1926,76 zł"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-nauka-1-proc-pkb",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "mcp",
+    "category": "fact_checked",
+    "text": "Czy wydatki na naukę w budżecie na 2026 r. to nieco ponad 1% PKB i najniższy wskaźnik od reformy z 2018 r.?",
+    "main_claim": "Wydatki na naukę i szkolnictwo wyższe w budżecie na 2026 r. to nieco ponad 1% PKB, najmniej od reformy z 2018 r.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ],
+    "expected_behavior": "Częściowo. Demagog ocenił wypowiedź Adriana Zandberga jako częściową prawdę: na 2026 r. zaplanowano 1,05% PKB, ale to drugi, a nie najniższy wynik, bo w 2023 r. planowano 1%. Odpowiedź oddziela poprawną liczbę od błędnego „najniższy”.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/nieco-ponad-1-proc-na-nauke-w-2026-to-drugi-najnizszy-wskaznik-od-lat/",
+        "publisher": "Demagog",
+        "title": "1 proc. na naukę w 2026 roku. To drugi najniższy wskaźnik od lat",
+        "quote": "Częściowa prawda"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-korki-krakow-warszawa",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy w Krakowie są większe korki niż w Warszawie?",
+    "main_claim": "W Krakowie są większe korki niż w Warszawie.",
+    "expected_status": "done",
+    "expected_verdict": "not_verifiable",
+    "acceptable_verdicts": [
+      "insufficient_evidence"
+    ],
+    "expected_behavior": "Nie da się tego rozstrzygnąć. Demagog ocenił wypowiedź Aleksandry Owcy jako nieweryfikowalną: TomTom Traffic Index stawia wyżej Kraków, a Global Traffic Scorecard Warszawę, bo nie ma jednej przyjętej miary zakorkowania. Odpowiedź podaje oba rankingi.",
+    "sources": [
+      {
+        "url": "https://demagog.org.pl/wypowiedzi/krakow-i-warszawa-gdzie-sa-wieksze-korki/",
+        "publisher": "Demagog",
+        "title": "Kraków i Warszawa. Gdzie są większe korki?",
+        "quote": "Nieweryfikowalne"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-flaga-ue-budapeszt",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Na Facebooku krąży film, na którym węgierscy posłowie wyrzucają flagę UE przez okno parlamentu. Czy to dzieje się teraz?",
+    "main_claim": "Nagranie pokazuje, jak węgierski parlament teraz usuwa flagę UE i wyrzuca ją przez okno.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie, to stare nagranie. AFP Sprawdzam oceniło przekaz jako mylący: film pochodzi z lutego 2014 r., gdy dwóch posłów wyrzuciło flagi UE z sali obrad, a po wyborach w 2026 r. flaga UE wróciła na fasadę parlamentu. Technika: wyrwanie z kontekstu.",
+    "sources": [
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.C7NU4ZQ",
+        "publisher": "AFP Sprawdzam",
+        "title": "Nagranie z wyrzucenia flagi unijnej przez okno parlamentu w Budapeszcie jest z 2014 roku",
+        "quote": "W rzeczywistości film ten jest z lutego 2014 roku"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-sygnalizacja-upal",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "extension",
+    "category": "fact_checked",
+    "text": "Czy na filmie widać sygnalizację świetlną, która stopiła się od upałów w Europie w czerwcu 2026 r.?",
+    "main_claim": "Film pokazuje sygnalizację świetlną stopioną przez upały w Europie w czerwcu 2026 r.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. AFP Sprawdzam oceniło przekaz jako fałsz: sygnalizacje we Włoszech i w Niemczech uszkodziły pożary na długo przed falą upałów i bez związku z nią. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.B9G84WE",
+        "publisher": "AFP Sprawdzam",
+        "title": "Te sygnalizatory świetlne nie stopiły się z powodu upałów w Europie w czerwcu 2026 roku",
+        "quote": "sygnalizacja świetlna została uszkodzona przez pożary na długo przed falą upałów"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-mapa-irinn",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy irańska telewizja IRINN pokazała mapę celów ataków rakietowych w Europie z Rzeszowem?",
+    "main_claim": "Irańska telewizja IRINN wyemitowała mapę celów ataków rakietowych w Europie, wśród nich Rzeszowa.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. AFP Sprawdzam oceniło przekaz jako fałsz: porównanie z archiwalnymi nagraniami stacji pokazało, że mapę dodano cyfrowo do autentycznych materiałów niezwiązanych z groźbami ataków. Odpowiedź podaje link do oceny.",
+    "sources": [
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.D7PR7ZQ",
+        "publisher": "AFP Sprawdzam",
+        "title": "Irańska telewizja nie wyemitowała mapy z celami odwetowych ataków rakietowych na Europę",
+        "quote": "mapa została cyfrowo dodana do autentycznych, niezwiązanych z groźbami ataków materiałów telewizyjnych"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-ue-media-spolecznosciowe",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy Ursula von der Leyen zapowiedziała, że UE tymczasowo zawiesi media społecznościowe?",
+    "main_claim": "Unia Europejska rozważa tymczasowe zawieszenie działalności mediów społecznościowych.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "acceptable_verdicts": [
+      "misleading"
+    ],
+    "expected_behavior": "Nie. Fakenews.pl ocenił to twierdzenie jako fałsz, a AFP Sprawdzam jako przekaz bez kontekstu: w przemówieniu z maja 2026 r. przewodnicząca Komisji mówiła o limicie wieku dla dzieci, nie o zawieszeniu platform. Odpowiedź podaje obie oceny i tekst przemówienia.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/spoleczenstwo/ue-nie-rozwaza-tymczasowego-zawieszenia-dzialalnosci-mediow-spolecznosciowych/",
+        "publisher": "Fakenews.pl",
+        "title": "UE nie rozważa tymczasowego zawieszenia działalności mediów społecznościowych",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://sprawdzam.afp.com/doc.afp.com.C3QK8ZW",
+        "publisher": "AFP Sprawdzam",
+        "title": "Ursula von der Leyen opowiada się w nagraniu za wprowadzeniem ograniczeń wiekowych, a nie „tymczasowym zawieszeniem” platform",
+        "quote": "przewodnicząca nie stwierdziła, że UE zamierza zawiesić lub zakazać działalności mediów społecznościowych"
+      },
+      {
+        "url": "https://ec.europa.eu/commission/presscorner/detail/en/speech_26_1060",
+        "publisher": "Komisja Europejska",
+        "title": "Keynote address by President von der Leyen at the European Summit on Artificial Intelligence and Children",
+        "quote": "the discussions about a minimum age for social media can no longer be ignored"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-paracetamol-autyzm",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "sms",
+    "category": "fact_checked",
+    "text": "Czy paracetamol brany w ciąży powoduje autyzm u dziecka?",
+    "main_claim": "Istnieje związek przyczynowy między stosowaniem paracetamolu w ciąży a autyzmem.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Fakenews.pl ocenił to twierdzenie jako fałsz, a WHO podkreśla, że nie ma rozstrzygających dowodów na związek paracetamolu w ciąży z autyzmem. Odpowiedź radzi kierować się zaleceniami lekarza i podaje oba źródła.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/zdrowie/nie-ma-dowodow-na-zwiazek-miedzy-paracetamolem-a-autyzmem/",
+        "publisher": "Fakenews.pl",
+        "title": "Nie ma dowodów na związek między paracetamolem a autyzmem",
+        "quote": "Fałsz"
+      },
+      {
+        "url": "https://www.who.int/news/item/24-09-2025-who-statement-on-autism-related-issues",
+        "publisher": "World Health Organization",
+        "title": "WHO statement on autism-related issues",
+        "quote": "there is currently no conclusive scientific evidence confirming a possible link between autism and use of acetaminophen"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-wegiel-brunatny-najtanszy",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "web",
+    "category": "fact_checked",
+    "text": "Czy węgiel brunatny to najtańsze źródło energii w Polsce?",
+    "main_claim": "Węgiel brunatny jest najtańszym źródłem energii w Polsce.",
+    "expected_status": "done",
+    "expected_verdict": "false",
+    "expected_behavior": "Nie. Fakenews.pl ocenił to twierdzenie jako fałsz: według danych Ministerstwa Klimatu i Środowiska najtaniej energię produkują odnawialne źródła, kolejno elektrownie wodne, wiatrowe i fotowoltaiczne. Odpowiedź dodaje, że na ceny wpływają też koszty uprawnień do emisji w systemie ETS.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/srodowisko/wegiel-brunatny-nie-jest-najtanszym-zrodlem-energii-w-polsce/",
+        "publisher": "Fakenews.pl",
+        "title": "Węgiel brunatny nie jest najtańszym źródłem energii w Polsce",
+        "quote": "Fałsz"
+      }
+    ],
+    "checked_at": "2026-11-22"
+  },
+  {
+    "id": "A-fc-in-vitro-600-tys",
+    "scenario": "A",
+    "origin": "own",
+    "channel": "discord",
+    "category": "fact_checked",
+    "text": "Państwo wydało na in vitro miliard złotych, a urodziło się 1700 dzieci. Czy to znaczy, że jedno dziecko kosztowało 600 tys. zł?",
+    "main_claim": "Państwowy program in vitro kosztował 600 tys. zł na jedno urodzone dziecko.",
+    "expected_status": "done",
+    "expected_verdict": "misleading",
+    "acceptable_verdicts": [
+      "false"
+    ],
+    "expected_behavior": "Nie. Fakenews.pl ocenił ten rachunek jako manipulację: autor nie uwzględnił ram czasowych ciąży ani programu, który działa od czerwca 2024 r. Według Kancelarii Premiera z 11 czerwca 2025 r. obok 1676 urodzonych dzieci trwało 13 909 ciąż, więc dzielenie wydatków przez same narodziny zawyża koszt.",
+    "sources": [
+      {
+        "url": "https://fakenews.pl/zdrowie/koszt-programu-in-vitro-w-polsce-nie-wynosi-600-tys-zlotych-na-dziecko/",
+        "publisher": "Fakenews.pl",
+        "title": "Koszt programu in vitro w Polsce nie wynosi 600 tys. złotych na dziecko",
+        "quote": "Manipulacja"
+      }
+    ],
+    "checked_at": "2026-11-22"
   }
 ]

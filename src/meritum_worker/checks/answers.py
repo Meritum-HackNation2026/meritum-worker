@@ -5,7 +5,9 @@ Features:
 """
 
 import re
+from collections.abc import Sequence
 
+from meritum_core.shared.llm import Prompt
 from pydantic import BaseModel
 
 from meritum_worker.checks.constants import (
@@ -14,7 +16,9 @@ from meritum_worker.checks.constants import (
     STANCE_LABELS,
     VERDICT_LABELS,
 )
-from meritum_worker.evidence import ClaimExplanation
+from meritum_worker.checks.models import ExtractedClaim
+from meritum_worker.checks.prompts import ANSWER_INSTRUCTIONS, ANSWER_VERDICTS
+from meritum_worker.evidence import ClaimExplanation, Judgement
 
 
 class AnswerDraft(BaseModel):
@@ -30,6 +34,47 @@ class AnswerDraft(BaseModel):
 
     claims: list[ClaimExplanation]
     limitations: list[str]
+
+
+def answer_prompt(
+    question: str, facts: Sequence[ExtractedClaim], judged: Sequence[Judgement]
+) -> Prompt:
+    """Build the write_answer prompt: claims and quotes as data, verdicts as ours.
+
+    The verdicts are Meritum's text, so they end the instructions. In the data,
+    which the injection shield scans, a "verdict: ..." line was cut as a command
+    and the model explained nothing (worker#221).
+
+    Args:
+        question: the user's text.
+        facts: the checked facts.
+        judged: each fact's judgement from the core rules, in the same order.
+
+    Returns:
+        The prompt; the user text and one item per fact are data.
+
+    Features:
+        US-SPR-01, US-BEZ-01, F-22
+    """
+    verdicts = "; ".join(
+        f"{i}. {VERDICT_LABELS[j.verdict]}" for i, j in enumerate(judged, start=1)
+    )
+    ending = ANSWER_VERDICTS.format(verdicts=verdicts) if facts else ""
+    data = (question, *map(_described, facts, judged, strict=True))
+    return Prompt(instructions=ANSWER_INSTRUCTIONS + ending, data=data)
+
+
+def _described(fact: ExtractedClaim, judged: Judgement) -> str:
+    # Source fragments go to the model as data, so it can explain them.
+    quotes = [
+        f"- {STANCE_LABELS[c.stance]}, {c.source.publisher}: {c.fragment}"
+        for c in judged.citations
+    ]
+    ratings = (
+        f"- {STANCE_LABELS[r.stance]}, {r.publisher}: ocena {r.rating}, {r.title}"
+        for r in judged.claim_review_premises
+    )
+    return "\n".join((fact.claim, *quotes, *ratings))
 
 
 def plain_text(text: str, limit: int) -> str:

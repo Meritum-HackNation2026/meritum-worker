@@ -70,6 +70,7 @@ class CheckState(BaseModel):
             context that never reaches the verdict.
         limitations: what the check already knows it will not cover.
         result: the answer, once write_answer ran.
+        draft: the masked answer preview, ready to publish after write_answer.
 
     Features:
         US-SPR-01, US-OBS-01, F-22
@@ -104,6 +105,7 @@ class CheckState(BaseModel):
     incidents: dict[str, IncidentMatch] = {}
     limitations: list[str] = []
     result: CheckResult | None = None
+    draft: str | None = None
 
     @property
     def has_text(self) -> bool:
@@ -177,7 +179,9 @@ class CheckState(BaseModel):
         """The answer, or a technical failure when no step produced one.
 
         Returns:
-            The result, with the transcript of an audio input.
+            The result, with the transcript or masked OCR text when available.
         """
         result = self.result or self.technical_failure()
-        return result.model_copy(update={"transcript": self.transcript})
+        return result.model_copy(
+            update={"transcript": self.transcript, "image_text": self.image_text}
+        )

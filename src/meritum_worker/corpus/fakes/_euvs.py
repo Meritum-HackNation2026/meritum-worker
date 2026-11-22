@@ -182,7 +182,9 @@ def _case(case_id: int) -> dict[str, object]:
         "date": 1_700_000_000 + case_id,
         "keywords": ["NATO"],
         "countries": ["Poland"],
-        "linksToDisinformation": [f"https://www.fake-news-{case_id % 3}.example/a"],
+        "linksToDisinformation": [
+            {"url": f"https://www.fake-news-{case_id % 3}.example/a", "type": "webpage"}
+        ],
         "url": f"https://euvsdisinfo.eu/report/case-{case_id}/",
     }
 

@@ -1,6 +1,12 @@
 # language: pl
 Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
 
+  Scenariusz: Powtórzone ograniczenie trafia do wyniku raz
+    Zakładając pytanie o depeszę PAP i API Fact Check z oceną Demagogu "Fałsz"
+    I model dwukrotnie podaje to samo ograniczenie
+    Gdy system bada twierdzenie z oceną fact-checkera
+    Wtedy wynik zawiera to ograniczenie z kodem tylko raz
+
   Scenariusz: pierwsze pełne skanowanie
     Zakładając ważny token EUvsDisinfo
     I w źródle 230 przypadków i 120 artykułów
@@ -56,6 +62,17 @@ Funkcja: Lokalna kopia EUvsDisinfo odświeżana przez serwer MCP
     Zakładając API pozycji katalogu odpowiada błędem 500
     Gdy workflow wczytywania działa
     Wtedy błąd jest w raporcie przebiegu z domeną, a pozostałe pozycje są wczytane
+
+  Scenariusz: akt z ELI trafia do korpusu z pełnym tekstem
+    Zakładając wpis katalogu api.sejm.gov.pl i akt, który ma tekst w ELI
+    Gdy ingestia pobiera ten akt
+    Wtedy dokument w korpusie ma pełny tekst aktu, a nie sam tytuł
+    I fragment „Stolicą Rzeczypospolitej Polskiej jest Warszawa.” da się znaleźć zapytaniem „Warszawa jest stolicą Polski”
+
+  Scenariusz: akt bez tekstu w ELI zostaje z tytułem
+    Zakładając akt, dla którego ELI nie udostępnia tekstu
+    Gdy ingestia pobiera ten akt
+    Wtedy dokument ma tytuł i metadane, a próba jest zapisana z powodem braku tekstu
 
   Scenariusz: domena wykluczona albo z zastrzeżeniem TDM
     Zakładając pozycja katalogu z excluded = true i powodem wykluczenia

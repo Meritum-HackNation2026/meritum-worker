@@ -6,12 +6,12 @@ Features:
 """
 
 from meritum_worker import corpus
-from meritum_worker.checks.constants import LIMITATION_MAX_CHARS
 from meritum_worker.checks.fact_check_constants import (
     FACT_CHECK_UNAVAILABLE_NOTE,
     SEARCH_FACT_CHECKS_STEP,
 )
 from meritum_worker.checks.models import CheckDeps, CheckState
+from meritum_worker.checks.steps._screen_injection import dropped_page_notes
 
 
 async def search_fact_checks(state: CheckState, deps: CheckDeps) -> CheckState:
@@ -84,7 +84,7 @@ async def search_fact_checks(state: CheckState, deps: CheckDeps) -> CheckState:
             "injection_events": [*state.injection_events, *pages.dropped],
             "limitations": [
                 *state.limitations,
-                *(str(e.source_url)[:LIMITATION_MAX_CHARS] for e in pages.dropped),
+                *dropped_page_notes(pages.dropped),
             ],
         }
     )

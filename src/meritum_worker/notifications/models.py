@@ -8,7 +8,6 @@ from dataclasses import dataclass
 
 from meritum_core.checks import CheckRecordRepository
 from meritum_core.corpus import CorpusSearchPort
-from meritum_core.jobs.contracts import CheckInput
 from meritum_core.notifications import NotificationRepository
 from pydantic import BaseModel, ConfigDict
 
@@ -19,14 +18,18 @@ from meritum_worker.notifications.ports import SnapshotReader
 class Recheck(BaseModel):
     """One unanswered claim to check again on a new snapshot.
 
+    DBOS keeps it as the plan step's output and as the recheck's input, so it
+    never names the asker: ``recheck_input`` reads who asked from the earlier
+    record, which ``delete_subject`` erases (US-BEZ-05).
+
     Attributes:
         old_check_id: the check that left the claim unanswered.
         check_id: the new check's id; the same for the same claim and snapshot.
         corpus_version: the new snapshot the recheck searches.
-        job: the new check's input: the claim, from the same asker.
+        claim: the claim to check again, masked like the earlier question.
 
     Features:
-        US-POW-03, F-39
+        US-POW-03, US-BEZ-05, F-20, F-39
     """
 
     model_config = ConfigDict(frozen=True)
@@ -34,7 +37,7 @@ class Recheck(BaseModel):
     old_check_id: str
     check_id: str
     corpus_version: str
-    job: CheckInput
+    claim: str
 
 
 @dataclass(frozen=True, slots=True)

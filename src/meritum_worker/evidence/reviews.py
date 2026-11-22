@@ -10,19 +10,19 @@ from datetime import date
 from meritum_core.checks.contracts import ClaimReviewContext, ClaimReviewPremise
 from meritum_core.shared.llm import LlmPort, LlmUsage, Prompt
 
-from meritum_worker.evidence.constants import REVIEW_MATCH_INSTRUCTIONS
+from meritum_worker.evidence.constants import NO_CLAIM_DATE, REVIEW_MATCH_INSTRUCTIONS
 from meritum_worker.evidence.models import ReviewMatch
 
 
 async def review_matches(
-    llm: LlmPort, claim: str, claim_date: date, claim_reviewed: str
+    llm: LlmPort, claim: str, claim_date: date | None, claim_reviewed: str
 ) -> tuple[bool, LlmUsage]:
     """Ask the model whether the claim a fact-checker rated is ours.
 
     Args:
         llm: the language model.
         claim: our claim as extracted.
-        claim_date: the date our claim refers to.
+        claim_date: the date our claim refers to; None when the text states none.
         claim_reviewed: the rated claim, as the API returned it (untrusted).
 
     Returns:
@@ -35,7 +35,11 @@ async def review_matches(
     """
     prompt = Prompt(
         instructions=REVIEW_MATCH_INSTRUCTIONS,
-        data=(claim, claim_date.isoformat(), claim_reviewed),
+        data=(
+            claim,
+            claim_date.isoformat() if claim_date else NO_CLAIM_DATE,
+            claim_reviewed,
+        ),
     )
     answer = await llm.complete(prompt, ReviewMatch)
     return answer.output.same_claim, answer.usage
@@ -44,7 +48,7 @@ async def review_matches(
 def split_reviews(
     ratings: Sequence[tuple[bool, ClaimReviewPremise | ClaimReviewContext]],
 ) -> tuple[list[ClaimReviewPremise], list[ClaimReviewContext]]:
-    """Separate premises from context; a rating of another claim is only context.
+    """Keep one rating per URL and publisher, preferring a matching premise.
 
     Args:
         ratings: each rating after the rating rule, with whether the model found
@@ -56,13 +60,20 @@ def split_reviews(
     Features:
         US-KOR-01, F-14, ADR-34
     """
-    premises = [r for same, r in ratings if same and isinstance(r, ClaimReviewPremise)]
-    context = [
-        r if isinstance(r, ClaimReviewContext) else _context(r)
-        for same, r in ratings
-        if not (same and isinstance(r, ClaimReviewPremise))
+    premises: dict[tuple[str, str], ClaimReviewPremise] = {}
+    context: dict[tuple[str, str], ClaimReviewContext] = {}
+    for same, rating in ratings:
+        key = (str(rating.url), rating.publisher)
+        if same and isinstance(rating, ClaimReviewPremise):
+            premises.setdefault(key, rating)
+        else:
+            context.setdefault(
+                key,
+                rating if isinstance(rating, ClaimReviewContext) else _context(rating),
+            )
+    return list(premises.values()), [
+        rating for key, rating in context.items() if key not in premises
     ]
-    return premises, context
 
 
 def _context(premise: ClaimReviewPremise) -> ClaimReviewContext:

@@ -19,6 +19,8 @@ CALLERS = {
     "evidence/reviews.py",
     "evidence/stance.py",
     "observability/adapters/_llm.py",
+    # Eval judge: reads a finished run's citations offline; nothing reaches a user.
+    "observability/citation_judge.py",
     "security/guard.py",
 }
 
