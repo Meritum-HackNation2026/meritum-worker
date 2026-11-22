@@ -105,3 +105,17 @@ def test_a_gross_official_amount_needs_no_gross_word_in_the_source() -> None:
 
 def test_a_value_changed_later_in_the_sentence_decides_the_stance() -> None:
     assert "a later clause that changes the value" in STANCE_INSTRUCTIONS
+
+
+def test_a_source_that_only_shares_the_topic_is_not_relevant() -> None:
+    assert "only shares the topic" in STANCE_INSTRUCTIONS
+
+
+def test_the_fragment_stands_alone_for_the_reader() -> None:
+    assert "must stand alone" in STANCE_INSTRUCTIONS
+    assert "never a bare number" in STANCE_INSTRUCTIONS
+
+
+def test_a_proposal_or_forecast_of_a_value_is_context() -> None:
+    assert "a proposal, a draft or a forecast" in STANCE_INSTRUCTIONS
+    assert "unless the claim itself is about" in STANCE_INSTRUCTIONS
