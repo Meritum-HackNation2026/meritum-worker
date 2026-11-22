@@ -8,7 +8,7 @@ Features:
     US-ZRD-07, F-34
 """
 
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Mapping
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -128,34 +128,3 @@ def sanctions_from_env(env: Mapping[str, str]) -> SanctionsList:
     """
     path = Path(env.get("MERITUM_SANCTIONS_LIST_PATH", ""))
     return load_sanctions(path) if path.is_file() else SanctionsList()
-
-
-async def refresh_sanctions(
-    download: Callable[[], Awaitable[bytes]], path: Path
-) -> int:
-    """Replace the local copy with a freshly downloaded, valid list.
-
-    A download that fails validation leaves the copy as it was.
-
-    Args:
-        download: reads the official list's JSON export.
-        path: where the copy lives.
-
-    Returns:
-        How many entries the new copy holds.
-
-    Raises:
-        ValueError: the download is not a valid list; nothing is written.
-
-    Features:
-        US-ZRD-07, F-34
-    """
-    body = await download()
-    try:
-        fresh = SanctionsList.model_validate_json(body)
-    except ValidationError as error:
-        raise ValueError(str(error)) from error
-    tmp = path.with_suffix(".tmp")
-    tmp.write_bytes(body)
-    tmp.replace(path)
-    return len(fresh.entities)

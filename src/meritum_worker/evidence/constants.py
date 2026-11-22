@@ -4,6 +4,7 @@ Features:
     US-ZRD-01, US-ZRD-04, US-ZRD-08, US-ZRD-09, US-ZRD-10, F-11, F-15, F-16
 """
 
+import re
 from datetime import UTC, datetime, timedelta
 from typing import Final
 
@@ -76,3 +77,37 @@ INCIDENT_DATE_WINDOW: Final = timedelta(days=3)
 
 INCIDENTS_UNAVAILABLE: Final = "incident matching skipped: embeddings unavailable"
 """Retrieval error of a check whose incident matching could not embed the claims."""
+
+SANCTIONS_SCHEDULE: Final = "17 */6 * * *"
+"""Cron of the sanctions list refresh, every six hours: new acts change the export."""
+
+FSF_NAMESPACE: Final = "{http://eu.europa.ec/fpi/fsd/export}"
+"""XML namespace of the Financial Sanctions Files export 1.1."""
+
+SHARED_PLATFORM_HOSTS: Final = frozenset(
+    {
+        "facebook.com",
+        "instagram.com",
+        "ok.ru",
+        "sites.google.com",
+        "t.me",
+        "telegram.me",
+        "twitter.com",
+        "vk.com",
+        "x.com",
+        "youtube.com",
+    }
+)
+"""Hosts where a listed entity only has a page; naming them would flag every user."""
+
+WEBSITE_HOST: Final = re.compile(r"^(?=.{4,253}$)([\w-]{1,63}\.)+[^\W\d_]{2,63}$")
+"""A host name with a top-level domain of letters: what a ``WEB`` token must be."""
+
+WEBSITE_NOISE: Final = frozenset({"-", "website:"})
+"""Words of a ``WEB`` value that separate or label the domains."""
+
+FSF_INVALID: Final = "not a valid FSF export"
+"""Error of a download that is not well-formed, safe FSF XML."""
+
+SANCTIONS_EMPTY: Final = "no entity with a website in the download"
+"""Error of a download that would leave the copy with nothing to match."""

@@ -224,12 +224,27 @@ def sanctions_refresh_step() -> int:
         return 0
 
     async def download() -> bytes:
-        async with httpx2.AsyncClient(follow_redirects=True) as http:
+        # The official export is about 26 MB from a slow server.
+        async with httpx2.AsyncClient(follow_redirects=True, timeout=120) as http:
             reply = await http.get(url)
             reply.raise_for_status()
             return reply.content
 
     return asyncio.run(evidence.refresh_sanctions(download, Path(path)))
+
+
+@DBOS.workflow(name=f"{evidence.SANCTIONS_WORKFLOW}_scheduled")
+def sanctions_schedule_workflow(_scheduled_at: datetime, _context: object) -> None:
+    """Refresh the sanctions list copy; started by the SANCTIONS_SCHEDULE schedule.
+
+    Args:
+        _scheduled_at: the schedule's time, unused.
+        _context: the schedule's context, unused.
+
+    Features:
+        US-ZRD-07, F-34
+    """
+    DBOS.logger.info("sanctions list copy refreshed: %s", sanctions_refresh_step())
 
 
 @DBOS.workflow(
@@ -769,6 +784,18 @@ def main() -> None:
             }
         ]
     )
+    if os.environ.get("MERITUM_SANCTIONS_LIST_URL", "") and os.environ.get(
+        "MERITUM_SANCTIONS_LIST_PATH", ""
+    ):
+        DBOS.apply_schedules(
+            [
+                {
+                    "schedule_name": evidence.SANCTIONS_WORKFLOW,
+                    "workflow_fn": sanctions_schedule_workflow,
+                    "schedule": evidence.SANCTIONS_SCHEDULE,
+                }
+            ]
+        )
     report = asyncio.run(readiness_report())
     observability.log_readiness(READINESS.output.model_validate(report), DBOS.logger)
     if corpus.ingestion_enabled(os.environ):
