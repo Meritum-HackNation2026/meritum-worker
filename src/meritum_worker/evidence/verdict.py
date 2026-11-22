@@ -15,6 +15,7 @@ from meritum_core.checks.contracts import (
     ClaimDateSource,
     Stance,
     Verdict,
+    is_expired,
     is_stale,
 )
 from meritum_core.evidence import (
@@ -103,9 +104,13 @@ def judge(
     Features:
         US-ZRD-04, US-ZRD-10, US-SPR-04, US-SPR-05, F-15, ADR-05
     """
-    stances = {c.stance for c in citations if c.validity != "superseded"}
-    conflicting = {"supports", "refutes"} <= stances
-    verdict = settle_verdict(_proposed(stances), citations)
+    current = [c for c in citations if c.validity != "superseded"]
+    # Expired evidence counts for strength and archival verdicts, but fresh
+    # evidence outvotes it and the two never conflict (core#110).
+    fresh = {c.stance for c in current if not is_expired(c, claim_date)}
+    decisive = fresh & {"supports", "refutes"} or {c.stance for c in current}
+    conflicting = {"supports", "refutes"} <= decisive
+    verdict = settle_verdict(_proposed(decisive), citations, claim_date=claim_date)
     max_age = _max_age_hours(verdict, citations, catalog)
     technique = None
     archival = False
@@ -134,6 +139,8 @@ def judge(
 
 
 def _proposed(stances: set[Stance]) -> Verdict:
+    if {"supports", "refutes"} <= stances:
+        return "insufficient_evidence"
     if "supports" in stances:
         return "confirmed"
     if "refutes" in stances:
