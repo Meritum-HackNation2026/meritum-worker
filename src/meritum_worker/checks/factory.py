@@ -60,6 +60,7 @@ def build_check_deps(
     llm = build_llm(settings)
     embeddings = build_embeddings(EmbeddingsSettings())
     catalog = load_catalog()
+    search = WebSearchSettings()
     return CheckDeps(
         llm=llm,
         records=app.records,
@@ -68,13 +69,14 @@ def build_check_deps(
         blobs=store,
         transcriber=build_transcriber(TranscriptionSettings(), store),
         notifications=app.notifications,
-        web_search=build_web_search(WebSearchSettings(), catalog),
+        web_search=build_web_search(search, catalog),
         injection=build_detector(llm, InjectionGateSettings()),
         catalog=catalog,
         corpus=build_corpus_search(CorpusSettings(), embeddings),
         reranker=build_reranker(),
         corpus_version=ResearchSettings().corpus_version,
         moderation=build_moderation_deps(app, embeddings, os.environ),
+        web_search_provider=search.provider.value,
     )
 
 

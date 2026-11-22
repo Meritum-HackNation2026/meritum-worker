@@ -146,3 +146,5 @@ EVAL_FILES_DIR_VAR: Final = "MERITUM_EVAL_FILES_DIR"
 
 DEFAULT_EVAL_FILES_DIR: Final = "evals/uploads"
 """Uploads directory without ``MERITUM_EVAL_FILES_DIR``, relative to the repo root."""
+COST_PER_CHECKS: Final = 1000
+"""meritum-cost prices this many checks: the README cost of 1,000 checks (US-OBS-02)."""

@@ -40,6 +40,7 @@ class CheckDeps:
         reranker: the gate passages pass before stance assessment (ADR-35).
         corpus_version: the snapshot checks search; NO_CORPUS_VERSION skips it.
         moderation: the ports of moderator cases; None skips the cases step.
+        web_search_provider: the web search provider, the key of WEB_SEARCH_PRICES.
 
     Features:
         US-SPR-01, US-SPR-02, US-SPR-04, US-SPR-07, US-SPR-11, US-OBS-01, US-OBS-07,
@@ -60,3 +61,4 @@ class CheckDeps:
     reranker: RerankerPort
     corpus_version: str
     moderation: ModerationDeps | None = None
+    web_search_provider: str = "stub"
