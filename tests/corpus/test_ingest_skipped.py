@@ -28,6 +28,10 @@ SKIPPED = {
     "www.sar.gov.pl": "https://www.sar.gov.pl/ratownictwo",
     "eur-lex.europa.eu": "https://eur-lex.europa.eu/eli/reg/2004/261/oj",
     "odyseusz.gov.pl": "https://odyseusz.gov.pl/rejestracja",
+    "www.gov.pl/web/gov/ostrzezenia": "https://www.gov.pl/web/gov/ostrzezenia",
+    "www.gov.pl/web/mswia/regionalny-system-ostrzegania": (
+        "https://www.gov.pl/web/mswia/regionalny-system-ostrzegania"
+    ),
 }
 
 
